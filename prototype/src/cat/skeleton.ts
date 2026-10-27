@@ -48,32 +48,32 @@ function boneDefs(): BoneDef[] {
   const tail = tailBonePoints();
   const defs: BoneDef[] = [
     { name: 'root', parent: null, pos: v(0, 0, 0) },
-    { name: 'hips', parent: 'root', pos: v(0, 0.52, -0.22) },
-    { name: 'spine', parent: 'hips', pos: v(0, 0.53, 0.05) },
-    { name: 'chest', parent: 'spine', pos: v(0, 0.55, 0.28) },
-    { name: 'neck', parent: 'chest', pos: v(0, 0.7, 0.4) },
-    { name: 'head', parent: 'neck', pos: v(0, 0.9, 0.52) },
+    { name: 'hips', parent: 'root', pos: v(0, 0.5, -0.22) },
+    { name: 'spine', parent: 'hips', pos: v(0, 0.51, 0.05) },
+    { name: 'chest', parent: 'spine', pos: v(0, 0.53, 0.28) },
+    { name: 'neck', parent: 'chest', pos: v(0, 0.68, 0.4) },
+    { name: 'head', parent: 'neck', pos: v(0, 0.89, 0.52) },
     { name: 'earL', parent: 'head', pos: earBase(1, NEUTRAL_SHAPE) },
     { name: 'earR', parent: 'head', pos: earBase(-1, NEUTRAL_SHAPE) },
   ];
   for (const [side, x] of [
-    ['L', 0.16],
-    ['R', -0.16],
+    ['L', 0.145],
+    ['R', -0.145],
   ] as const) {
     defs.push(
-      { name: `shoulder${side}`, parent: 'chest', pos: v(x, 0.45, 0.3) },
-      { name: `elbow${side}`, parent: `shoulder${side}`, pos: v(x, 0.25, 0.31) },
-      { name: `fpaw${side}`, parent: `elbow${side}`, pos: v(x, 0.1, 0.32) },
+      { name: `shoulder${side}`, parent: 'chest', pos: v(x, 0.44, 0.3) },
+      { name: `elbow${side}`, parent: `shoulder${side}`, pos: v(x, 0.24, 0.31) },
+      { name: `fpaw${side}`, parent: `elbow${side}`, pos: v(x, 0.09, 0.32) },
     );
   }
   for (const [side, x] of [
-    ['L', 0.17],
-    ['R', -0.17],
+    ['L', 0.155],
+    ['R', -0.155],
   ] as const) {
     defs.push(
-      { name: `hip${side}`, parent: 'hips', pos: v(x, 0.45, -0.24) },
-      { name: `knee${side}`, parent: `hip${side}`, pos: v(x, 0.25, -0.23) },
-      { name: `hpaw${side}`, parent: `knee${side}`, pos: v(x, 0.1, -0.22) },
+      { name: `hip${side}`, parent: 'hips', pos: v(x, 0.44, -0.23) },
+      { name: `knee${side}`, parent: `hip${side}`, pos: v(x, 0.23, -0.23) },
+      { name: `hpaw${side}`, parent: `knee${side}`, pos: v(x, 0.09, -0.22) },
     );
   }
   tail.forEach((p, i) => {

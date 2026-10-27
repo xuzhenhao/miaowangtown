@@ -44,25 +44,36 @@ interface Sample {
   part: PartDef;
   s: number;
   t: number;
+  px: number;
+  py: number;
   p: Vector3;
   n: Vector3;
+}
+
+/** 像素级毛流阶梯抖动（Pixel Fur Dithering）：让色块与虎斑边界呈现手绘像素毛簇感而非平滑几何切线 */
+function furDither(px: number, py: number): number {
+  const bayer = (((px & 1) << 1) | (py & 1)) / 3 - 0.5;
+  const tooth = (((px * 3 + py * 5) & 3) / 3 - 0.5) * 0.6;
+  return (bayer * 0.65 + tooth * 0.35) * 0.045;
 }
 
 function passFilter(f: MarkingFilter, x: Sample): boolean {
   if (f.parts && !f.parts.includes(x.part.name)) return false;
   const { p } = x;
-  if (f.minX !== undefined && p.x < f.minX) return false;
-  if (f.maxX !== undefined && p.x > f.maxX) return false;
-  if (f.minY !== undefined && p.y < f.minY) return false;
-  if (f.maxY !== undefined && p.y > f.maxY) return false;
-  if (f.minZ !== undefined && p.z < f.minZ) return false;
-  if (f.maxZ !== undefined && p.z > f.maxZ) return false;
+  const d = furDither(x.px, x.py) * 0.25;
+  if (f.minX !== undefined && p.x < f.minX + d) return false;
+  if (f.maxX !== undefined && p.x > f.maxX + d) return false;
+  if (f.minY !== undefined && p.y < f.minY + d) return false;
+  if (f.maxY !== undefined && p.y > f.maxY + d) return false;
+  if (f.minZ !== undefined && p.z < f.minZ + d) return false;
+  if (f.maxZ !== undefined && p.z > f.maxZ + d) return false;
   return true;
 }
 
 function hits(m: Marking, x: Sample): boolean {
   if (!passFilter(m, x)) return false;
-  const jitter = (m.noise ?? 0) * fbm(x.p, m.noiseScale ?? 9);
+  const dither = furDither(x.px, x.py);
+  const jitter = (m.noise ?? 0) * fbm(x.p, m.noiseScale ?? 9) + dither;
   switch (m.type) {
     case 'part':
       return true;
@@ -75,7 +86,11 @@ function hits(m: Marking, x: Sample): boolean {
     case 'underside':
       return x.n.y < (m.threshold ?? -0.35) + jitter;
     case 'stripes': {
-      const coord = x.p[m.axis] + jitter * 0.08;
+      let coord = x.p[m.axis] + jitter * 0.075;
+      // 躯干虎斑顺着肋骨自然向后下弯弧（复刻左图手绘虎斑走势）
+      if (x.part.name === 'body' && m.axis === 'z') {
+        coord -= (0.62 - x.p.y) * 0.22;
+      }
       const phase = Math.sin(coord * m.frequency * Math.PI * 2);
       return phase > 1 - 2 * m.width;
     }
@@ -85,7 +100,15 @@ function hits(m: Marking, x: Sample): boolean {
 function isInnerEar(x: Sample): boolean {
   if (x.part.name !== 'earL' && x.part.name !== 'earR') return false;
   const th = (x.s - 0.5) * Math.PI * 2;
-  return Math.abs(th) < 0.85 && x.t > 0.12 && x.t < 0.8;
+  return Math.abs(th) < 0.78 && x.t > 0.12 && x.t < 0.78;
+}
+
+/** 耳尖与外耳廓深色包边（凸显挺拔猫耳轮廓与粉色内耳对比） */
+function isEarRim(x: Sample): boolean {
+  if (x.part.name !== 'earL' && x.part.name !== 'earR') return false;
+  const th = (x.s - 0.5) * Math.PI * 2;
+  if (x.t >= 0.8) return true;
+  return Math.abs(th) >= 0.78 && Math.abs(th) <= 1.32 && x.t > 0.18;
 }
 
 function nearest(c: RGB, palette: RGB[]): RGB {
@@ -111,7 +134,12 @@ export function bakeCoat(dna: PetDNA, canvas: HTMLCanvasElement) {
   const markings = dna.coat.markings ?? [];
   const markRgb = markings.map((m) => hexToRgb(m.color));
   const innerEar = hexToRgb(dna.earInner ?? '#d9958f');
-  const sample: Sample = { part: PARTS[0], s: 0, t: 0, p: new Vector3(), n: new Vector3() };
+  const earRim: RGB = [
+    Math.max(24, Math.round(base[0] * 0.42)),
+    Math.max(18, Math.round(base[1] * 0.4)),
+    Math.max(14, Math.round(base[2] * 0.38)),
+  ];
+  const sample: Sample = { part: PARTS[0], s: 0, t: 0, px: 0, py: 0, p: new Vector3(), n: new Vector3() };
 
   for (let i = 0; i < img.data.length; i += 4) {
     img.data.set([...base, 255], i);
@@ -125,12 +153,15 @@ export function bakeCoat(dna: PetDNA, canvas: HTMLCanvasElement) {
         sample.part = part;
         sample.s = s;
         sample.t = t;
+        sample.px = px;
+        sample.py = py;
         part.pos(s, t, NEUTRAL_SHAPE, sample.p);
         partNormal(part, s, t, NEUTRAL_SHAPE, sample.n);
         let c: RGB = base;
         markings.forEach((m, mi) => {
           if (hits(m, sample)) c = markRgb[mi];
         });
+        if (isEarRim(sample)) c = earRim;
         if (isInnerEar(sample)) c = innerEar;
         img.data.set([...c, 255], (py * ATLAS_SIZE + px) * 4);
       }

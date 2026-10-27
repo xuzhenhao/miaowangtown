@@ -4,13 +4,13 @@ import {
   Color,
   CylinderGeometry,
   DirectionalLight,
+  DoubleSide,
   Group,
   HemisphereLight,
-  IcosahedronGeometry,
+  LinearFilter,
   Mesh,
   MeshBasicMaterial,
-  MeshToonMaterial,
-  NearestFilter,
+  MeshStandardMaterial,
   PlaneGeometry,
   PointLight,
   RepeatWrapping,
@@ -35,11 +35,11 @@ function rand(seed: number) {
   };
 }
 
-function pixelTex(canvas: HTMLCanvasElement, repeatX = 1, repeatY = 1): CanvasTexture {
+function hdTex(canvas: HTMLCanvasElement, repeatX = 1, repeatY = 1): CanvasTexture {
   const tex = new CanvasTexture(canvas);
-  tex.magFilter = NearestFilter;
-  tex.minFilter = NearestFilter;
-  tex.generateMipmaps = false;
+  tex.magFilter = LinearFilter;
+  tex.minFilter = LinearFilter;
+  tex.generateMipmaps = true;
   tex.colorSpace = SRGBColorSpace;
   if (repeatX > 1 || repeatY > 1) {
     tex.wrapS = RepeatWrapping;
@@ -49,9 +49,9 @@ function pixelTex(canvas: HTMLCanvasElement, repeatX = 1, repeatY = 1): CanvasTe
   return tex;
 }
 
-/** 古镇青石板街面贴图（含石板砖缝、河岸青苔、桥头石阶与暖色落叶点缀） */
+/** 古镇高清青石板街面贴图（对标左图沉稳暖暗青灰石板 + 深色砖缝 + 局部暖光受光感） */
 function makeCobbleStreetTexture(): CanvasTexture {
-  const size = 512;
+  const size = 1024;
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = size;
   const ctx = canvas.getContext('2d')!;
@@ -59,17 +59,16 @@ function makeCobbleStreetTexture(): CanvasTexture {
   const r = rand(42);
 
   const slates = [
-    [116, 114, 106],
-    [104, 103, 96],
-    [126, 122, 112],
-    [94, 94, 88],
-    [134, 128, 116],
+    [82, 78, 72],
+    [74, 71, 66],
+    [90, 85, 78],
+    [68, 66, 61],
+    [96, 90, 82],
   ];
-  const mortar = [58, 56, 52];
+  const mortar = [36, 33, 30];
   const moss = [
-    [76, 102, 64],
-    [64, 88, 54],
-    [92, 116, 74],
+    [54, 72, 46],
+    [46, 62, 40],
   ];
 
   const toWorld = (px: number) => (px / size) * GROUND - GROUND / 2;
@@ -80,64 +79,49 @@ function makeCobbleStreetTexture(): CanvasTexture {
       const wz = toWorld(y);
       const n = r();
 
-      // 错缝青石板网格
-      const row = Math.floor((wz + 11) * 3.2);
-      const colOffset = (row & 1) * 0.45;
-      const gx = (wx + 11) * 2.2 + colOffset;
-      const gz = (wz + 11) * 3.2;
+      // 错缝青石板网格（高密度细腻石砖）
+      const row = Math.floor((wz + 11) * 4.8);
+      const colOffset = (row & 1) * 0.48;
+      const gx = (wx + 11) * 3.4 + colOffset;
+      const gz = (wz + 11) * 4.8;
       const fx = gx - Math.floor(gx);
       const fz = gz - Math.floor(gz);
       const cellHash = ((Math.floor(gx) * 73856093) ^ (Math.floor(gz) * 19349663)) >>> 0;
 
       let c = slates[cellHash % slates.length];
-      // 砖块内部颗粒微差
-      const grain = (n - 0.5) * 12;
+      const grain = (n - 0.5) * 10;
       c = [
         Math.max(0, Math.min(255, Math.round(c[0] + grain))),
         Math.max(0, Math.min(255, Math.round(c[1] + grain))),
         Math.max(0, Math.min(255, Math.round(c[2] + grain))),
       ];
 
-      // 砖缝与高光倒角
-      const isJoint = fx < 0.07 || fz < 0.08;
-      const isBevel = !isJoint && (fx < 0.13 || fz < 0.14);
+      // 细腻深色砖缝与微高光倒角
+      const isJoint = fx < 0.065 || fz < 0.075;
+      const isBevel = !isJoint && (fx < 0.12 || fz < 0.13);
       if (isJoint) {
         c = mortar;
       } else if (isBevel) {
-        c = [Math.min(255, c[0] + 14), Math.min(255, c[1] + 13), Math.min(255, c[2] + 10)];
+        c = [Math.min(255, c[0] + 10), Math.min(255, c[1] + 9), Math.min(255, c[2] + 7)];
       }
 
-      // 河岸边缘与建筑墙根青苔渗透
-      const canalDist = Math.abs(Math.abs(wx) - 1.55);
-      if ((canalDist < 0.48 && isJoint) || (canalDist < 0.28 && n < 0.42)) {
+      // 河岸边缘青苔微渗
+      const canalDist = Math.abs(Math.abs(wx) - 1.5);
+      if ((canalDist < 0.35 && isJoint) || (canalDist < 0.18 && n < 0.35)) {
         c = moss[cellHash % moss.length];
-      }
-      if (Math.abs(wx) > 5.2 && n < 0.35) {
-        c = moss[(cellHash + 1) % moss.length];
-      }
-
-      // 客栈门前与桥头广场暖色石板铺装
-      const bridgePlaza = Math.hypot(wx * 0.7, wz - 0.35);
-      if (bridgePlaza < 2.9 && !isJoint) {
-        c = [Math.min(255, c[0] + 12), Math.min(255, c[1] + 9), Math.min(255, c[2] + 4)];
-      }
-
-      // 零星花瓣与暖秋落叶点缀
-      if (n > 0.9965 && Math.abs(wx) > 1.6) {
-        c = n > 0.9982 ? [242, 182, 192] : [228, 174, 96];
       }
 
       img.data.set([c[0], c[1], c[2], 255], (y * size + x) * 4);
     }
   }
   ctx.putImageData(img, 0, 0);
-  return pixelTex(canvas);
+  return hdTex(canvas);
 }
 
-/** 桥面与石阶精细青石条纹贴图 */
+/** 石桥桥面与阶梯温润暖灰条石贴图 */
 function makeBridgeDeckTexture(): CanvasTexture {
-  const w = 128;
-  const h = 128;
+  const w = 256;
+  const h = 256;
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
@@ -146,33 +130,32 @@ function makeBridgeDeckTexture(): CanvasTexture {
 
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
-      const slabX = Math.floor(x / 8);
-      const slabY = Math.floor((y + (slabX & 1) * 10) / 16);
+      const slabX = Math.floor(x / 16);
+      const slabY = Math.floor((y + (slabX & 1) * 20) / 32);
       const hash = ((slabX * 31) ^ (slabY * 17)) & 3;
       const base = [
-        [142, 138, 126],
-        [130, 126, 115],
-        [150, 145, 132],
-        [122, 119, 109],
+        [124, 114, 100],
+        [114, 105, 92],
+        [132, 121, 106],
+        [108, 99, 87],
       ][hash];
-      const joint = x % 8 === 0 || (y + (slabX & 1) * 10) % 16 === 0;
-      const edgeMoss = (y < 14 || y > h - 15) && (joint || r() < 0.38);
-      const centerWear = Math.abs(y - h / 2) < 34 ? 10 : 0;
-      const noise = Math.round((r() - 0.5) * 10);
-      let c = [base[0] + centerWear + noise, base[1] + centerWear + noise, base[2] + centerWear + noise];
-      if (joint) c = [64, 62, 56];
-      if (edgeMoss) c = [78, 104, 66];
+      const joint = x % 16 < 2 || (y + (slabX & 1) * 20) % 32 < 2;
+      const bevel = !joint && (x % 16 === 2 || (y + (slabX & 1) * 20) % 32 === 2);
+      const noise = Math.round((r() - 0.5) * 8);
+      let c = [base[0] + noise, base[1] + noise, base[2] + noise];
+      if (joint) c = [48, 44, 39];
+      else if (bevel) c = [c[0] + 12, c[1] + 11, c[2] + 9];
       ctx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
       ctx.fillRect(x, y, 1, 1);
     }
   }
-  return pixelTex(canvas);
+  return hdTex(canvas);
 }
 
 /** 河道石砌驳岸与拱桥石壁贴图 */
 function makeStoneWallTexture(): CanvasTexture {
-  const w = 128;
-  const h = 64;
+  const w = 256;
+  const h = 128;
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
@@ -180,34 +163,33 @@ function makeStoneWallTexture(): CanvasTexture {
   const r = rand(77);
 
   for (let y = 0; y < h; y++) {
-    const row = Math.floor(y / 10);
+    const row = Math.floor(y / 16);
     for (let x = 0; x < w; x++) {
-      const bx = (x + (row & 1) * 9) % 18;
-      const by = y % 10;
-      const isJoint = bx === 0 || by === 0;
-      const n = Math.round((r() - 0.5) * 12);
-      let c = isJoint ? [48, 50, 46] : [112 + n, 110 + n, 102 + n];
-      if (!isJoint && by === 1) c = [132 + n, 128 + n, 118 + n];
-      // 底部临水青苔暗化
-      if (y > h - 18) {
-        const m = (y - (h - 18)) / 18;
+      const bx = (x + (row & 1) * 18) % 36;
+      const by = y % 16;
+      const isJoint = bx < 2 || by < 2;
+      const n = Math.round((r() - 0.5) * 10);
+      let c = isJoint ? [42, 40, 36] : [102 + n, 96 + n, 86 + n];
+      if (!isJoint && by === 2) c = [118 + n, 111 + n, 100 + n];
+      if (y > h - 28) {
+        const m = (y - (h - 28)) / 28;
         c = [
-          Math.round(c[0] * (1 - m * 0.45) + 38 * m),
-          Math.round(c[1] * (1 - m * 0.3) + 68 * m),
-          Math.round(c[2] * (1 - m * 0.45) + 44 * m),
+          Math.round(c[0] * (1 - m * 0.45) + 34 * m),
+          Math.round(c[1] * (1 - m * 0.3) + 58 * m),
+          Math.round(c[2] * (1 - m * 0.45) + 38 * m),
         ];
       }
       ctx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
       ctx.fillRect(x, y, 1, 1);
     }
   }
-  return pixelTex(canvas, 3, 1);
+  return hdTex(canvas, 2, 1);
 }
 
-/** 黛瓦屋顶像素贴图 */
+/** 黛瓦屋顶贴图 */
 function makeRoofTileTexture(): CanvasTexture {
-  const w = 64;
-  const h = 64;
+  const w = 128;
+  const h = 128;
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
@@ -215,23 +197,23 @@ function makeRoofTileTexture(): CanvasTexture {
   const r = rand(99);
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
-      const ridge = x % 6;
-      const tileRow = y % 8;
-      const n = Math.round((r() - 0.5) * 8);
-      let c = ridge === 0 ? [34, 40, 48] : ridge <= 2 ? [62 + n, 70 + n, 80 + n] : [46 + n, 53 + n, 62 + n];
-      if (tileRow === 0) c = [28, 33, 40];
-      else if (tileRow === 1 && ridge > 0) c = [76 + n, 84 + n, 94 + n];
+      const ridge = x % 8;
+      const tileRow = y % 10;
+      const n = Math.round((r() - 0.5) * 6);
+      let c = ridge === 0 ? [32, 36, 42] : ridge <= 3 ? [54 + n, 60 + n, 68 + n] : [42 + n, 47 + n, 54 + n];
+      if (tileRow === 0) c = [24, 28, 34];
+      else if (tileRow === 1 && ridge > 0) c = [66 + n, 72 + n, 80 + n];
       ctx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
       ctx.fillRect(x, y, 1, 1);
     }
   }
-  return pixelTex(canvas, 2, 2);
+  return hdTex(canvas, 2, 2);
 }
 
-/** 古建白墙与深木梁柱贴图 */
-function makeTimberWallTexture(): CanvasTexture {
-  const w = 64;
-  const h = 64;
+/** 深胡桃木与暖褐木构墙面贴图（还原左图沉稳古建木色） */
+function makeDarkTimberWallTexture(): CanvasTexture {
+  const w = 128;
+  const h = 128;
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
@@ -239,75 +221,177 @@ function makeTimberWallTexture(): CanvasTexture {
   const r = rand(123);
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
-      const n = Math.round((r() - 0.5) * 8);
-      const isFrame = x < 5 || x >= w - 5 || y < 5 || y >= h - 5 || (y > 42 && y < 46);
-      const isSkirt = y >= 46;
-      let c = [226 + n, 214 + n, 192 + n];
+      const n = Math.round((r() - 0.5) * 6);
+      const isFrame = x < 8 || x >= w - 8 || y < 8 || y >= h - 8 || (y > 68 && y < 74);
+      const plank = x % 8 === 0;
+      let c = [76 + n, 54 + n, 38 + n];
       if (isFrame) {
-        c = [66 + n, 44 + n, 31 + n];
-      } else if (isSkirt) {
-        c = x % 4 === 0 ? [54, 36, 25] : [86 + n, 58 + n, 40 + n];
+        c = [46 + n, 31 + n, 21 + n];
+      } else if (plank) {
+        c = [58 + n, 40 + n, 28 + n];
       }
       ctx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
       ctx.fillRect(x, y, 1, 1);
     }
   }
-  return pixelTex(canvas, 2, 1);
+  return hdTex(canvas, 2, 1);
+}
+
+/** 左图同款：客栈正门三联深蓝布门帘（Noren，中央饰白色圆徽） */
+function makeIndigoNorenTexture(): CanvasTexture {
+  const w = 192;
+  const h = 96;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d')!;
+  const r = rand(305);
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      // 三联分缝（x=64, x=128 处留出垂直微缝）
+      const slit = (Math.abs(x - 64) <= 2 || Math.abs(x - 128) <= 2) && y > 14;
+      if (slit) {
+        ctx.fillStyle = '#140e0a';
+        ctx.fillRect(x, y, 1, 1);
+        continue;
+      }
+      // 布料自然垂褶与织物纹理
+      const panelX = (x % 64) / 64;
+      const fold = Math.sin(panelX * Math.PI * 2) * 8;
+      const weave = ((x + y) & 1) * 3 + (r() - 0.5) * 4;
+      const topShadow = y < 10 ? -12 : 0;
+      const cr = Math.max(18, Math.min(85, Math.round(32 + fold * 0.6 + weave + topShadow)));
+      const cg = Math.max(30, Math.min(115, Math.round(52 + fold * 0.8 + weave + topShadow)));
+      const cb = Math.max(58, Math.min(165, Math.round(98 + fold * 1.1 + weave + topShadow)));
+      ctx.fillStyle = `rgb(${cr},${cg},${cb})`;
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }
+
+  // 中央联绘制左图标志性的白色古风圆徽纹章
+  const cx = 96;
+  const cy = 50;
+  ctx.strokeStyle = '#d8e0ec';
+  ctx.lineWidth = 3.2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 20, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.lineWidth = 2.0;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 13, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // 圆徽内部古风篆纹/花瓣纹
+  for (let a = 0; a < 4; a++) {
+    const ang = (a * Math.PI) / 2;
+    const px = cx + Math.cos(ang) * 7;
+    const py = cy + Math.sin(ang) * 7;
+    ctx.beginPath();
+    ctx.arc(px, py, 4.5, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#d8e0ec';
+  ctx.fillRect(cx - 8, cy - 1.5, 16, 3);
+  ctx.fillRect(cx - 1.5, cy - 8, 3, 16);
+
+  return hdTex(canvas);
+}
+
+/** 左图同款：客栈深木色格栅拉门贴图 */
+function makeLatticeDoorTexture(): CanvasTexture {
+  const w = 128;
+  const h = 160;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = '#241810';
+  ctx.fillRect(0, 0, w, h);
+
+  // 左右两扇门框
+  for (let leaf = 0; leaf < 2; leaf++) {
+    const lx = leaf * 64;
+    ctx.fillStyle = '#483020';
+    ctx.fillRect(lx + 2, 2, 60, h - 4);
+    // 上半部木格窗芯（暖暗内透）
+    ctx.fillStyle = '#362417';
+    ctx.fillRect(lx + 7, 10, 50, 86);
+    // 细木格栅条
+    ctx.fillStyle = '#5c3d28';
+    for (let gx = 7; gx <= 57; gx += 10) {
+      ctx.fillRect(lx + gx, 10, 2, 86);
+    }
+    for (let gy = 10; gy <= 96; gy += 12) {
+      ctx.fillRect(lx + 7, gy, 50, 2);
+    }
+    // 腰板与下半部裙板
+    ctx.fillStyle = '#563925';
+    ctx.fillRect(lx + 6, 100, 52, 14);
+    ctx.fillStyle = '#3c2719';
+    ctx.fillRect(lx + 7, 118, 50, 34);
+    for (let px = 12; px < 55; px += 8) {
+      ctx.fillStyle = '#2d1d12';
+      ctx.fillRect(lx + px, 118, 1, 34);
+    }
+  }
+  return hdTex(canvas);
 }
 
 /** 暖黄透光雕花木窗贴图 */
 function makeGlowingWindowTexture(): CanvasTexture {
-  const w = 32;
-  const h = 32;
+  const w = 64;
+  const h = 64;
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext('2d')!;
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
-      const border = x < 3 || x >= w - 3 || y < 3 || y >= h - 3;
-      const lattice = x === 15 || x === 16 || y === 15 || y === 16 || x % 8 === 0 || y % 8 === 0;
+      const border = x < 5 || x >= w - 5 || y < 5 || y >= h - 5;
+      const lattice = Math.abs(x - 32) <= 1 || Math.abs(y - 32) <= 1 || x % 12 === 0 || y % 12 === 0;
       if (border || lattice) {
-        ctx.fillStyle = '#3b2418';
+        ctx.fillStyle = '#2e1c12';
       } else {
-        const dist = Math.hypot(x - 16, y - 16) / 18;
-        const g = Math.round(215 - dist * 38);
-        const b = Math.round(125 - dist * 45);
-        ctx.fillStyle = `rgb(255,${g},${b})`;
+        const dist = Math.hypot(x - 32, y - 32) / 36;
+        const g = Math.round(196 - dist * 42);
+        const b = Math.round(108 - dist * 45);
+        ctx.fillStyle = `rgb(245,${g},${b})`;
       }
       ctx.fillRect(x, y, 1, 1);
     }
   }
-  return pixelTex(canvas);
+  return hdTex(canvas);
 }
 
-/** 客栈门前蓝布招幌贴图 */
-function makeBannerTexture(): CanvasTexture {
-  const w = 32;
-  const h = 64;
+/** 左图右侧木格陈列橱窗贴图 */
+function makeShopShelfWindowTexture(): CanvasTexture {
+  const w = 96;
+  const h = 96;
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext('2d')!;
-  ctx.fillStyle = '#2b4c73';
+  ctx.fillStyle = '#1c130d';
   ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = '#e8dcc4';
-  ctx.fillRect(2, 2, w - 4, h - 4);
-  ctx.fillStyle = '#335a86';
-  ctx.fillRect(4, 4, w - 8, h - 8);
-  // 中心菱形暖白底与古风纹理
-  ctx.fillStyle = '#f2e8d4';
-  for (let y = 16; y < 48; y++) {
-    const span = 12 - Math.abs(y - 32) * 0.65;
-    for (let x = 0; x < w; x++) {
-      if (Math.abs(x - 16) < span) ctx.fillRect(x, y, 1, 1);
+  ctx.strokeStyle = '#4e3524';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(2, 2, w - 4, h - 4);
+  // 多宝格层板与小器皿剪影
+  for (let row = 1; row <= 4; row++) {
+    const y = row * 19;
+    ctx.fillStyle = '#4a3222';
+    ctx.fillRect(4, y, w - 8, 3);
+    for (let col = 1; col <= 4; col++) {
+      const x = col * 19;
+      ctx.fillRect(x, 4, 2, h - 8);
+      ctx.fillStyle = (row + col) & 1 ? '#6e5239' : '#58422f';
+      ctx.fillRect(x - 11, y - 9, 7, 8);
+      ctx.fillStyle = '#4a3222';
     }
   }
-  ctx.fillStyle = '#274466';
-  ctx.fillRect(14, 24, 4, 16);
-  ctx.fillRect(11, 28, 10, 3);
-  ctx.fillRect(11, 34, 10, 3);
-  return pixelTex(canvas);
+  return hdTex(canvas);
 }
 
 /** 街市摊位条纹布篷贴图 */
@@ -321,41 +405,27 @@ function makeAwningTexture(): CanvasTexture {
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const stripe = Math.floor(x / 8) & 1;
-      ctx.fillStyle = stripe ? '#dfd1b4' : '#b85c44';
-      if (y > h - 5) ctx.fillStyle = '#8c4230';
+      ctx.fillStyle = stripe ? '#c8baa0' : '#964a36';
+      if (y > h - 5) ctx.fillStyle = '#6e3426';
       ctx.fillRect(x, y, 1, 1);
     }
   }
-  return pixelTex(canvas);
+  return hdTex(canvas);
 }
 
-/** 猫咪脚下柔和深暖褐像素接地阴影贴图（解决浮空感，不写深度不触发描边） */
+/** 猫咪脚下柔和接地软阴影贴图 */
 function makeContactShadowTexture(): CanvasTexture {
-  const size = 64;
+  const size = 128;
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = size;
   const ctx = canvas.getContext('2d')!;
-  const img = ctx.createImageData(size, size);
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      const nx = (x - size / 2 + 0.5) / (size / 2);
-      const ny = (y - size / 2 + 0.5) / (size / 2);
-      const d = Math.hypot(nx, ny);
-      // 柔和分阶像素软阴影
-      let alpha = 0;
-      if (d < 0.38) alpha = 0.54;
-      else if (d < 0.62) alpha = 0.36;
-      else if (d < 0.82) alpha = 0.18;
-      else if (d < 0.96) alpha = 0.07;
-      const idx = (y * size + x) * 4;
-      img.data[idx] = 26;
-      img.data[idx + 1] = 16;
-      img.data[idx + 2] = 12;
-      img.data[idx + 3] = Math.round(alpha * 255);
-    }
-  }
-  ctx.putImageData(img, 0, 0);
-  return pixelTex(canvas);
+  const grad = ctx.createRadialGradient(size / 2, size / 2, size * 0.08, size / 2, size / 2, size * 0.48);
+  grad.addColorStop(0, 'rgba(18, 12, 8, 0.52)');
+  grad.addColorStop(0.55, 'rgba(18, 12, 8, 0.28)');
+  grad.addColorStop(1, 'rgba(18, 12, 8, 0.0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, size, size);
+  return hdTex(canvas);
 }
 
 export interface Obstacle {
@@ -369,57 +439,59 @@ export class Town implements WorldNav {
   readonly sun: DirectionalLight;
   readonly obstacles: Obstacle[] = [];
   readonly contactShadow: Mesh;
-  private toon: (hex: string, map?: Texture) => MeshToonMaterial;
+  private std: (hex: string, map?: Texture, roughness?: number) => MeshStandardMaterial;
   private waterCanvas: HTMLCanvasElement;
   private waterTex: CanvasTexture;
   private waterTime = 0;
-  private wallMat: MeshToonMaterial;
-  private roofMat: MeshToonMaterial;
-  private timberWallMat: MeshToonMaterial;
-  private bridgeDeckMat: MeshToonMaterial;
+  private wallMat: MeshStandardMaterial;
+  private roofMat: MeshStandardMaterial;
+  private timberWallMat: MeshStandardMaterial;
+  private bridgeDeckMat: MeshStandardMaterial;
   private windowMat: MeshBasicMaterial;
   private lanternLights: PointLight[] = [];
 
-  constructor(gradientMap: Texture) {
-    // 暮色暖金深邃背景色（配合四角暗角与暖阳，贴合 HD-2D 氛围）
-    this.scene.background = new Color('#26323c');
-    this.toon = (hex, map) => new MeshToonMaterial({ color: hex, map, gradientMap });
+  constructor(_gradientMap: Texture) {
+    // 江南古镇暮色暖暗背景
+    this.scene.background = new Color('#211d1a');
+    this.std = (hex, map, roughness = 0.86) =>
+      new MeshStandardMaterial({ color: hex, map, roughness, metalness: 0.04 });
 
-    this.wallMat = new MeshToonMaterial({ color: '#d8d2c5', map: makeStoneWallTexture(), gradientMap });
-    this.roofMat = new MeshToonMaterial({ color: '#c8d0d8', map: makeRoofTileTexture(), gradientMap });
-    this.timberWallMat = new MeshToonMaterial({ color: '#fff8ec', map: makeTimberWallTexture(), gradientMap });
-    this.bridgeDeckMat = new MeshToonMaterial({ color: '#e6e0d2', map: makeBridgeDeckTexture(), gradientMap });
+    this.wallMat = this.std('#b8b0a2', makeStoneWallTexture(), 0.88);
+    this.roofMat = this.std('#9ca4ae', makeRoofTileTexture(), 0.78);
+    this.timberWallMat = this.std('#d8c8b4', makeDarkTimberWallTexture(), 0.82);
+    this.bridgeDeckMat = this.std('#d2c8b8', makeBridgeDeckTexture(), 0.85);
     this.windowMat = new MeshBasicMaterial({ map: makeGlowingWindowTexture() });
 
-    // 1. 戏剧性斜射暖阳 + 冷暖对比天光（右上斜射拉出修长街景与石桥投影）
-    this.scene.add(new HemisphereLight('#ffe6be', '#3e3a4c', 0.88));
-    this.sun = new DirectionalLight('#ffdf9e', 3.15);
-    this.sun.position.set(6.8, 8.6, 4.8);
+    // 1. 电影感斜向暖阳 + 温润天光（复刻左图沉稳石板暗部与暖黄灯笼光感）
+    this.scene.add(new HemisphereLight('#ffdca8', '#383432', 0.95));
+    this.sun = new DirectionalLight('#ffdf9e', 2.45);
+    this.sun.position.set(5.6, 8.2, 5.2);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(2048, 2048);
+    this.sun.shadow.radius = 2.2;
     const sc = this.sun.shadow.camera;
     sc.left = sc.bottom = -10.5;
     sc.right = sc.top = 10.5;
     sc.near = 1;
     sc.far = 34;
-    this.sun.shadow.bias = -0.0006;
+    this.sun.shadow.bias = -0.0005;
     this.scene.add(this.sun, this.sun.target);
 
-    // 2. 纵向穿城水道（x ∈ [-1.45, 1.45]）与两岸青石板街面
+    // 2. 纵向穿城水道与两岸高清青石板街面
     this.waterCanvas = document.createElement('canvas');
-    this.waterCanvas.width = 96;
+    this.waterCanvas.width = 128;
     this.waterCanvas.height = 256;
-    this.waterTex = pixelTex(this.waterCanvas);
+    this.waterTex = hdTex(this.waterCanvas);
     this.drawWaterCanvas(0);
 
-    this.buildCanalAndBanks(gradientMap);
+    this.buildCanalAndBanks();
     this.buildArchedStoneBridge();
-    this.buildRightSideInn();
+    this.buildReferenceInnCourtyard();
     this.buildLeftSideMarketAndCourtyard();
     this.buildGreeneryAndProps();
 
-    // 3. 猫咪脚下接地软阴影贴片（跟随猫咪位置与姿态缩放）
-    const shadowGeo = new PlaneGeometry(0.95, 1.18);
+    // 3. 猫咪脚下柔和接地软阴影
+    const shadowGeo = new PlaneGeometry(0.86, 1.05);
     shadowGeo.rotateX(-Math.PI / 2);
     this.contactShadow = new Mesh(
       shadowGeo,
@@ -431,12 +503,12 @@ export class Town implements WorldNav {
         polygonOffsetFactor: -1,
       }),
     );
-    this.contactShadow.position.set(0, 0.008, 0.35);
+    this.contactShadow.position.set(0, 0.006, 0.35);
     this.contactShadow.renderOrder = 1;
     this.scene.add(this.contactShadow);
   }
 
-  /** 根据世界坐标 (x, z) 计算可行走表面高度（石拱桥中心 y=0.0，向两岸缓坡过渡至 y=-0.12） */
+  /** 根据世界坐标 (x, z) 计算可行走表面高度（石拱桥中心 y=0.0，向两岸台阶过渡至 y=-0.12） */
   heightAt(x: number, z: number): number {
     if (z >= -0.78 && z <= 1.48 && Math.abs(x) <= 1.85) {
       const t = Math.min(1, Math.abs(x) / 1.85);
@@ -451,27 +523,26 @@ export class Town implements WorldNav {
     this.drawWaterCanvas(this.waterTime);
     this.waterTex.needsUpdate = true;
 
-    // 灯笼微光呼吸感
     this.lanternLights.forEach((l, i) => {
-      l.intensity = 1.9 + Math.sin(this.waterTime * 3.2 + i * 1.3) * 0.2;
+      l.intensity = 2.2 + Math.sin(this.waterTime * 3.0 + i * 1.3) * 0.16;
     });
 
     if (catPos) {
       const groundY = this.heightAt(catPos.x, catPos.z);
       catPos.y = groundY;
-      this.contactShadow.position.set(catPos.x, groundY + 0.008, catPos.z);
+      this.contactShadow.position.set(catPos.x, groundY + 0.006, catPos.z);
       this.contactShadow.rotation.y = catHeading;
       if (catState === 'sit') {
-        this.contactShadow.scale.set(0.82, 1, 0.78);
+        this.contactShadow.scale.set(0.8, 1, 0.76);
       } else if (catState === 'belly' || catState === 'loaf') {
-        this.contactShadow.scale.set(1.06, 1, 1.05);
+        this.contactShadow.scale.set(1.02, 1, 1.02);
       } else {
-        this.contactShadow.scale.set(0.88, 1, 1.04);
+        this.contactShadow.scale.set(0.85, 1, 1.0);
       }
     }
   }
 
-  /** 绘制动态像素波光水面（翡翠冷调水底 + 岸边屋影 + 红灯笼暖金倒影 + 粼粼波光与落花） */
+  /** 绘制动态碧绿波光水面 */
   private drawWaterCanvas(t: number) {
     const w = this.waterCanvas.width;
     const h = this.waterCanvas.height;
@@ -481,73 +552,53 @@ export class Town implements WorldNav {
     for (let y = 0; y < h; y++) {
       const wz = (y / h) * GROUND - GROUND / 2;
       for (let x = 0; x < w; x++) {
-        const wx = ((x / w) - 0.5) * 2.9;
+        const wx = (x / w - 0.5) * 2.9;
         const bankDist = 1.45 - Math.abs(wx);
 
-        // 基础翡翠碧水色阶
-        let r = 34;
-        let g = 74;
-        let b = 68;
+        let r = 32;
+        let g = 68;
+        let b = 60;
 
-        // 河岸石壁暗部倒影
         if (bankDist < 0.35) {
-          r = 22;
-          g = 48;
-          b = 46;
+          r = 20;
+          g = 44;
+          b = 40;
         } else if (bankDist < 0.65) {
-          r = 28;
-          g = 62;
-          b = 58;
+          r = 26;
+          g = 56;
+          b = 50;
         }
 
-        // 中央青石拱桥桥洞深色投影（wz ∈ [-0.85, 1.55]）
         const underBridge = wz > -0.88 && wz < 1.58;
         if (underBridge) {
-          r = Math.round(r * 0.52);
-          g = Math.round(g * 0.55);
-          b = Math.round(b * 0.58);
+          r = Math.round(r * 0.5);
+          g = Math.round(g * 0.52);
+          b = Math.round(b * 0.54);
         }
 
-        // 右侧客栈红灯笼在水面的暖金橘色波纹倒影
-        if (wx > 0.25 && !underBridge && Math.abs(wz + 0.5) < 4.2) {
-          const waveX = Math.sin(y * 0.55 + t * 4.2) * 0.14;
-          const lanternGlow = Math.max(0, 1 - Math.abs(wx - (0.88 + waveX)) * 2.6);
-          const band = (Math.sin(y * 0.85 - t * 3.0) + 1) * 0.5;
-          const k = lanternGlow * (0.35 + 0.45 * band);
-          r = Math.min(255, Math.round(r + 185 * k));
-          g = Math.min(255, Math.round(g + 96 * k));
+        if (wx > 0.2 && !underBridge && Math.abs(wz - 0.2) < 4.5) {
+          const waveX = Math.sin(y * 0.55 + t * 4.0) * 0.14;
+          const lanternGlow = Math.max(0, 1 - Math.abs(wx - (0.88 + waveX)) * 2.5);
+          const band = (Math.sin(y * 0.85 - t * 2.8) + 1) * 0.5;
+          const k = lanternGlow * (0.3 + 0.4 * band);
+          r = Math.min(255, Math.round(r + 170 * k));
+          g = Math.min(255, Math.round(g + 92 * k));
           b = Math.min(255, Math.round(b + 24 * k));
         }
 
-        // 动态像素波纹与阳光碎金高光（八方旅人标志性水面闪烁颗粒）
-        if (!underBridge && bankDist > 0.2) {
-          const wave1 = Math.sin(x * 0.48 + y * 0.32 - t * 2.8);
-          const wave2 = Math.cos(x * 0.35 - y * 0.52 + t * 2.1);
+        if (!underBridge && bankDist > 0.16) {
+          const wave1 = Math.sin(x * 0.45 + y * 0.32 - t * 2.6);
+          const wave2 = Math.cos(x * 0.35 - y * 0.5 + t * 2.0);
           const ripple = wave1 * wave2;
-          if (ripple > 0.72 && (y % 3 === 0)) {
-            // 暖金阳光波峰高光
-            r = 232;
-            g = 226;
-            b = 178;
-          } else if (ripple > 0.46 && (y % 2 === 0)) {
-            // 浅翠水波纹理
-            r = Math.min(255, r + 46);
-            g = Math.min(255, g + 68);
-            b = Math.min(255, b + 54);
+          if (ripple > 0.7) {
+            r = 224;
+            g = 218;
+            b = 172;
+          } else if (ripple > 0.42) {
+            r = Math.min(255, r + 42);
+            g = Math.min(255, g + 62);
+            b = Math.min(255, b + 48);
           }
-        }
-
-        // 缓慢漂流的花瓣与浮萍
-        const driftY = (y - Math.floor(t * 6) + h * 10) % h;
-        const petalHash = ((x * 37 + driftY * 91) ^ (driftY * 13)) % 997;
-        if (!underBridge && bankDist > 0.3 && petalHash === 1) {
-          r = 246;
-          g = 186;
-          b = 198;
-        } else if (!underBridge && bankDist < 0.45 && petalHash === 2) {
-          r = 78;
-          g = 128;
-          b = 76;
         }
 
         const idx = (y * w + x) * 4;
@@ -561,7 +612,7 @@ export class Town implements WorldNav {
   }
 
   private add(geo: BufferGeometry, hexOrMat: string | Material, x: number, y: number, z: number) {
-    const mat = typeof hexOrMat === 'string' ? this.toon(hexOrMat) : hexOrMat;
+    const mat = typeof hexOrMat === 'string' ? this.std(hexOrMat) : hexOrMat;
     const m = new Mesh(geo, mat);
     m.position.set(x, y, z);
     m.castShadow = true;
@@ -570,11 +621,10 @@ export class Town implements WorldNav {
     return m;
   }
 
-  /** 建造纵向穿城河道、动态水面、两岸青石板长街、亲水石阶与石栏杆 */
-  private buildCanalAndBanks(gradientMap: Texture) {
-    const cobbleMat = new MeshToonMaterial({ map: makeCobbleStreetTexture(), gradientMap });
+  /** 建造纵向穿城河道与两岸高清青石板长街 */
+  private buildCanalAndBanks() {
+    const cobbleMat = this.std('#d8d2c8', makeCobbleStreetTexture(), 0.88);
 
-    // 左岸与右岸青石板街道地面（y = -0.12，中间留出 x ∈ [-1.45, 1.45] 的河道）
     const bankW = (GROUND - 2.9) / 2;
     const leftBank = new Mesh(new PlaneGeometry(bankW, GROUND), cobbleMat);
     leftBank.rotation.x = -Math.PI / 2;
@@ -588,69 +638,50 @@ export class Town implements WorldNav {
     rightBank.receiveShadow = true;
     this.scene.add(rightBank);
 
-    // 河床暗石底与动态波光水面（y = -0.44）
-    const waterMesh = new Mesh(
-      new PlaneGeometry(2.96, GROUND),
-      new MeshToonMaterial({ map: this.waterTex, gradientMap }),
-    );
+    const waterMesh = new Mesh(new PlaneGeometry(2.96, GROUND), this.std('#ffffff', this.waterTex, 0.35));
     waterMesh.rotation.x = -Math.PI / 2;
     waterMesh.position.set(0, -0.44, 0);
     waterMesh.receiveShadow = true;
     this.scene.add(waterMesh);
 
-    // 两岸厚重青石驳岸石壁与压顶条石
     for (const side of [-1, 1]) {
       const wallX = side * 1.5;
       this.add(new BoxGeometry(0.18, 0.56, GROUND), this.wallMat, wallX, -0.36, 0);
-      // 压顶青石板条（留出左岸亲水石阶缺口）
-      this.add(new BoxGeometry(0.24, 0.08, 9.2), '#8d897e', wallX, -0.08, -5.5);
+      this.add(new BoxGeometry(0.24, 0.08, 9.2), '#787166', wallX, -0.08, -5.5);
       if (side === 1) {
-        this.add(new BoxGeometry(0.24, 0.08, 9.5), '#8d897e', wallX, -0.08, 6.2);
+        this.add(new BoxGeometry(0.24, 0.08, 9.5), '#787166', wallX, -0.08, 6.2);
       } else {
-        this.add(new BoxGeometry(0.24, 0.08, 6.4), '#8d897e', wallX, -0.08, 6.6);
+        this.add(new BoxGeometry(0.24, 0.08, 6.4), '#787166', wallX, -0.08, 6.6);
       }
 
-      // 河岸石柱护栏（避开中央石桥 z ∈ [-0.9, 1.6] 与左岸亲水石阶 z ∈ [1.7, 3.3]）
       const zPosts = side === -1 ? [-5.2, -3.8, -2.4, -1.2, 3.5, 4.9] : [-5.2, -3.8, -2.4, -1.2, 1.9, 3.3, 4.7];
       for (const pz of zPosts) {
-        this.add(new BoxGeometry(0.16, 0.42, 0.16), '#9e9a8e', side * 1.52, 0.1, pz);
-        this.add(new BoxGeometry(0.2, 0.07, 0.2), '#b5b0a2', side * 1.52, 0.33, pz);
+        this.add(new BoxGeometry(0.16, 0.42, 0.16), '#847c70', side * 1.52, 0.1, pz);
+        this.add(new BoxGeometry(0.2, 0.07, 0.2), '#968d80', side * 1.52, 0.33, pz);
       }
-      // 护栏横梁
-      this.add(new BoxGeometry(0.08, 0.07, 4.1), '#949084', side * 1.52, 0.22, -3.2);
-      this.add(new BoxGeometry(0.08, 0.12, 4.1), '#7f7b70', side * 1.52, 0.04, -3.2);
+      this.add(new BoxGeometry(0.08, 0.07, 4.1), '#7a7368', side * 1.52, 0.22, -3.2);
+      this.add(new BoxGeometry(0.08, 0.12, 4.1), '#686258', side * 1.52, 0.04, -3.2);
       if (side === 1) {
-        this.add(new BoxGeometry(0.08, 0.07, 2.9), '#949084', side * 1.52, 0.22, 3.3);
-        this.add(new BoxGeometry(0.08, 0.12, 2.9), '#7f7b70', side * 1.52, 0.04, 3.3);
+        this.add(new BoxGeometry(0.08, 0.07, 2.9), '#7a7368', side * 1.52, 0.22, 3.3);
+        this.add(new BoxGeometry(0.08, 0.12, 2.9), '#686258', side * 1.52, 0.04, 3.3);
       }
     }
 
-    // 左岸亲水青石台阶（x ∈ [-2.2, -1.35], z ∈ [1.85, 3.15]）
     for (let i = 0; i < 4; i++) {
-      this.add(
-        new BoxGeometry(0.22, 0.1, 1.25),
-        this.bridgeDeckMat,
-        -2.05 + i * 0.2,
-        -0.14 - i * 0.08,
-        2.5,
-      );
+      this.add(new BoxGeometry(0.22, 0.1, 1.25), this.bridgeDeckMat, -2.05 + i * 0.2, -0.14 - i * 0.08, 2.5);
     }
   }
 
   /**
-   * 建造横跨河道中央的青石拱桥（x ∈ [-1.85, 1.85], z ∈ [-0.72, 1.48]）
-   * - 桥心顶面位于 y = 0.0，猫咪在 (0, 0, 0.35) 处稳立于石桥正中央。
-   * - 北侧（猫身后 z = -0.66）为完整雕花青石栏杆与望柱；
-   * - 南侧（猫身前 z = +1.42）中央采用低矮青石桥沿（高 0.08），两侧配石望柱，确保正面特写绝不遮挡猫爪！
+   * 建造横跨河道中央的青石拱桥与下桥石阶（东侧引桥台阶直接对标左图左侧石桥阶梯构图！）
    */
   private buildArchedStoneBridge() {
     const zCenter = 0.38;
-    const bridgeW = 2.16;
+    const bridgeW = 2.08;
     const segments = 9;
-    const span = 3.5;
+    const span = 3.2;
     const segLen = span / segments;
 
-    // 分段微拱桥面与拱券侧壁
     for (let i = 0; i < segments; i++) {
       const x = -span / 2 + (i + 0.5) * segLen;
       const topY = this.heightAt(x, zCenter);
@@ -666,115 +697,226 @@ export class Town implements WorldNav {
       deck.rotation.z = (-2 * -0.12 * x) / (1.85 * 1.85);
     }
 
-    // 东西桥头引桥石阶
+    // 东侧与西侧桥头多级青石阶梯 + 阶梯侧护墙（还原左图左侧層疊下桥石阶与栏杆）
     for (const side of [-1, 1]) {
-      for (let s = 0; s < 3; s++) {
-        const sx = side * (1.58 + s * 0.18);
-        const sy = -0.05 - s * 0.035;
-        this.add(new BoxGeometry(0.2, 0.08, bridgeW - 0.1), this.bridgeDeckMat, sx, sy, zCenter);
+      for (let s = 0; s < 5; s++) {
+        const sx = side * (1.28 + s * 0.155);
+        const sy = 0.02 - s * 0.034;
+        this.add(new BoxGeometry(0.17, 0.09, bridgeW - 0.12), this.bridgeDeckMat, sx, sy, zCenter);
+      }
+      // 阶梯两侧斜坡护栏压石与桥头望柱（对标左图左侧石阶护栏）
+      for (const sz of [zCenter - bridgeW / 2 + 0.08, zCenter + bridgeW / 2 - 0.08]) {
+        const rampRail = this.add(new BoxGeometry(0.92, 0.28, 0.14), '#80776a', side * 1.56, 0.08, sz);
+        rampRail.rotation.z = -side * 0.22;
+        const rampCap = this.add(new BoxGeometry(0.96, 0.06, 0.18), '#968c7d', side * 1.56, 0.24, sz);
+        rampCap.rotation.z = -side * 0.22;
+        this.add(new BoxGeometry(0.18, 0.34, 0.18), '#8a8072', side * 1.96, 0.02, sz);
+        this.add(new BoxGeometry(0.22, 0.06, 0.22), '#9e9485', side * 1.96, 0.21, sz);
       }
     }
 
-    // 北侧完整雕花青石桥栏（猫背后 z = -0.64）
-    const northZ = -0.64;
-    for (const px of [-1.68, -1.02, -0.34, 0.34, 1.02, 1.68]) {
+    // 北侧雕花青石桥栏（z = -0.62）
+    const northZ = -0.62;
+    for (const px of [-1.42, -0.85, -0.28, 0.28, 0.85, 1.42]) {
       const py = this.heightAt(px, zCenter);
-      this.add(new BoxGeometry(0.17, 0.44, 0.17), '#a5a093', px, py + 0.2, northZ);
-      this.add(new BoxGeometry(0.22, 0.08, 0.22), '#bcb6a8', px, py + 0.44, northZ);
-      this.add(new SphereGeometry(0.075, 6, 6), '#c6c0b2', px, py + 0.51, northZ);
+      this.add(new BoxGeometry(0.16, 0.42, 0.16), '#8c8375', px, py + 0.2, northZ);
+      this.add(new BoxGeometry(0.21, 0.07, 0.21), '#a29889', px, py + 0.42, northZ);
     }
     for (let i = 0; i < 5; i++) {
-      const rx = -1.35 + i * 0.675;
+      const rx = -1.14 + i * 0.57;
       const ry = this.heightAt(rx, zCenter);
-      this.add(new BoxGeometry(0.56, 0.07, 0.09), '#9d988b', rx, ry + 0.33, northZ);
-      this.add(new BoxGeometry(0.54, 0.18, 0.07), '#848074', rx, ry + 0.16, northZ);
+      this.add(new BoxGeometry(0.5, 0.07, 0.09), '#887f72', rx, ry + 0.32, northZ);
+      this.add(new BoxGeometry(0.48, 0.18, 0.07), '#726a5f', rx, ry + 0.15, northZ);
     }
 
-    // 南侧桥沿与桥头石望柱（z = +1.40，中央为低矮压边石条，绝不挡正面镜头）
-    const southZ = 1.4;
-    for (const px of [-1.68, -1.12, 1.12, 1.68]) {
+    // 南侧桥沿与桥头石望柱（z = +1.38）
+    const southZ = 1.38;
+    for (const px of [-1.42, -0.95, 0.95, 1.42]) {
       const py = this.heightAt(px, zCenter);
-      this.add(new BoxGeometry(0.17, 0.4, 0.17), '#a5a093', px, py + 0.18, southZ);
-      this.add(new BoxGeometry(0.22, 0.07, 0.22), '#bcb6a8', px, py + 0.4, southZ);
+      this.add(new BoxGeometry(0.16, 0.38, 0.16), '#8c8375', px, py + 0.17, southZ);
+      this.add(new BoxGeometry(0.21, 0.07, 0.21), '#a29889', px, py + 0.38, southZ);
     }
-    this.add(new BoxGeometry(0.44, 0.22, 0.08), '#8a8679', -1.4, -0.02, southZ);
-    this.add(new BoxGeometry(0.44, 0.22, 0.08), '#8a8679', 1.4, -0.02, southZ);
-    this.add(new BoxGeometry(2.1, 0.07, 0.12), '#969184', 0, 0.02, southZ);
+    this.add(new BoxGeometry(1.85, 0.07, 0.12), '#847b6e', 0, 0.02, southZ);
   }
 
-  /** 建造右侧双层古风木质客栈/茶楼、飞檐黛瓦、透光雕花窗、蓝布招幌与暖红灯笼 */
-  private buildRightSideInn() {
-    const ix = 4.45;
-    const iz = -1.85;
+  /**
+   * 1:1 还原左图（01M5Y43048AD1CA1YXZA3MK8QW.png）的客栈门前庭院与前景石栏绿植：
+   * - 位于东侧下桥广场（猫咪站在 x=2.32, z=0.22）：
+   * - 猫身后（z = -0.45，朝 +Z 面向广场与镜头）：
+   *   1) 两级浅灰青石门阶（x=2.36, z=-0.20）
+   *   2) 深木色格栅双开门（x=2.36, z=-0.42）
+   *   3) 三联深蓝布门帘（带白色圆徽，x=2.36, y=1.18, z=-0.32）
+   *   4) 左右门柱悬挂两盏暖橙木框灯笼（x=1.78 与 x=2.94, y=1.12, z=-0.26）
+   *   5) 门右侧：多宝格木陈列窗 + 浅褐竖幡 + 两个贴红封签的深青绿陶酒坛（x=3.22, 3.52）
+   * - 猫身前下方（前景 x=2.46, z=0.92）：
+   *   青石护栏围合的方形绿植花坛，内栽浓密深绿灌木丛！
+   */
+  private buildReferenceInnCourtyard() {
+    // 一、猫身后的客栈正门立面（朝 +Z 面向下桥青石广场）
+    const doorX = 2.36;
+    const wallZ = -0.52;
 
-    // 青石台基
-    this.add(new BoxGeometry(3.8, 0.28, 6.2), this.wallMat, ix, -0.02, iz);
+    // 客栈主体深木墙体与二层黛瓦屋檐
+    this.add(new BoxGeometry(3.4, 2.25, 2.2), this.timberWallMat, 2.85, 0.96, wallZ - 1.05);
+    this.buildPitchedRoof(2.85, 2.05, wallZ - 1.0, 3.8, 2.8, 0.68);
 
-    // 一层主体木骨白墙与外挑木廊柱
-    this.add(new BoxGeometry(3.1, 1.85, 5.4), this.timberWallMat, ix + 0.25, 0.95, iz);
-    for (const pz of [-4.2, -2.7, -1.2, 0.3]) {
-      this.add(new CylinderGeometry(0.085, 0.095, 1.85, 8), '#4a2e1f', 2.48, 0.92, pz);
+    // 门前两级浅灰青石门阶（左图红框正上方猫咪脚边的两层石阶）
+    this.add(new BoxGeometry(1.26, 0.08, 0.42), '#7e7a72', doorX, -0.08, wallZ + 0.28);
+    this.add(new BoxGeometry(1.14, 0.08, 0.26), '#8c877e', doorX, -0.01, wallZ + 0.18);
+
+    // 门廊四根深胡桃木立柱与横梁
+    for (const px of [1.72, 3.0, 3.95]) {
+      this.add(new CylinderGeometry(0.065, 0.072, 1.95, 10), '#322015', px, 0.82, wallZ + 0.08);
     }
-    // 一层客栈门厅暖光内景与门槛
-    this.add(new BoxGeometry(0.12, 1.35, 1.15), '#382216', 2.78, 0.72, -1.2);
-    const doorGlow = new Mesh(new PlaneGeometry(0.95, 1.18), this.windowMat);
-    doorGlow.rotation.y = -Math.PI / 2;
-    doorGlow.position.set(2.71, 0.72, -1.2);
-    this.scene.add(doorGlow);
+    this.add(new BoxGeometry(2.5, 0.11, 0.16), '#382417', 2.84, 1.56, wallZ + 0.1);
+    this.add(new BoxGeometry(1.36, 0.09, 0.14), '#3d281a', doorX, 1.42, wallZ + 0.12);
 
-    // 一层两侧透光雕花木窗
-    for (const wz of [-3.15, -0.15]) {
-      const wMesh = new Mesh(new PlaneGeometry(0.85, 0.72), this.windowMat);
-      wMesh.rotation.y = -Math.PI / 2;
-      wMesh.position.set(2.78, 1.05, wz);
-      this.scene.add(wMesh);
-    }
-
-    // 一层飞檐坡屋顶（腰檐）
-    this.buildPitchedRoof(ix, 1.92, iz, 4.1, 6.0, 0.65);
-
-    // 二层楼阁主体、木质挑廊护栏与三扇暖光木窗
-    this.add(new BoxGeometry(2.75, 1.48, 4.7), this.timberWallMat, ix + 0.3, 2.72, iz);
-    this.add(new BoxGeometry(0.12, 0.42, 4.75), '#523424', 2.78, 2.18, iz);
-    for (const wz of [-2.95, -1.75, -0.55]) {
-      const wMesh = new Mesh(new PlaneGeometry(0.78, 0.68), this.windowMat);
-      wMesh.rotation.y = -Math.PI / 2;
-      wMesh.position.set(3.0, 2.82, wz);
-      this.scene.add(wMesh);
-    }
-
-    // 二层主屋顶（黛瓦歇山顶 + 脊兽翘角）
-    this.buildPitchedRoof(ix + 0.2, 3.55, iz, 3.65, 5.4, 0.95);
-
-    // 门前蓝布招幌/酒旗（对标参考图右侧客栈蓝底招幌）
-    this.add(new CylinderGeometry(0.045, 0.055, 2.15, 6), '#4a2e1f', 2.32, 0.95, 0.55);
-    this.add(new BoxGeometry(0.65, 0.06, 0.06), '#4a2e1f', 2.06, 1.92, 0.55);
-    const banner = new Mesh(
-      new PlaneGeometry(0.46, 0.92),
-      new MeshToonMaterial({ map: makeBannerTexture(), side: 2 }),
+    // 客栈深木色格栅双开门
+    const doorMesh = new Mesh(
+      new PlaneGeometry(1.16, 1.48),
+      this.std('#ffffff', makeLatticeDoorTexture(), 0.78),
     );
-    banner.rotation.y = -Math.PI / 5;
-    banner.position.set(1.96, 1.4, 0.55);
-    banner.castShadow = true;
-    this.scene.add(banner);
+    doorMesh.position.set(doorX, 0.68, wallZ + 0.06);
+    doorMesh.receiveShadow = true;
+    this.scene.add(doorMesh);
 
-    // 屋檐下悬挂的红灯笼与暖橙点光源
-    const lanternPositions: [number, number, number, boolean][] = [
-      [2.42, 1.62, -3.8, false],
-      [2.42, 1.62, -2.35, true],
-      [2.42, 1.62, -0.75, true],
-      [2.42, 1.62, 0.65, false],
-      [2.62, 3.22, -2.6, false],
-      [2.62, 3.22, -1.0, false],
-    ];
-    for (const [lx, ly, lz, withLight] of lanternPositions) {
-      this.hangingLantern(lx, ly, lz, withLight);
+    // 三联深蓝布门帘（Noren，中央白色圆徽，微向前倾垂挂于门楣下）
+    const noren = new Mesh(
+      new PlaneGeometry(1.18, 0.56),
+      new MeshStandardMaterial({ map: makeIndigoNorenTexture(), roughness: 0.9, side: DoubleSide }),
+    );
+    noren.position.set(doorX, 1.18, wallZ + 0.16);
+    noren.rotation.x = 0.05;
+    noren.castShadow = true;
+    noren.receiveShadow = true;
+    this.scene.add(noren);
+
+    // 门帘左右两侧悬挂的暖黄六角木框灯笼（完全对应左图门帘两侧的暖光灯笼）
+    this.warmBoxLantern(1.76, 1.12, wallZ + 0.22, true);
+    this.warmBoxLantern(2.96, 1.12, wallZ + 0.22, true);
+
+    // 门右侧：多宝格木格陈列窗 + 浅褐竖招幌 + 两个贴红封签的深青绿陶瓮
+    const shelfWin = new Mesh(
+      new PlaneGeometry(0.76, 0.78),
+      this.std('#ffffff', makeShopShelfWindowTexture(), 0.8),
+    );
+    shelfWin.position.set(3.48, 0.78, wallZ + 0.07);
+    this.scene.add(shelfWin);
+    this.add(new BoxGeometry(0.84, 0.07, 0.14), '#442c1d', 3.48, 0.38, wallZ + 0.1);
+
+    // 右上浅褐布幡
+    const signBanner = new Mesh(
+      new PlaneGeometry(0.42, 0.62),
+      this.std('#967856', undefined, 0.9),
+    );
+    signBanner.position.set(3.38, 1.45, wallZ + 0.24);
+    signBanner.castShadow = true;
+    this.scene.add(signBanner);
+
+    // 门右下方两只深橄榄绿陶酒坛（带红色方块封贴）
+    this.ceramicWineJar(3.22, wallZ + 0.28);
+    this.ceramicWineJar(3.54, wallZ + 0.32);
+
+    // 二、猫身前下方的青石护栏绿植花坛（1:1 复刻左图红框下方的石栏灌木丛！）
+    this.buildForegroundStonePlanter(2.44, 1.32);
+
+    // 东侧远端侧翼楼阁（丰富广角视野）
+    this.add(new BoxGeometry(2.6, 2.4, 3.2), this.timberWallMat, 5.1, 1.05, 0.8);
+    this.buildPitchedRoof(5.1, 2.25, 0.8, 3.0, 3.6, 0.75);
+    this.obstacles.push({ x: 2.85, z: -1.4, r: 1.5 });
+    this.obstacles.push({ x: 2.44, z: 1.32, r: 0.72 });
+    this.obstacles.push({ x: 5.1, z: 0.8, r: 1.8 });
+  }
+
+  /** 左图同款：木框暖黄发光灯笼 */
+  private warmBoxLantern(x: number, y: number, z: number, addLight: boolean) {
+    // 挂杆与上下深木灯盖
+    this.add(new CylinderGeometry(0.015, 0.015, 0.22, 6), '#2a1a10', x, y + 0.22, z);
+    this.add(new CylinderGeometry(0.12, 0.14, 0.05, 6), '#2a1a10', x, y + 0.14, z);
+    this.add(new CylinderGeometry(0.11, 0.09, 0.04, 6), '#2a1a10', x, y - 0.14, z);
+
+    // 暖琥珀色发光灯芯
+    const core = new Mesh(
+      new CylinderGeometry(0.105, 0.095, 0.24, 6),
+      new MeshBasicMaterial({ color: '#ffae42' }),
+    );
+    core.position.set(x, y, z);
+    this.scene.add(core);
+
+    // 细木立棱
+    for (let i = 0; i < 6; i++) {
+      const a = (i * Math.PI) / 3;
+      const rx = x + Math.cos(a) * 0.105;
+      const rz = z + Math.sin(a) * 0.105;
+      this.add(new CylinderGeometry(0.008, 0.008, 0.25, 4), '#2a1a10', rx, y, rz);
     }
 
-    // 客栈临河茶座木桌与木凳
-    this.teaTable(2.35, 2.35);
-    this.obstacles.push({ x: ix, z: iz, r: 2.6 });
-    this.obstacles.push({ x: 2.35, z: 2.35, r: 0.65 });
+    if (addLight) {
+      const light = new PointLight('#ff9e38', 2.2, 5.2, 1.4);
+      light.position.set(x, y - 0.08, z + 0.18);
+      this.scene.add(light);
+      this.lanternLights.push(light);
+    }
+  }
+
+  /** 左图门右侧深青绿陶瓮（配红封条） */
+  private ceramicWineJar(x: number, z: number) {
+    const y0 = -0.12;
+    const jar = this.add(new CylinderGeometry(0.11, 0.12, 0.34, 12), '#333d2c', x, y0 + 0.17, z);
+    jar.scale.set(1.08, 1, 1.08);
+    this.add(new CylinderGeometry(0.085, 0.105, 0.05, 12), '#252c20', x, y0 + 0.35, z);
+    // 红色封签
+    const label = new Mesh(new PlaneGeometry(0.08, 0.08), new MeshBasicMaterial({ color: '#9e2e24' }));
+    label.position.set(x, y0 + 0.19, z + 0.125);
+    label.rotation.z = Math.PI / 4;
+    this.scene.add(label);
+  }
+
+  /** 左图红框正下方：青石望柱护栏围合的绿植灌木花坛 */
+  private buildForegroundStonePlanter(cx: number, cz: number) {
+    const y0 = -0.12;
+    const w = 1.24;
+    const d = 0.78;
+    const stoneMat = this.std('#7d8286', undefined, 0.84);
+    const capMat = this.std('#92979b', undefined, 0.8);
+
+    // 四角青石望柱与柱头压石
+    const corners: [number, number][] = [
+      [cx - w / 2, cz - d / 2],
+      [cx + w / 2, cz - d / 2],
+      [cx - w / 2, cz + d / 2],
+      [cx + w / 2, cz + d / 2],
+    ];
+    for (const [px, pz] of corners) {
+      this.add(new BoxGeometry(0.17, 0.38, 0.17), stoneMat, px, y0 + 0.19, pz);
+      this.add(new BoxGeometry(0.21, 0.06, 0.21), capMat, px, y0 + 0.4, pz);
+    }
+
+    // 前后左右青石上下横梁与竖向石栏板
+    for (const sz of [-d / 2, d / 2]) {
+      this.add(new BoxGeometry(w, 0.065, 0.09), capMat, cx, y0 + 0.33, cz + sz);
+      this.add(new BoxGeometry(w, 0.08, 0.11), stoneMat, cx, y0 + 0.08, cz + sz);
+      for (let i = -2; i <= 2; i++) {
+        this.add(new BoxGeometry(0.07, 0.2, 0.06), stoneMat, cx + i * 0.2, y0 + 0.2, cz + sz);
+      }
+    }
+    for (const sx of [-w / 2, w / 2]) {
+      this.add(new BoxGeometry(0.09, 0.065, d), capMat, cx + sx, y0 + 0.33, cz);
+      this.add(new BoxGeometry(0.11, 0.08, d), stoneMat, cx + sx, y0 + 0.08, cz);
+    }
+
+    // 花坛内部丰茂的多层次深绿叶片灌木丛（自然圆润簇状，告别低多边形棱角球）
+    const leafColors = ['#26381e', '#324826', '#3e5830', '#4a6638'];
+    const r = rand(808);
+    for (let i = 0; i < 28; i++) {
+      const bx = cx + (r() - 0.5) * (w - 0.18);
+      const bz = cz + (r() - 0.5) * (d - 0.12);
+      const by = y0 + 0.16 + r() * 0.24;
+      const rad = 0.11 + r() * 0.09;
+      const col = leafColors[i % leafColors.length];
+      const bush = this.add(new SphereGeometry(rad, 10, 8), this.std(col, undefined, 0.9), bx, by, bz);
+      bush.scale.set(1.15, 0.88, 1.08);
+    }
   }
 
   /** 建造古风黛瓦双坡屋顶与飞檐 */
@@ -801,75 +943,33 @@ export class Town implements WorldNav {
     );
     rightSlope.rotation.z = -angle;
 
-    // 屋脊与两端飞檐翘角
     this.add(new BoxGeometry(0.24, 0.2, lengthZ + 0.28), '#262d34', x, y + height + 0.04, z);
-    for (const sz of [-1, 1]) {
-      this.add(
-        new BoxGeometry(0.28, 0.18, 0.24),
-        '#2c343c',
-        x - halfW + 0.05,
-        y + 0.12,
-        z + sz * (lengthZ / 2),
-      );
-    }
   }
 
-  /** 建造悬挂发光红灯笼 */
-  private hangingLantern(x: number, y: number, z: number, addLight: boolean) {
-    this.add(new CylinderGeometry(0.015, 0.015, 0.22, 6), '#3a2418', x, y + 0.18, z);
-    this.add(new CylinderGeometry(0.11, 0.11, 0.04, 8), '#3a2418', x, y + 0.11, z);
-    const body = new Mesh(
-      new SphereGeometry(0.15, 10, 8),
-      new MeshBasicMaterial({ color: '#ff642e' }),
-    );
-    body.scale.set(0.92, 1.15, 0.92);
-    body.position.set(x, y, z);
-    this.scene.add(body);
-    this.add(new CylinderGeometry(0.09, 0.09, 0.04, 8), '#3a2418', x, y - 0.12, z);
-
-    if (addLight) {
-      const light = new PointLight('#ff9638', 1.9, 6.2, 1.5);
-      light.position.set(x - 0.25, y - 0.1, z);
-      this.scene.add(light);
-      this.lanternLights.push(light);
-    }
-  }
-
-  /** 建造左侧街市木摊位、徽派古宅与错落台阶 */
+  /** 建造左侧街市木摊位与徽派古宅 */
   private buildLeftSideMarketAndCourtyard() {
-    // 左后方古宅院落（马头墙 + 黛瓦 + 暖光花窗）
     const hx = -4.65;
     const hz = -3.65;
     this.add(new BoxGeometry(3.4, 2.2, 3.1), this.timberWallMat, hx, 0.98, hz);
     this.buildPitchedRoof(hx, 2.1, hz, 3.8, 3.5, 0.82);
-    // 两侧马头墙阶梯山墙
-    for (const sz of [-1.62, 1.62]) {
-      this.add(new BoxGeometry(3.5, 0.35, 0.18), '#dfd3be', hx, 2.25, hz + sz);
-      this.add(new BoxGeometry(2.1, 0.35, 0.18), '#dfd3be', hx, 2.58, hz + sz);
-      this.add(new BoxGeometry(3.58, 0.07, 0.24), '#2f3740', hx, 2.44, hz + sz);
-      this.add(new BoxGeometry(2.18, 0.07, 0.24), '#2f3740', hx, 2.77, hz + sz);
-    }
     const win = new Mesh(new PlaneGeometry(0.82, 0.68), this.windowMat);
     win.rotation.y = Math.PI / 2;
     win.position.set(hx + 1.71, 1.15, hz + 0.3);
     this.scene.add(win);
-    this.hangingLantern(hx + 1.85, 1.72, hz + 1.25, true);
+    this.warmBoxLantern(hx + 1.85, 1.72, hz + 1.25, true);
     this.obstacles.push({ x: hx, z: hz, r: 2.3 });
 
-    // 左侧街市摊位 1（靠桥头北侧：条纹布篷 + 木柜台 + 陶罐木桶）
     this.marketStall(-2.85, -0.55);
-    // 左侧街市摊位 2（南侧街角茶果摊）
     this.marketStall(-3.35, 2.35);
   }
 
-  /** 街市木摊位（木柱、条纹布篷、柜台、木桶与陶罐） */
   private marketStall(x: number, z: number) {
     const g = new Group();
     g.position.set(x, -0.12, z);
     this.scene.add(g);
 
     const addPart = (geo: BufferGeometry, matOrHex: string | Material, px: number, py: number, pz: number) => {
-      const m = new Mesh(geo, typeof matOrHex === 'string' ? this.toon(matOrHex) : matOrHex);
+      const m = new Mesh(geo, typeof matOrHex === 'string' ? this.std(matOrHex) : matOrHex);
       m.position.set(px, py, pz);
       m.castShadow = true;
       m.receiveShadow = true;
@@ -877,129 +977,82 @@ export class Town implements WorldNav {
       return m;
     };
 
-    // 木柜台与四根立柱
-    addPart(new BoxGeometry(0.95, 0.62, 1.55), '#7a4e32', 0, 0.31, 0);
-    addPart(new BoxGeometry(1.04, 0.07, 1.64), '#9c6844', 0, 0.64, 0);
+    addPart(new BoxGeometry(0.95, 0.62, 1.55), '#5e3c26', 0, 0.31, 0);
+    addPart(new BoxGeometry(1.04, 0.07, 1.64), '#784e32', 0, 0.64, 0);
     for (const px of [-0.42, 0.42]) {
       for (const pz of [-0.7, 0.7]) {
-        addPart(new CylinderGeometry(0.04, 0.04, 1.55, 6), '#543522', px, 0.78, pz);
+        addPart(new CylinderGeometry(0.04, 0.04, 1.55, 8), '#42291a', px, 0.78, pz);
       }
     }
-    // 倾斜条纹布篷
     const awning = addPart(
       new BoxGeometry(1.28, 0.06, 1.78),
-      new MeshToonMaterial({ map: makeAwningTexture() }),
+      this.std('#ffffff', makeAwningTexture(), 0.88),
       0.06,
       1.52,
       0,
     );
     awning.rotation.z = -0.22;
 
-    // 柜台上的青瓷罐与暖橙柑橘篮
-    addPart(new CylinderGeometry(0.11, 0.13, 0.24, 8), '#6b8e88', 0.1, 0.78, -0.35);
-    addPart(new BoxGeometry(0.32, 0.1, 0.38), '#b58452', 0.08, 0.72, 0.28);
-    addPart(new SphereGeometry(0.08, 6, 6), '#e8883a', 0.06, 0.8, 0.24);
-    addPart(new SphereGeometry(0.075, 6, 6), '#f09c42', 0.14, 0.79, 0.35);
-
-    // 摊位旁木桶与陶瓮
-    addPart(new CylinderGeometry(0.18, 0.16, 0.42, 8), '#8a5a38', 0.56, 0.21, 0.68);
-    addPart(new CylinderGeometry(0.16, 0.12, 0.34, 8), '#9e563c', 0.52, 0.17, -0.72);
+    addPart(new CylinderGeometry(0.18, 0.16, 0.42, 10), '#6e462c', 0.56, 0.21, 0.68);
+    addPart(new CylinderGeometry(0.16, 0.12, 0.34, 10), '#7a422e', 0.52, 0.17, -0.72);
 
     this.obstacles.push({ x, z, r: 0.95 });
   }
 
-  private teaTable(x: number, z: number) {
-    this.add(new BoxGeometry(0.72, 0.07, 0.72), '#7d5034', x, 0.42, z);
-    this.add(new CylinderGeometry(0.07, 0.09, 0.52, 6), '#5a3824', x, 0.16, z);
-    this.add(new CylinderGeometry(0.07, 0.06, 0.12, 8), '#d8cbb8', x - 0.12, 0.51, z - 0.08);
-    this.add(new CylinderGeometry(0.045, 0.04, 0.08, 8), '#e6dec8', x + 0.14, 0.49, z + 0.1);
-    for (const [sx, sz] of [
-      [-0.52, 0],
-      [0.52, 0],
-    ]) {
-      this.add(new CylinderGeometry(0.14, 0.12, 0.28, 8), '#6c442b', x + sx, 0.04, z + sz);
-    }
-  }
-
-  /** 布置古树、桥头石灯笼、猫咪软垫、食盆与花坛盆景 */
   private buildGreeneryAndProps() {
-    // 东西桥头古风石灯笼
     this.stoneLantern(-1.82, -1.08);
-    this.stoneLantern(1.82, -1.08);
+    this.tree(-5.4, 0.85, 1.25, '#344e2a', '#486838');
+    this.tree(-2.35, -2.25, 0.92, '#2e4624', '#426034');
+    this.tree(2.35, -4.35, 1.15, '#324c28', '#466436');
+    this.tree(5.45, 3.65, 1.05, '#2e4624', '#405c32');
+    this.tree(-5.2, 4.1, 1.0, '#344e2a', '#486838');
 
-    // 苍翠古树与金秋/粉樱点缀树冠（右上与左上枝叶构成前景/背景框景）
-    this.tree(-5.4, 0.85, 1.25, '#588248', '#789e58', '#e6a8b2');
-    this.tree(-2.35, -2.25, 0.92, '#4e7640', '#6d9452', '#dca068');
-    this.tree(2.35, -4.35, 1.15, '#527a44', '#729854', '#e4b268');
-    this.tree(5.45, 3.65, 1.05, '#4c743e', '#688e4e', '#e8a6b0');
-    this.tree(-5.2, 4.1, 1.0, '#568046', '#749c56');
-
-    // 猫咪软垫、食盆与桥畔盆景（放在阳光充足的桥头青石小广场）
-    this.catBed(2.05, 0.42);
-    this.bowl(-2.05, 0.62);
-    this.pot(-1.88, 1.48, '#eb8c9c');
-    this.pot(1.92, 1.48, '#f2cc68');
+    this.catBed(-2.05, 0.42);
+    this.bowl(-2.05, 0.92);
   }
 
   private stoneLantern(x: number, z: number) {
     const y0 = -0.12;
-    this.add(new BoxGeometry(0.34, 0.12, 0.34), '#8a8679', x, y0 + 0.06, z);
-    this.add(new CylinderGeometry(0.08, 0.1, 0.46, 6), '#9a9688', x, y0 + 0.35, z);
-    this.add(new BoxGeometry(0.28, 0.08, 0.28), '#a6a294', x, y0 + 0.6, z);
-    // 暖光灯室
-    const chamber = new Mesh(
-      new BoxGeometry(0.18, 0.2, 0.18),
-      new MeshBasicMaterial({ color: '#ffcf70' }),
-    );
+    this.add(new BoxGeometry(0.34, 0.12, 0.34), '#7a7468', x, y0 + 0.06, z);
+    this.add(new CylinderGeometry(0.08, 0.1, 0.46, 8), '#888276', x, y0 + 0.35, z);
+    this.add(new BoxGeometry(0.28, 0.08, 0.28), '#948e82', x, y0 + 0.6, z);
+    const chamber = new Mesh(new BoxGeometry(0.18, 0.2, 0.18), new MeshBasicMaterial({ color: '#ffcf70' }));
     chamber.position.set(x, y0 + 0.74, z);
     this.scene.add(chamber);
-    // 伞盖与宝顶
-    const cap = this.add(new CylinderGeometry(0.06, 0.28, 0.18, 4), '#727066', x, y0 + 0.92, z);
+    const cap = this.add(new CylinderGeometry(0.06, 0.28, 0.18, 4), '#646056', x, y0 + 0.92, z);
     cap.rotation.y = Math.PI / 4;
-    this.add(new SphereGeometry(0.055, 6, 6), '#8a8679', x, y0 + 1.04, z);
     this.obstacles.push({ x, z, r: 0.32 });
   }
 
-  private tree(x: number, z: number, s: number, darkLeaf: string, midLeaf: string, accentLeaf?: string) {
+  private tree(x: number, z: number, s: number, darkLeaf: string, midLeaf: string) {
     const y0 = -0.12;
-    this.add(new CylinderGeometry(0.13 * s, 0.19 * s, 1.35 * s, 6), '#5a3c28', x, y0 + 0.65 * s, z);
-    this.add(new IcosahedronGeometry(0.82 * s, 1), darkLeaf, x, y0 + 1.55 * s, z);
-    this.add(new IcosahedronGeometry(0.62 * s, 1), midLeaf, x + 0.24 * s, y0 + 1.98 * s, z + 0.15 * s);
-    this.add(new IcosahedronGeometry(0.54 * s, 1), midLeaf, x - 0.26 * s, y0 + 1.78 * s, z - 0.18 * s);
-    if (accentLeaf) {
-      this.add(new IcosahedronGeometry(0.38 * s, 0), accentLeaf, x + 0.18 * s, y0 + 2.22 * s, z + 0.22 * s);
-    }
+    this.add(new CylinderGeometry(0.13 * s, 0.19 * s, 1.35 * s, 8), '#4a3020', x, y0 + 0.65 * s, z);
+    this.add(new SphereGeometry(0.8 * s, 12, 10), darkLeaf, x, y0 + 1.55 * s, z);
+    this.add(new SphereGeometry(0.6 * s, 12, 10), midLeaf, x + 0.24 * s, y0 + 1.96 * s, z + 0.15 * s);
+    this.add(new SphereGeometry(0.52 * s, 12, 10), midLeaf, x - 0.26 * s, y0 + 1.76 * s, z - 0.18 * s);
     this.obstacles.push({ x, z, r: 0.68 * s });
   }
 
   private catBed(x: number, z: number) {
     const y0 = -0.12;
-    const ring = this.add(new TorusGeometry(0.38, 0.11, 6, 14), '#d47c6a', x, y0 + 0.11, z);
+    const ring = this.add(new TorusGeometry(0.36, 0.1, 8, 16), '#b86858', x, y0 + 0.1, z);
     ring.rotation.x = -Math.PI / 2;
-    this.add(new CylinderGeometry(0.36, 0.36, 0.08, 14), '#f4d8c6', x, y0 + 0.05, z);
+    this.add(new CylinderGeometry(0.34, 0.34, 0.08, 16), '#e2c8b6', x, y0 + 0.05, z);
   }
 
   private bowl(x: number, z: number) {
     const y0 = -0.12;
-    this.add(new CylinderGeometry(0.18, 0.14, 0.11, 10), '#5888b8', x, y0 + 0.06, z);
-    this.add(new CylinderGeometry(0.14, 0.14, 0.02, 10), '#c2824c', x, y0 + 0.11, z);
+    this.add(new CylinderGeometry(0.16, 0.13, 0.1, 12), '#4e78a0', x, y0 + 0.05, z);
+    this.add(new CylinderGeometry(0.13, 0.13, 0.02, 12), '#a86e3e', x, y0 + 0.1, z);
   }
 
-  private pot(x: number, z: number, flower: string) {
-    const y0 = -0.12;
-    this.add(new CylinderGeometry(0.2, 0.15, 0.28, 8), '#b86c46', x, y0 + 0.14, z);
-    this.add(new IcosahedronGeometry(0.2, 0), '#5e964e', x, y0 + 0.38, z);
-    this.add(new IcosahedronGeometry(0.09, 0), flower, x + 0.06, y0 + 0.52, z + 0.06);
-    this.obstacles.push({ x, z, r: 0.28 });
-  }
-
-  /** 判断坐标 p 是否在石桥桥面或两岸青石街道可行走区（禁止落入河道水面） */
+  /** 判断坐标 p 是否在石桥桥面或两岸青石街道可行走区 */
   walkable(p: Vector3) {
-    if (Math.abs(p.x) > 4.6 || Math.abs(p.z) > 4.6) return false;
-    const onBridge = p.z >= -0.42 && p.z <= 1.15 && Math.abs(p.x) <= 1.75;
+    if (Math.abs(p.x) > 4.4 || Math.abs(p.z) > 4.4) return false;
+    const onBridge = p.z >= -0.42 && p.z <= 1.15 && Math.abs(p.x) <= 1.85;
     const inCanal = Math.abs(p.x) < 1.72;
     if (inCanal && !onBridge) return false;
-    return this.obstacles.every((o) => Math.hypot(p.x - o.x, p.z - o.z) > o.r + 0.32);
+    return this.obstacles.every((o) => Math.hypot(p.x - o.x, p.z - o.z) > o.r + 0.3);
   }
 
   randomTarget(from: Vector3): Vector3 {
@@ -1012,7 +1065,7 @@ export class Town implements WorldNav {
         return p;
       }
     }
-    return new Vector3(0, 0, 0.35);
+    return new Vector3(2.32, -0.12, 0.24);
   }
 
   private clearLine(a: Vector3, b: Vector3) {

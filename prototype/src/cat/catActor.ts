@@ -21,6 +21,60 @@ import { Procedural } from '../anim/procedural';
 import { Brain, type WorldNav } from '../anim/brain';
 
 /**
+ * 像素画式猫咪着色材质（Flat Albedo + 单档底部/背光硬阴影）：
+ * - 复用 Three.js 原生蒙皮与形态键法线管线，覆写光照输出；
+ * - 头部、脸颊与受光躯干保持 100% 纯净贴图平涂本色，彻底消灭 3D 球面多阶色带（充气玩具感）；
+ * - 仅在腹底/下颌底/内侧背光处保留一档干净的像素硬阴影（亮度 0.78），翻肚皮时朝上的肚皮保持全亮。
+ */
+function makePixelCatMaterial(coatTexture: Texture, gradientMap: Texture): MeshToonMaterial {
+  const mat = new MeshToonMaterial({ map: coatTexture, gradientMap });
+  mat.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace(
+        '#include <common>',
+        /* glsl */ `
+        #include <common>
+        varying vec3 vCatWorldNormal;
+        varying float vCatHeight;
+        `,
+      )
+      .replace(
+        '#include <project_vertex>',
+        /* glsl */ `
+        #include <project_vertex>
+        vCatWorldNormal = normalize(mat3(modelMatrix) * objectNormal);
+        vec4 catWorldPos = modelMatrix * vec4(transformed, 1.0);
+        vec4 catRootWorld = modelMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+        vCatHeight = catWorldPos.y - catRootWorld.y;
+        `,
+      );
+
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <common>',
+        /* glsl */ `
+        #include <common>
+        varying vec3 vCatWorldNormal;
+        varying float vCatHeight;
+        `,
+      )
+      .replace(
+        '#include <opaque_fragment>',
+        /* glsl */ `
+        vec3 nCat = normalize(vCatWorldNormal);
+        vec3 sunDirCat = normalize(vec3(0.48, 0.76, 0.44));
+        float shadeMetric = nCat.y * 0.72 + dot(nCat, sunDirCat) * 0.28;
+        bool inShadow = (vCatHeight < 0.55) && (shadeMetric < -0.16);
+        vec3 pixelLit = diffuseColor.rgb * (inShadow ? vec3(0.76, 0.73, 0.77) : vec3(1.0));
+        outgoingLight = pixelLit;
+        #include <opaque_fragment>
+        `,
+      );
+  };
+  return mat;
+}
+
+/**
  * 一只猫 = 母版网格（全猫共用） + 动作库（全猫共用） + 一份 Pet DNA（每只猫一份）。
  * applyDNA 只改贴图、形态键、眼睛颜色和性格权重，从不碰动作。
  */
@@ -44,9 +98,10 @@ export class CatActor {
   expression: { eyes: EyeState; mouth: MouthState } = { eyes: 'open', mouth: 'closed' };
 
   constructor(gradientMap: Texture, nav: WorldNav) {
+    this.group.name = 'cat_actor_group';
     this.coatCanvas.width = this.coatCanvas.height = ATLAS_SIZE;
     this.coatTexture = makeCoatTexture(this.coatCanvas);
-    this.material = new MeshToonMaterial({ map: this.coatTexture, gradientMap });
+    this.material = makePixelCatMaterial(this.coatTexture, gradientMap);
     this.cat = buildCatMesh(this.material);
     this.face = new FaceRig(this.cat.sk);
     this.group.add(this.cat.mesh);
@@ -116,8 +171,6 @@ export class CatActor {
     const walk = this.actions.walk;
     if (this.current === 'walk') walk.setEffectiveTimeScale(Math.max(0.3, this.brain.speed / walkDef.speed!));
 
-    // 每帧：还原上一帧的动画姿态（去掉程序化叠加）-> 动画混合 -> 记下动画姿态 -> 程序化叠加。
-    // 混合器只在数值变化时才写骨骼，所以不能复位到静止姿态，否则静止的姿态（坐着）会被抹掉。
     const { bones } = this.cat.sk;
     ANIM_BONES.forEach((name, i) => {
       bones[name].quaternion.fromArray(this.animPose, i * 7);

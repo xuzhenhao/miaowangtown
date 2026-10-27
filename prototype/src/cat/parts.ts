@@ -45,9 +45,9 @@ export function chainWeights(v: number, stops: Array<[string, number]>): Weights
   return [[stops[stops.length - 1][0], 1]];
 }
 
-// ---------------------------------------------------------------- 头
+// ---------------------------------------------------------------- 头（上窄下饱满、自然融合口鼻与婴儿肥脸颊）
 
-export const HEAD_CENTER = new Vector3(0, 0.92, 0.55);
+export const HEAD_CENTER = new Vector3(0, 0.9, 0.54);
 
 export function headPos(s: number, t: number, k: ShapeParams, out: Vector3): Vector3 {
   const th = (s - 0.5) * TAU;
@@ -55,28 +55,48 @@ export function headPos(s: number, t: number, k: ShapeParams, out: Vector3): Vec
   const dx = Math.sin(ph) * Math.sin(th);
   const dy = Math.cos(ph);
   const dz = Math.sin(ph) * Math.cos(th);
-  const rx = 0.36 * (1 + 0.1 * k.headRound);
-  const ry = 0.32 * (1 - 0.04 * k.headRound);
-  const rz = 0.31;
+
+  // 娇俏猫科头骨比例：告别扁宽充气球，额顶微收、双颊饱满、下颌秀气
+  const rx = 0.285 * (1 + 0.08 * k.headRound);
+  const ry = 0.275 * (1 - 0.02 * k.headRound);
+  const rz = 0.282;
+
+  const crownTaper = dy > 0.2 ? 1 - 0.11 * clamp((dy - 0.2) / 0.8, 0, 1) : 1;
+  const chinTaper = dy < -0.35 ? 1 - 0.22 * clamp((-0.35 - dy) / 0.65, 0, 1) : 1;
+  const cheekBell = Math.exp(-(((dy + 0.14) / 0.36) ** 2));
   const cheek =
-    (0.05 + 0.13 * k.cheekFluff) * clamp((0.35 - dy) / 0.9, 0, 1) * Math.abs(Math.sin(th)) * Math.sin(ph);
-  const face = dz > 0 ? 1 - 0.1 * dz * dz : 1;
-  return out.set(HEAD_CENTER.x + dx * rx * (1 + cheek), HEAD_CENTER.y + dy * ry, HEAD_CENTER.z + dz * rz * face);
+    (0.06 + 0.11 * k.cheekFluff) *
+    cheekBell *
+    Math.pow(Math.abs(Math.sin(th)), 0.85) *
+    Math.sin(ph);
+
+  // 面部正前下侧自然向口鼻过渡，消除嘴套孤立球感
+  const snoutBlend =
+    dz > 0.25 && dy < 0.08 && dy > -0.72
+      ? 0.045 * clamp((dz - 0.25) / 0.75, 0, 1) * Math.exp(-(((dy + 0.26) / 0.32) ** 2))
+      : 0;
+  const faceFlatten = dz > 0 ? 1 - 0.06 * dz * dz : 0.96;
+
+  return out.set(
+    HEAD_CENTER.x + dx * rx * crownTaper * chinTaper * (1 + cheek),
+    HEAD_CENTER.y + dy * ry,
+    HEAD_CENTER.z + dz * rz * faceFlatten + snoutBlend,
+  );
 }
 
 const head: PartDef = {
   name: 'head',
   rect: [0, 0, 256, 128],
-  segS: 44,
-  segT: 26,
+  segS: 48,
+  segT: 28,
   pos: headPos,
   core: (_s, _t, _k, out) => out.copy(HEAD_CENTER),
   weights: () => [['head', 1]],
 };
 
-// ---------------------------------------------------------------- 嘴套
+// ---------------------------------------------------------------- 嘴套（平滑嵌入式猫口鼻垫，消除球体切缝）
 
-export const MUZZLE_CENTER = new Vector3(0, 0.83, 0.8);
+export const MUZZLE_CENTER = new Vector3(0, 0.825, 0.742);
 
 export function muzzlePos(s: number, t: number, k: ShapeParams, out: Vector3): Vector3 {
   const th = (s - 0.5) * TAU;
@@ -85,10 +105,14 @@ export function muzzlePos(s: number, t: number, k: ShapeParams, out: Vector3): V
   const dy = Math.cos(ph);
   const dz = Math.sin(ph) * Math.cos(th);
   const m = k.muzzleSize;
+  // 两侧胡须垫微鼓，上下与后方平滑汇入面部
+  const pad = 1 + 0.1 * Math.sin(2 * th) ** 2 * clamp(dy + 0.35, 0, 1);
+  const chin = dy < -0.25 ? 1 - 0.18 * clamp((-0.25 - dy) / 0.75, 0, 1) : 1;
+  const backTuck = dz < 0 ? 0.55 : 1;
   return out.set(
-    MUZZLE_CENTER.x + dx * (0.13 + 0.03 * m),
-    MUZZLE_CENTER.y + dy * (0.08 + 0.012 * m),
-    MUZZLE_CENTER.z + dz * (0.075 + 0.02 * m),
+    MUZZLE_CENTER.x + dx * (0.132 + 0.022 * m) * pad * chin,
+    MUZZLE_CENTER.y + dy * (0.078 + 0.01 * m),
+    MUZZLE_CENTER.z + dz * (0.064 + 0.014 * m) * backTuck,
   );
 }
 
@@ -102,10 +126,10 @@ const muzzle: PartDef = {
   weights: () => [['head', 1]],
 };
 
-// ---------------------------------------------------------------- 脖子
+// ---------------------------------------------------------------- 脖子与胸脯围脖（无缝衔接头部与前胸）
 
-const NECK_A = new Vector3(0, 0.58, 0.26);
-const NECK_B = new Vector3(0, 0.86, 0.5);
+const NECK_A = new Vector3(0, 0.55, 0.25);
+const NECK_B = new Vector3(0, 0.85, 0.5);
 const NECK_D = NECK_B.clone().sub(NECK_A).normalize();
 const NECK_U = new Vector3(1, 0, 0);
 const NECK_W = new Vector3().crossVectors(NECK_U, NECK_D).normalize();
@@ -113,48 +137,67 @@ const NECK_W = new Vector3().crossVectors(NECK_U, NECK_D).normalize();
 const neck: PartDef = {
   name: 'neck',
   rect: [384, 0, 128, 64],
-  segS: 20,
-  segT: 6,
+  segS: 24,
+  segT: 10,
   pos(s, t, k, out) {
     const th = (s - 0.5) * TAU;
-    const r = 0.16 * (1 + 0.12 * k.weight) * (1 + 0.15 * k.cheekFluff * t);
+    const baseR = lerp(0.215, 0.168, t) * (1 + 0.1 * k.weight) * (1 + 0.1 * k.cheekFluff * t);
+    const chestFluff = (1 - t) * 0.055 * Math.max(0, Math.cos(th));
     out.copy(NECK_A).lerp(NECK_B, t);
-    return out.addScaledVector(NECK_U, Math.sin(th) * r).addScaledVector(NECK_W, Math.cos(th) * r);
+    return out
+      .addScaledVector(NECK_U, Math.sin(th) * baseR * 0.94)
+      .addScaledVector(NECK_W, Math.cos(th) * (baseR + chestFluff));
   },
   core: (_s, t, _k, out) => out.copy(NECK_A).lerp(NECK_B, t),
   weights: (_s, t) =>
     chainWeights(t, [
-      ['chest', 0.1],
-      ['neck', 0.5],
-      ['head', 0.9],
+      ['chest', 0.12],
+      ['neck', 0.52],
+      ['head', 0.88],
     ]),
 };
 
-// ---------------------------------------------------------------- 身体
+// ---------------------------------------------------------------- 身体（饱满白胸脯 + 流线微凹背脊 + 圆润臀部）
 
-export const BODY_CENTER = new Vector3(0, 0.52, 0);
+export const BODY_CENTER = new Vector3(0, 0.5, 0);
 
 function bodyPos(s: number, t: number, k: ShapeParams, out: Vector3): Vector3 {
   const ph = t * Math.PI;
-  const zc = -Math.cos(ph);
+  const zc = -Math.cos(ph); // -1 为臀部，+1 为前胸
   const r = Math.sin(ph);
   const th = (s - 0.5) * TAU;
-  const taper = 1 + 0.06 * zc;
-  const rx = 0.29 * (1 + 0.22 * k.weight);
-  const ry = 0.27 * (1 + 0.12 * k.weight);
-  const X = Math.sin(th) * r * rx * taper;
-  let Y = Math.cos(th) * r * ry * taper;
-  if (Y < 0) Y *= 1 + 0.35 * k.weight;
-  return out.set(X, BODY_CENTER.y + Y, zc * 0.48);
+
+  // 猫科流线体态：肩胸挺拔、腰肋适中、臀部圆润
+  const widthProfile = 1 - 0.08 * zc + 0.06 * Math.sin(ph);
+  const heightProfile = 1 + 0.06 * Math.cos((zc - 0.15) * Math.PI * 0.8);
+  const rx = 0.232 * (1 + 0.2 * k.weight) * widthProfile;
+  const ry = 0.236 * (1 + 0.12 * k.weight) * heightProfile;
+
+  const X = Math.sin(th) * r * rx;
+  let Y = Math.cos(th) * r * ry;
+  if (Y < 0) {
+    // 腹部收腰与软肚皮曲线
+    const waistTuck = zc < -0.1 && zc > -0.65 ? 0.92 : 1.0;
+    Y *= (1 + 0.28 * k.weight) * waistTuck;
+  }
+
+  // 自然背脊线微弧与挺拔前胸脯
+  const spineArc =
+    0.026 * Math.exp(-(((zc - 0.48) / 0.38) ** 2)) +
+    0.018 * Math.exp(-(((zc + 0.45) / 0.42) ** 2)) -
+    0.014 * Math.exp(-((zc / 0.35) ** 2));
+  const chestBibZ = zc > 0.3 && Y > -0.12 ? 0.045 * clamp((zc - 0.3) / 0.7, 0, 1) * r : 0;
+
+  return out.set(X, BODY_CENTER.y + spineArc + Y, zc * 0.485 + chestBibZ);
 }
 
 const body: PartDef = {
   name: 'body',
   rect: [0, 128, 256, 192],
-  segS: 36,
-  segT: 28,
+  segS: 40,
+  segT: 32,
   pos: bodyPos,
-  core: (_s, t, _k, out) => out.set(0, BODY_CENTER.y, -Math.cos(t * Math.PI) * 0.48 * 0.6),
+  core: (_s, t, _k, out) => out.set(0, BODY_CENTER.y, -Math.cos(t * Math.PI) * 0.485 * 0.6),
   weights: (_s, _t, p) =>
     chainWeights(p.z, [
       ['hips', -0.22],
@@ -163,7 +206,7 @@ const body: PartDef = {
     ]),
 };
 
-// ---------------------------------------------------------------- 腿
+// ---------------------------------------------------------------- 四肢与圆润猫爪（上粗下收 + 踝腕微折 + 饱满猫爪垫）
 
 export interface LegSpec {
   name: string;
@@ -174,16 +217,39 @@ export interface LegSpec {
   rect: [number, number, number, number];
 }
 
-const LEG_TOP = 0.52;
-export const PAW_Y = 0.075;
-const PAW_R = 0.075;
+const LEG_TOP = 0.53;
+export const PAW_Y = 0.062;
+const PAW_R = 0.064;
 
-function legRadius(y: number, front: boolean): number {
-  const rUpper = front ? 0.085 : 0.1;
-  const rLower = 0.064;
-  if (y >= 0.3) return rUpper;
-  if (y > 0.16) return lerp(rLower, rUpper, (y - 0.16) / 0.14);
-  return lerp(PAW_R, rLower, clamp((y - PAW_Y) / (0.16 - PAW_Y), 0, 1));
+function legRadius(y: number, front: boolean): [number, number] {
+  // 返回 [rx, rz]：后腿大腿有饱满猫科肌肉弧度，向下收细至踝腕，再落向圆润小巧猫爪
+  const rxUpper = front ? 0.082 : 0.092;
+  const rzUpper = front ? 0.088 : 0.116;
+  const rWrist = front ? 0.055 : 0.054;
+  if (y >= 0.34) {
+    const f = clamp((y - 0.34) / (LEG_TOP - 0.34), 0, 1);
+    return [lerp(rxUpper * 0.88, rxUpper, f), lerp(rzUpper * 0.88, rzUpper, f)];
+  }
+  if (y > 0.15) {
+    const f = (y - 0.15) / 0.19;
+    return [lerp(rWrist, rxUpper * 0.88, f), lerp(rWrist * 1.04, rzUpper * 0.88, f)];
+  }
+  const f = clamp((y - PAW_Y) / (0.15 - PAW_Y), 0, 1);
+  return [lerp(PAW_R * 0.98, rWrist, f), lerp(PAW_R * 1.18, rWrist * 1.04, f)];
+}
+
+function legZOffset(y: number, front: boolean): number {
+  if (front) {
+    // 前腿肘微收、腕微立、猫爪向正前轻探
+    const elbowCurve = -0.012 * Math.exp(-(((y - 0.28) / 0.1) ** 2));
+    const pawForward = 0.028 * clamp((0.14 - y) / 0.08, 0, 1);
+    return elbowCurve + pawForward;
+  }
+  // 后腿大腿微前倾、踝关节（Hock）自然向后微折、后爪向前踩实
+  const thighForward = 0.022 * Math.exp(-(((y - 0.38) / 0.12) ** 2));
+  const hockBack = -0.024 * Math.exp(-(((y - 0.19) / 0.08) ** 2));
+  const pawForward = 0.03 * clamp((0.14 - y) / 0.08, 0, 1);
+  return thighForward + hockBack + pawForward;
 }
 
 function makeLeg(spec: LegSpec): PartDef {
@@ -191,27 +257,29 @@ function makeLeg(spec: LegSpec): PartDef {
   return {
     name: spec.name,
     rect: spec.rect,
-    segS: 14,
-    segT: 16,
+    segS: 16,
+    segT: 18,
     pos(s, t, _k, out) {
       const th = (s - 0.5) * TAU;
       let y: number;
-      let r: number;
+      let rx: number;
+      let rz: number;
       if (t <= tc) {
         y = lerp(LEG_TOP, PAW_Y, t / tc);
-        r = legRadius(y, spec.front);
+        [rx, rz] = legRadius(y, spec.front);
       } else {
         const a = ((t - tc) / (1 - tc)) * (Math.PI / 2);
-        y = PAW_Y - PAW_R * Math.sin(a);
-        r = PAW_R * Math.cos(a);
+        y = PAW_Y - PAW_R * Math.sin(a) * 0.72;
+        const c = Math.cos(a);
+        rx = PAW_R * 0.98 * c;
+        rz = PAW_R * 1.22 * c;
       }
-      const pawness = clamp((0.16 - y) / 0.08, 0, 1);
-      const zScale = 1 + 0.3 * pawness;
-      return out.set(spec.x + Math.sin(th) * r, y, spec.z + 0.02 * pawness + Math.cos(th) * r * zScale);
+      const zOff = legZOffset(y, spec.front);
+      return out.set(spec.x + Math.sin(th) * rx, y, spec.z + zOff + Math.cos(th) * rz);
     },
     core(_s, t, _k, out) {
       const y = t <= tc ? lerp(LEG_TOP, PAW_Y, t / tc) : PAW_Y;
-      return out.set(spec.x, y, spec.z);
+      return out.set(spec.x, y, spec.z + legZOffset(y, spec.front));
     },
     weights: (_s, _t, p) =>
       chainWeights(p.y, [
@@ -224,23 +292,23 @@ function makeLeg(spec: LegSpec): PartDef {
 }
 
 export const LEGS: LegSpec[] = [
-  { name: 'fLegL', x: 0.16, z: 0.31, front: true, bones: ['chest', 'shoulderL', 'elbowL', 'fpawL'], rect: [256, 64, 64, 96] },
-  { name: 'fLegR', x: -0.16, z: 0.31, front: true, bones: ['chest', 'shoulderR', 'elbowR', 'fpawR'], rect: [320, 64, 64, 96] },
-  { name: 'hLegL', x: 0.17, z: -0.23, front: false, bones: ['hips', 'hipL', 'kneeL', 'hpawL'], rect: [384, 64, 64, 96] },
-  { name: 'hLegR', x: -0.17, z: -0.23, front: false, bones: ['hips', 'hipR', 'kneeR', 'hpawR'], rect: [448, 64, 64, 96] },
+  { name: 'fLegL', x: 0.145, z: 0.31, front: true, bones: ['chest', 'shoulderL', 'elbowL', 'fpawL'], rect: [256, 64, 64, 96] },
+  { name: 'fLegR', x: -0.145, z: 0.31, front: true, bones: ['chest', 'shoulderR', 'elbowR', 'fpawR'], rect: [320, 64, 64, 96] },
+  { name: 'hLegL', x: 0.155, z: -0.23, front: false, bones: ['hips', 'hipL', 'kneeL', 'hpawL'], rect: [384, 64, 64, 96] },
+  { name: 'hLegR', x: -0.155, z: -0.23, front: false, bones: ['hips', 'hipR', 'kneeR', 'hpawR'], rect: [448, 64, 64, 96] },
 ];
 
-// ---------------------------------------------------------------- 耳朵
+// ---------------------------------------------------------------- 耳朵（挺拔饱满的三角猫耳，对标左图神态）
 
-const EAR_THETA = 0.95;
-const EAR_PHI = 0.2;
+const EAR_THETA = 0.76;
+const EAR_PHI = 0.23;
 
 export function earBase(side: 1 | -1, k: ShapeParams, out = new Vector3()): Vector3 {
   return headPos(0.5 + (side * EAR_THETA) / TAU, EAR_PHI, k, out);
 }
 
 function makeEar(side: 1 | -1, rect: [number, number, number, number]): PartDef {
-  const axis = new Vector3(side * 0.5, 1, 0.08).normalize();
+  const axis = new Vector3(side * 0.34, 1, 0.1).normalize();
   const f0 = new Vector3(0, 0, 1);
   const front = f0.clone().addScaledVector(axis, -axis.dot(f0)).normalize();
   const sideways = new Vector3().crossVectors(axis, front).normalize();
@@ -249,21 +317,23 @@ function makeEar(side: 1 | -1, rect: [number, number, number, number]): PartDef 
   return {
     name: side === 1 ? 'earL' : 'earR',
     rect,
-    segS: 12,
-    segT: 8,
+    segS: 16,
+    segT: 12,
     pos(s, t, k, out) {
       earBase(side, k, base);
-      const rb = 0.105 * (1 + 0.25 * k.earSize);
-      const h = 0.17 * (1 + 0.45 * k.earSize);
+      const rb = 0.125 * (1 + 0.2 * k.earSize);
+      const h = 0.235 * (1 + 0.36 * k.earSize);
       const th = (s - 0.5) * TAU;
-      const r = rb * Math.pow(1 - t, 0.85);
-      out.copy(base).addScaledVector(axis, -0.04 + t * (h + 0.04));
-      return out.addScaledVector(sideways, Math.sin(th) * r).addScaledVector(front, Math.cos(th) * r * 0.45);
+      const r = rb * Math.pow(1 - t, 0.88);
+      // 耳廓正面微凹呈小勺状，凸显粉色内耳与深色外耳廓边
+      const cup = Math.cos(th) > 0 ? 0.36 : 0.52;
+      out.copy(base).addScaledVector(axis, -0.045 + t * (h + 0.045));
+      return out.addScaledVector(sideways, Math.sin(th) * r).addScaledVector(front, Math.cos(th) * r * cup);
     },
     core(_s, t, k, out) {
       earBase(side, k, out);
-      const h = 0.17 * (1 + 0.45 * k.earSize);
-      return out.addScaledVector(axis, -0.04 + t * (h + 0.04) - 0.02);
+      const h = 0.235 * (1 + 0.36 * k.earSize);
+      return out.addScaledVector(axis, -0.045 + t * (h + 0.045) - 0.02);
     },
     weights: (_s, t) =>
       chainWeights(t, [
@@ -273,16 +343,16 @@ function makeEar(side: 1 | -1, rect: [number, number, number, number]): PartDef 
   };
 }
 
-// ---------------------------------------------------------------- 尾巴
+// ---------------------------------------------------------------- 尾巴（自然修长 S 型微翘虎斑尾）
 
 const TAIL_CURVE = new CatmullRomCurve3([
-  new Vector3(0, 0.56, -0.42),
-  new Vector3(0, 0.6, -0.56),
-  new Vector3(0, 0.68, -0.68),
-  new Vector3(0, 0.8, -0.76),
-  new Vector3(0, 0.94, -0.79),
-  new Vector3(0, 1.07, -0.77),
-  new Vector3(0, 1.17, -0.71),
+  new Vector3(0, 0.51, -0.43),
+  new Vector3(0, 0.52, -0.56),
+  new Vector3(0, 0.56, -0.68),
+  new Vector3(0, 0.63, -0.79),
+  new Vector3(0, 0.72, -0.87),
+  new Vector3(0, 0.82, -0.92),
+  new Vector3(0, 0.91, -0.94),
 ]);
 export const TAIL_BONE_T = [0.04, 0.2, 0.36, 0.52, 0.68, 0.84];
 
@@ -304,16 +374,16 @@ const tail: PartDef = {
   name: 'tail',
   rect: [0, 320, 256, 64],
   transposeUV: true,
-  segS: 12,
-  segT: 30,
+  segS: 14,
+  segT: 32,
   pos(s, t, k, out) {
     const th = (s - 0.5) * TAU;
     TAIL_CURVE.getPointAt(t, out);
     TAIL_CURVE.getTangentAt(t, tailTan);
     tailW.crossVectors(TAIL_U, tailTan).normalize();
     const f = k.tailFluff;
-    let r = (0.05 + 0.03 * f) * (1 + 0.3 * f * Math.sin(Math.PI * t)) * lerp(1, 0.75, t);
-    if (t > 0.9) r *= Math.sqrt(Math.max(0, 1 - ((t - 0.9) / 0.1) ** 2));
+    let r = (0.044 + 0.022 * f) * (1 + 0.22 * f * Math.sin(Math.PI * t)) * lerp(1, 0.72, t);
+    if (t > 0.88) r *= Math.sqrt(Math.max(0, 1 - ((t - 0.88) / 0.12) ** 2));
     return out.addScaledVector(TAIL_U, Math.sin(th) * r).addScaledVector(tailW, Math.cos(th) * r);
   },
   core: (_s, t, _k, out) => TAIL_CURVE.getPointAt(Math.min(t, 0.97), out),

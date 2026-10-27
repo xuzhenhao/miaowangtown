@@ -14,7 +14,7 @@ import type { CatSkeleton } from './skeleton';
 import type { PetDNA } from './dna';
 
 /**
- * 脸部 = 手绘像素贴图集 + 贴在头骨上的小面片。
+ * 脸部 = 手绘像素贴图集 + 贴在头骨上的小面片（灵动翡翠大眼 + 粉鼻嘴 + 像素白胡须）。
  * 表情靠切换贴图格子，而不是网格形变，所以神态在像素尺度下始终清晰。
  */
 
@@ -31,77 +31,87 @@ function scaleHex(hex: string, factor: number): string {
   return `#${[r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')}`;
 }
 
-// k=眼线描边 r=深色外虹膜环 i=主虹膜 p=竖瞳 w=高光 .=透明
+// k=眼线描边 r=深翠外虹膜环 i=翡翠主虹膜 g=下沿亮翠月牙 p=竖瞳 w=纯白高光 .=透明
 const EYE_ART: Record<EyeState, string[]> = {
   open: [
-    '............',
-    '...kkkkkk...',
-    '..krriirrk..',
-    '.kriiwwppik.',
-    '.kriiwwppik.',
-    '.kriippppik.',
-    '.kriippppik.',
-    '.kriipppiik.',
-    '.krriippiwk.',
-    '..krriirrk..',
-    '...kkkkkk...',
-    '............',
+    '..............',
+    '...kkkkkkkk...',
+    '..kkkkkkkkkk..',
+    '.krrriiiirrrk.',
+    '.krwwiiiiiirk.',
+    '.krwwippppiik.',
+    '.kriippppppik.',
+    '.kriippppppik.',
+    '.kriiippppiik.',
+    '.krrggippigwk.',
+    '..krrgggggrk..',
+    '...kkkkkkkk...',
+    '..............',
+    '..............',
   ],
   closed: [
-    '............',
-    '............',
-    '............',
-    '............',
-    '............',
-    '............',
-    '.kk......kk.',
-    '..kkkkkkkk..',
-    '............',
-    '............',
-    '............',
-    '............',
+    '..............',
+    '..............',
+    '..............',
+    '..............',
+    '..............',
+    '..............',
+    '.kk........kk.',
+    '..kkkkkkkkkk..',
+    '..............',
+    '..............',
+    '..............',
+    '..............',
+    '..............',
+    '..............',
   ],
   happy: [
-    '............',
-    '............',
-    '............',
-    '............',
-    '...kkkkkk...',
-    '..kk....kk..',
-    '.kk......kk.',
-    '............',
-    '............',
-    '............',
-    '............',
-    '............',
+    '..............',
+    '..............',
+    '..............',
+    '..............',
+    '...kkkkkkkk...',
+    '..kk......kk..',
+    '.kk........kk.',
+    '..............',
+    '..............',
+    '..............',
+    '..............',
+    '..............',
+    '..............',
+    '..............',
   ],
   sleepy: [
-    '............',
-    '............',
-    '............',
-    '............',
-    '.kkkkkkkkkk.',
-    '.kriippppik.',
-    '.kriippppik.',
-    '.krriippiwk.',
-    '..krriirrk..',
-    '...kkkkkk...',
-    '............',
-    '............',
+    '..............',
+    '..............',
+    '..............',
+    '..............',
+    '.kkkkkkkkkkkk.',
+    '.kriippppppik.',
+    '.kriippppppik.',
+    '.krrggippigwk.',
+    '..krrgggggrk..',
+    '...kkkkkkkk...',
+    '..............',
+    '..............',
+    '..............',
+    '..............',
   ],
   surprised: [
-    '............',
-    '...kkkkkk...',
-    '..krrrrrrk..',
-    '.kripppppik.',
-    '.krpwppppik.',
-    '.krppppppik.',
-    '.krppppppik.',
-    '.krpppppwik.',
-    '.kripppppik.',
-    '..krrrrrrk..',
-    '...kkkkkk...',
-    '............',
+    '..............',
+    '...kkkkkkkk...',
+    '..krrrrrrrrk..',
+    '.kriippppppik.',
+    '.krpwppppppik.',
+    '.krppppppppik.',
+    '.krppppppppik.',
+    '.krpppppppwik.',
+    '.krggppppggik.',
+    '..krrrrrrrrk..',
+    '...kkkkkkkk...',
+    '..............',
+    '..............',
+    '..............',
   ],
 };
 
@@ -109,10 +119,10 @@ const EYE_ART: Record<EyeState, string[]> = {
 const MOUTH_ART: Record<MouthState, string[]> = {
   closed: [
     '.............',
-    '..nnnnnnnnn..',
-    '...nnnhnnn...',
-    '....nnnnn....',
+    '...nnnnnnn...',
+    '....nhhhn....',
     '.....nnn.....',
+    '......n......',
     '......k......',
     '..k...k...k..',
     '...kkk.kkk...',
@@ -121,10 +131,10 @@ const MOUTH_ART: Record<MouthState, string[]> = {
   ],
   open: [
     '.............',
-    '..nnnnnnnnn..',
-    '...nnnhnnn...',
-    '....nnnnn....',
+    '...nnnnnnn...',
+    '....nhhhn....',
     '.....nnn.....',
+    '......n......',
     '......k......',
     '....kkkkk....',
     '...kmmmmmk...',
@@ -133,15 +143,31 @@ const MOUTH_ART: Record<MouthState, string[]> = {
   ],
   tongue: [
     '.............',
-    '..nnnnnnnnn..',
-    '...nnnhnnn...',
-    '....nnnnn....',
+    '...nnnnnnn...',
+    '....nhhhn....',
     '.....nnn.....',
+    '......n......',
     '......k......',
     '...kkk.kkk...',
     '....ttttt....',
     '....ttttt....',
     '.....ttt.....',
+  ],
+};
+
+// 贴在脸颊表面的像素白胡须（两根纯白像素胡须 w 配深褐描边衬底 k，自然贴合脸颊不悬空）
+const WHISKER_STATES = ['default'] as const;
+type WhiskerState = (typeof WHISKER_STATES)[number];
+const WHISKER_ART: Record<WhiskerState, string[]> = {
+  default: [
+    '............',
+    '..kkkkkkkk..',
+    '.wwwwwwwwww.',
+    '..kkkkkkkk..',
+    '............',
+    '...kkkkkkk..',
+    '..wwwwwwwww.',
+    '...kkkkkkk..',
   ],
 };
 
@@ -179,43 +205,61 @@ function pixelTexture(canvas: HTMLCanvasElement, cells: number): CanvasTexture {
 }
 
 const EYE_THETA = 0.42;
-const EYE_PHI = 0.45;
-const EYE_SIZE = 0.162;
-const MOUTH_W = 0.172;
-const MOUTH_PHI = 0.41;
+const EYE_PHI = 0.47;
+const EYE_SIZE = 0.176;
+const MOUTH_W = 0.156;
+const MOUTH_PHI = 0.43;
+const WHISKER_W = 0.145;
+const WHISKER_H = (WHISKER_W * 8) / 12;
 const DECAL_LIFT = 0.012;
 
 export class FaceRig {
   readonly eyeMat = new MeshBasicMaterial({ alphaTest: 0.5, polygonOffset: true, polygonOffsetFactor: -2 });
   readonly mouthMat = new MeshBasicMaterial({ alphaTest: 0.5, polygonOffset: true, polygonOffsetFactor: -2 });
+  readonly whiskerMat = new MeshBasicMaterial({
+    alphaTest: 0.5,
+    polygonOffset: true,
+    polygonOffsetFactor: -2,
+  });
   readonly eyes: [Mesh, Mesh];
   readonly mouth: Mesh;
+  readonly whiskers: [Mesh, Mesh];
   eyeState: EyeState = 'open';
   mouthState: MouthState = 'closed';
 
   constructor(private sk: CatSkeleton) {
     const eyeGeo = new PlaneGeometry(EYE_SIZE, EYE_SIZE);
     const mouthGeo = new PlaneGeometry(MOUTH_W, (MOUTH_W * 10) / 13);
+    const whiskerGeoL = new PlaneGeometry(WHISKER_W, WHISKER_H);
+    const whiskerGeoR = new PlaneGeometry(WHISKER_W, WHISKER_H);
+    const uvR = whiskerGeoR.attributes.uv;
+    for (let i = 0; i < uvR.count; i++) {
+      uvR.setX(i, 1 - uvR.getX(i));
+    }
     this.eyes = [new Mesh(eyeGeo, this.eyeMat), new Mesh(eyeGeo, this.eyeMat)];
     this.mouth = new Mesh(mouthGeo, this.mouthMat);
-    for (const m of [...this.eyes, this.mouth]) sk.bones.head.add(m);
+    this.whiskers = [new Mesh(whiskerGeoL, this.whiskerMat), new Mesh(whiskerGeoR, this.whiskerMat)];
+    for (const m of [...this.eyes, this.mouth, ...this.whiskers]) sk.bones.head.add(m);
   }
 
   applyColors(dna: PetDNA) {
-    const outline = '#241a14';
+    const outline = '#1b110b';
     const iris = dna.eyes.iris;
-    const irisRim = scaleHex(iris, 0.65);
+    const irisRim = scaleHex(iris, 0.58);
+    const irisGlow = scaleHex(iris, 1.24);
     const nose = dna.nose ?? '#c85a48';
-    const noseHighlight = scaleHex(nose, 1.18);
+    const noseHighlight = scaleHex(nose, 1.2);
     this.eyeMat.map?.dispose();
     this.mouthMat.map?.dispose();
+    this.whiskerMat.map?.dispose();
     this.eyeMat.map = pixelTexture(
       drawAtlas(EYE_STATES, EYE_ART, {
         k: outline,
         r: irisRim,
         i: iris,
-        p: dna.eyes.pupil ?? '#1b2416',
-        w: '#f9fbf6',
+        g: irisGlow,
+        p: dna.eyes.pupil ?? '#151e12',
+        w: '#ffffff',
       }),
       EYE_STATES.length,
     );
@@ -229,13 +273,21 @@ export class FaceRig {
       }),
       MOUTH_STATES.length,
     );
+    this.whiskerMat.map = pixelTexture(
+      drawAtlas(WHISKER_STATES, WHISKER_ART, {
+        w: '#ffffff',
+        k: '#231710',
+      }),
+      1,
+    );
     this.eyeMat.needsUpdate = true;
     this.mouthMat.needsUpdate = true;
+    this.whiskerMat.needsUpdate = true;
     this.setEyes(this.eyeState);
     this.setMouth(this.mouthState);
   }
 
-  /** 体型变化后重新把面片贴到头/嘴套表面 */
+  /** 体型变化后重新把面片贴到头/嘴套表面，并在两侧脸颊贴合像素白胡须 */
   applyShape(k: ShapeParams) {
     const headRest = this.sk.restWorld.head;
     const headPart = partByName('head');
@@ -244,17 +296,29 @@ export class FaceRig {
     const n = new Vector3();
     const q = new Quaternion();
     const zAxis = new Vector3(0, 0, 1);
+
     [1, -1].forEach((side, i) => {
       const s = 0.5 + (side * EYE_THETA) / (Math.PI * 2);
       headPos(s, EYE_PHI, k, p);
       partNormal(headPart, s, EYE_PHI, k, n);
+      n.lerp(new Vector3(side * 0.22, 0.04, 0.96).normalize(), 0.35).normalize();
       const eye = this.eyes[i];
       eye.position.copy(p).addScaledVector(n, DECAL_LIFT).sub(headRest);
       eye.quaternion.copy(q.setFromUnitVectors(zAxis, n));
+
+      // 脸颊像素白胡须：贴合脸颊下侧表面并向外微探，背侧面通过 FrontSide 自动隐去不穿帮
+      const ws = 0.5 + (side * 0.78) / (Math.PI * 2);
+      headPos(ws, 0.62, k, p);
+      partNormal(headPart, ws, 0.62, k, n);
+      n.lerp(new Vector3(side * 0.65, -0.04, 0.76).normalize(), 0.5).normalize();
+      const whisker = this.whiskers[i];
+      whisker.position.copy(p).addScaledVector(n, DECAL_LIFT * 1.1).sub(headRest);
+      whisker.quaternion.copy(q.setFromUnitVectors(zAxis, n));
     });
+
     muzzlePos(0.5, MOUTH_PHI, k, p);
     partNormal(muzzlePart, 0.5, MOUTH_PHI, k, n);
-    n.lerp(new Vector3(0, 0, 1), 0.5).normalize();
+    n.lerp(new Vector3(0, 0, 1), 0.55).normalize();
     this.mouth.position.copy(p).addScaledVector(n, DECAL_LIFT).sub(headRest);
     this.mouth.quaternion.copy(q.setFromUnitVectors(zAxis, n));
   }

@@ -17,27 +17,51 @@ const gradient = makeToonGradient();
 const town = new Town(gradient);
 const actor = new CatActor(gradient, town);
 town.scene.add(actor.group);
-actor.group.position.set(0, 0, 0.35);
+actor.group.position.set(2.32, -0.12, 0.24);
+actor.heading = -1.12;
 const painter = new CoatPainter(actor);
 
-// 预设镜头配置
-const preset = params.get('preset');
-if (preset === 'town') {
-  pipeline.viewHeight = 6.8;
+// 预设镜头配置（默认对标左图客栈门前下桥石阶机位 compare）
+const preset = params.get('preset') ?? (params.has('zoom') ? null : 'compare');
+if (preset === 'compare') {
+  pipeline.viewHeight = 2.85;
   pipeline.pitchDeg = 30;
-  pipeline.yawDeg = -18;
-} else if (preset === 'closeup') {
-  pipeline.viewHeight = 2.6;
-  pipeline.pitchDeg = 24;
-  pipeline.yawDeg = 0;
-} else if (preset === 'belly') {
-  pipeline.viewHeight = 2.6;
-  pipeline.pitchDeg = 34;
-  pipeline.yawDeg = 0;
-} else {
-  pipeline.viewHeight = 4.2;
+  pipeline.yawDeg = -14;
+  pipeline.pixelScale = 3;
+  actor.group.position.set(2.32, -0.12, 0.24);
+  actor.heading = -1.12;
+} else if (preset === 'town') {
+  pipeline.viewHeight = 6.6;
+  pipeline.pitchDeg = 30;
+  pipeline.yawDeg = -16;
+  pipeline.pixelScale = 2;
+  actor.group.position.set(0, 0, 0.35);
+} else if (preset === 'bridge') {
+  pipeline.viewHeight = 4.0;
   pipeline.pitchDeg = 28;
   pipeline.yawDeg = -12;
+  pipeline.pixelScale = 3;
+  actor.group.position.set(0, 0, 0.35);
+} else if (preset === 'closeup') {
+  pipeline.viewHeight = 2.5;
+  pipeline.pitchDeg = 24;
+  pipeline.yawDeg = 0;
+  pipeline.pixelScale = 3;
+  actor.group.position.set(2.32, -0.12, 0.24);
+  actor.heading = 0;
+} else if (preset === 'belly') {
+  pipeline.viewHeight = 2.5;
+  pipeline.pitchDeg = 34;
+  pipeline.yawDeg = 0;
+  pipeline.pixelScale = 3;
+  actor.group.position.set(2.32, -0.12, 0.24);
+  actor.heading = 0;
+} else {
+  pipeline.viewHeight = 4.0;
+  pipeline.pitchDeg = 28;
+  pipeline.yawDeg = -12;
+  pipeline.pixelScale = 3;
+  actor.group.position.set(0, 0, 0.35);
 }
 
 if (params.has('scale')) pipeline.pixelScale = Number(params.get('scale'));
@@ -47,6 +71,7 @@ if (params.has('yaw')) {
   pipeline.yawDeg = Number(params.get('yaw'));
 } else if (!preset && pipeline.viewHeight <= 3.0) {
   pipeline.yawDeg = 0;
+  actor.group.position.set(0, 0, 0.35);
 }
 if (params.get('hd2d') === '0') {
   pipeline.tiltShift = false;
@@ -93,6 +118,8 @@ const actionsRow = $('actions');
 const autoBtn = document.createElement('button');
 autoBtn.textContent = '自动闲逛';
 autoBtn.onclick = () => {
+  lockHeading = null;
+  lockPos = null;
   actor.brain.release();
   markAction(autoBtn);
 };
@@ -110,7 +137,9 @@ function markAction(btn: HTMLButtonElement) {
   actionsRow.querySelectorAll('button').forEach((x) => x.classList.toggle('active', x === btn));
 }
 markAction(autoBtn);
-const initialAction = params.get('action') ?? (preset === 'closeup' ? 'sit' : preset === 'belly' ? 'belly' : null);
+const initialAction =
+  params.get('action') ??
+  (preset === 'compare' ? 'walk' : preset === 'closeup' ? 'sit' : preset === 'belly' ? 'belly' : null);
 if (initialAction) {
   actor.brain.force(initialAction, true);
   const idx = CLIPS.findIndex((c) => c.name === initialAction);
@@ -147,28 +176,64 @@ vignetteEl.onchange = () => (pipeline.vignette = vignetteEl.checked);
 outlineEl.onchange = () => (pipeline.outline = outlineEl.checked);
 posterizeEl.onchange = () => (pipeline.posterize = posterizeEl.checked);
 
-const presetButtons = [$('presetTown'), $('presetBridge'), $('presetCloseup')];
-function applyPreset(name: 'town' | 'bridge' | 'closeup', btn: HTMLElement) {
+const presetButtons = [$('presetCompare'), $('presetBridge'), $('presetCloseup'), $('presetTown')];
+function applyPreset(name: 'compare' | 'bridge' | 'closeup' | 'town', btn: HTMLElement) {
   presetButtons.forEach((b) => b.classList.toggle('active', b === btn));
-  if (name === 'town') {
-    pipeline.viewHeight = 6.8;
+  if (name === 'compare') {
+    pipeline.viewHeight = 2.85;
     pipeline.pitchDeg = 30;
-    pipeline.yawDeg = -18;
+    pipeline.yawDeg = -14;
+    pipeline.pixelScale = 3;
+    actor.group.position.set(2.32, -0.12, 0.24);
+    actor.heading = -1.12;
+    lockHeading = -1.12;
+    lockPos = actor.group.position.clone();
+    actor.brain.force('walk', true);
+    const idx = CLIPS.findIndex((c) => c.name === 'walk');
+    if (idx >= 0) markAction(actionsRow.querySelectorAll('button')[idx + 1] as HTMLButtonElement);
   } else if (name === 'bridge') {
-    pipeline.viewHeight = 4.2;
+    pipeline.viewHeight = 4.0;
     pipeline.pitchDeg = 28;
     pipeline.yawDeg = -12;
-  } else {
-    pipeline.viewHeight = 2.6;
+    pipeline.pixelScale = 3;
+    actor.group.position.set(0, 0, 0.35);
+    actor.heading = -0.55;
+    lockHeading = null;
+    lockPos = null;
+    actor.brain.release();
+    markAction(autoBtn);
+  } else if (name === 'closeup') {
+    pipeline.viewHeight = 2.5;
     pipeline.pitchDeg = 24;
     pipeline.yawDeg = 0;
+    pipeline.pixelScale = 3;
+    actor.group.position.set(2.32, -0.12, 0.24);
     actor.heading = 0;
+    lockHeading = 0;
+    lockPos = actor.group.position.clone();
+    actor.brain.force('sit', true);
+    const idx = CLIPS.findIndex((c) => c.name === 'sit');
+    if (idx >= 0) markAction(actionsRow.querySelectorAll('button')[idx + 1] as HTMLButtonElement);
+  } else {
+    pipeline.viewHeight = 6.6;
+    pipeline.pitchDeg = 30;
+    pipeline.yawDeg = -16;
+    pipeline.pixelScale = 2;
+    actor.group.position.set(0, 0, 0.35);
+    lockHeading = null;
+    lockPos = null;
+    actor.brain.release();
+    markAction(autoBtn);
   }
+  scale.value = String(pipeline.pixelScale);
   zoom.value = String(pipeline.viewHeight);
+  pipeline.resize();
+  pipeline.focus.copy(actor.group.position).add(new Vector3(0, 0.45, 0));
 }
-$('presetTown').onclick = () => applyPreset('town', $('presetTown'));
+$('presetCompare').onclick = () => applyPreset('compare', $('presetCompare'));
 $('presetBridge').onclick = () => applyPreset('bridge', $('presetBridge'));
 $('presetCloseup').onclick = () => applyPreset('closeup', $('presetCloseup'));
+$('presetTown').onclick = () => applyPreset('town', $('presetTown'));
 
 // ------------------------------------------------------------------ 印记
 
@@ -237,8 +302,10 @@ const clock = new Clock();
 const focusTarget = new Vector3();
 pipeline.focus.copy(actor.group.position).add(new Vector3(0, 0.45, 0));
 
-const lockHeading = params.has('heading') ? Number(params.get('heading')) : null;
-const lockPos = lockHeading !== null && initialAction === 'walk' ? actor.group.position.clone() : null;
+let lockHeading: number | null =
+  params.has('heading') ? Number(params.get('heading')) : preset === 'compare' ? -1.12 : null;
+let lockPos: Vector3 | null =
+  lockHeading !== null && (initialAction === 'walk' || preset === 'compare') ? actor.group.position.clone() : null;
 
 function stepSimulation(dt: number) {
   actor.update(dt);
@@ -253,7 +320,7 @@ function stepSimulation(dt: number) {
     focusTarget.copy(actor.group.position).add(new Vector3(0, 0.45, 0));
     pipeline.focus.lerp(focusTarget, 1 - Math.exp(-4 * dt));
   }
-  town.sun.position.copy(pipeline.focus).add(new Vector3(6.8, 8.6, 4.8));
+  town.sun.position.copy(pipeline.focus).add(new Vector3(5.6, 8.2, 5.2));
   town.sun.target.position.copy(pipeline.focus);
 }
 

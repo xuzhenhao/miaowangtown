@@ -1,52 +1,53 @@
 {
   "id": "mimi",
   "name": "咪咪",
-  "shape": { "headRound": 0.65, "weight": 0.38, "earSize": 0.42, "tailFluff": 0.42, "cheekFluff": 0.55, "muzzleSize": 0.72 },
+  "shape": { "headRound": 0.48, "weight": 0.28, "earSize": 0.58, "tailFluff": 0.35, "cheekFluff": 0.48, "muzzleSize": 0.55 },
   "coat": {
     "texture": null,
     "base": "#a87d56",
     "palette": ["#a87d56", "#4a3325", "#2f2017", "#f6f3ec", "#c68b59", "#dca675", "#dfa09a"],
     "markings": [
-      { "type": "stripes", "color": "#4a3325", "axis": "z", "frequency": 5.5, "width": 0.30, "noise": 0.45, "parts": ["body"], "minY": 0.38 },
-      { "type": "blob", "color": "#2f2017", "center": [0, 0.78, -0.02], "radius": [0.075, 0.08, 0.42], "noise": 0.3, "parts": ["body"] },
-      { "type": "stripes", "color": "#4a3325", "axis": "y", "frequency": 9, "width": 0.30, "noise": 0.25, "parts": ["hLegL", "hLegR"], "minY": 0.22 },
-      { "type": "stripes", "color": "#4a3325", "axis": "y", "frequency": 8, "width": 0.28, "noise": 0.25, "parts": ["fLegL", "fLegR"], "minY": 0.40 },
-      { "type": "stripes", "color": "#4a3325", "axis": "y", "frequency": 7.5, "width": 0.36, "parts": ["tail"] },
-      { "type": "blob", "color": "#2f2017", "center": [0, 1.13, -0.73], "radius": [0.09, 0.09, 0.09], "parts": ["tail"] },
-      { "type": "stripes", "color": "#4a3325", "axis": "x", "frequency": 9.5, "width": 0.30, "noise": 0.18, "parts": ["head"], "minY": 0.99, "minZ": 0.50 },
-      { "type": "stripes", "color": "#4a3325", "axis": "z", "frequency": 6, "width": 0.28, "noise": 0.3, "parts": ["head"], "minY": 0.90, "maxZ": 0.55 },
+      { "type": "stripes", "color": "#4a3325", "axis": "z", "frequency": 6.4, "width": 0.35, "noise": 0.30, "parts": ["body"], "minY": 0.31 },
+      { "type": "blob", "color": "#2f2017", "center": [0, 0.72, -0.02], "radius": [0.075, 0.085, 0.45], "noise": 0.25, "parts": ["body"] },
+      { "type": "stripes", "color": "#4a3325", "axis": "y", "frequency": 9.5, "width": 0.33, "noise": 0.20, "parts": ["hLegL", "hLegR"], "minY": 0.20 },
+      { "type": "stripes", "color": "#4a3325", "axis": "y", "frequency": 9.0, "width": 0.32, "noise": 0.20, "parts": ["fLegL", "fLegR"], "minY": 0.32 },
+      { "type": "stripes", "color": "#4a3325", "axis": "y", "frequency": 8.5, "width": 0.38, "parts": ["tail"] },
+      { "type": "blob", "color": "#2f2017", "center": [0, 0.89, -0.92], "radius": [0.09, 0.09, 0.09], "parts": ["tail"] },
+      { "type": "stripes", "color": "#4a3325", "axis": "x", "frequency": 10.5, "width": 0.33, "noise": 0.15, "parts": ["head"], "minY": 0.92, "minZ": 0.45 },
+      { "type": "stripes", "color": "#4a3325", "axis": "z", "frequency": 6.8, "width": 0.32, "noise": 0.22, "parts": ["head"], "minY": 0.80, "maxZ": 0.62 },
+      { "type": "stripes", "color": "#4a3325", "axis": "y", "frequency": 11.0, "width": 0.30, "noise": 0.15, "parts": ["head"], "minY": 0.78, "maxY": 0.92, "minZ": 0.52 },
 
-      { "type": "underside", "color": "#f6f3ec", "threshold": -0.35, "noise": 0.2, "parts": ["body", "neck", "head"] },
-      { "type": "blob", "color": "#f6f3ec", "center": [0, 0.26, 0.02], "radius": [0.25, 0.14, 0.44], "noise": 0.15, "parts": ["body"] },
-      { "type": "blob", "color": "#f6f3ec", "center": [0, 0.62, 0.40], "radius": [0.24, 0.26, 0.22], "noise": 0.22, "parts": ["neck", "body", "head"] },
-      { "type": "blob", "color": "#f6f3ec", "center": [0, 0.74, 0.68], "radius": [0.32, 0.15, 0.22], "noise": 0.18, "parts": ["head"] },
+      { "type": "underside", "color": "#f6f3ec", "threshold": -0.52, "noise": 0.14, "parts": ["body"] },
+      { "type": "blob", "color": "#f6f3ec", "center": [0, 0.26, 0.0], "radius": [0.18, 0.075, 0.43], "maxY": 0.32, "noise": 0.10, "parts": ["body"] },
+      { "type": "blob", "color": "#f6f3ec", "center": [0, 0.56, 0.39], "radius": [0.18, 0.21, 0.17], "minZ": 0.22, "noise": 0.14, "parts": ["neck", "body"] },
+      { "type": "blob", "color": "#f6f3ec", "center": [0, 0.69, 0.66], "radius": [0.21, 0.095, 0.18], "maxY": 0.78, "noise": 0.12, "parts": ["head", "neck"] },
 
-      { "type": "blob", "color": "#f6f3ec", "center": [0.20, 0.55, -0.05], "radius": [0.22, 0.36, 0.19], "noise": 0.30, "minX": 0.02, "parts": ["body"] },
+      { "type": "blob", "color": "#f6f3ec", "center": [0.18, 0.36, -0.05], "radius": [0.16, 0.11, 0.15], "noise": 0.22, "minX": 0.04, "maxY": 0.43, "parts": ["body"] },
 
-      { "type": "part", "color": "#f6f3ec", "maxY": 0.40, "noise": 0.12, "parts": ["fLegL", "fLegR"] },
-      { "type": "blob", "color": "#dca675", "center": [-0.10, 0.25, 0.34], "radius": [0.055, 0.055, 0.06], "minX": -0.16, "parts": ["fLegR"] },
-      { "type": "blob", "color": "#c68b59", "center": [-0.10, 0.25, 0.34], "radius": [0.042, 0.042, 0.048], "minX": -0.15, "parts": ["fLegR"] },
-      { "type": "part", "color": "#f6f3ec", "maxY": 0.22, "noise": 0.10, "parts": ["hLegL", "hLegR"] },
+      { "type": "part", "color": "#f6f3ec", "maxY": 0.33, "noise": 0.08, "parts": ["fLegL", "fLegR"] },
+      { "type": "blob", "color": "#dca675", "center": [-0.095, 0.22, 0.33], "radius": [0.052, 0.048, 0.058], "minX": -0.145, "parts": ["fLegR"] },
+      { "type": "blob", "color": "#c68b59", "center": [-0.095, 0.22, 0.33], "radius": [0.038, 0.036, 0.045], "minX": -0.138, "parts": ["fLegR"] },
+      { "type": "part", "color": "#f6f3ec", "maxY": 0.20, "noise": 0.08, "parts": ["hLegL", "hLegR"] },
 
-      { "type": "blob", "color": "#dca675", "center": [0, 0.25, -0.02], "radius": [0.095, 0.08, 0.115], "maxY": 0.34, "noise": 0.10, "parts": ["body"] },
-      { "type": "blob", "color": "#c68b59", "center": [0, 0.25, -0.02], "radius": [0.075, 0.07, 0.092], "maxY": 0.33, "noise": 0.08, "parts": ["body"] },
+      { "type": "blob", "color": "#dca675", "center": [0, 0.26, -0.02], "radius": [0.088, 0.08, 0.108], "maxY": 0.33, "noise": 0.08, "parts": ["body"] },
+      { "type": "blob", "color": "#c68b59", "center": [0, 0.26, -0.02], "radius": [0.068, 0.07, 0.086], "maxY": 0.32, "noise": 0.06, "parts": ["body"] },
 
       { "type": "part", "color": "#f6f3ec", "parts": ["muzzle"] },
-      { "type": "blob", "color": "#f6f3ec", "center": [0.02, 0.85, 0.82], "radius": [0.15, 0.10, 0.12], "parts": ["head"] },
-      { "type": "blob", "color": "#f6f3ec", "center": [0.022, 0.94, 0.82], "radius": [0.046, 0.075, 0.08], "minX": -0.015, "parts": ["head", "muzzle"] },
-      { "type": "blob", "color": "#f6f3ec", "center": [0.032, 1.00, 0.80], "radius": [0.032, 0.055, 0.07], "minX": 0.0, "parts": ["head"] },
+      { "type": "blob", "color": "#f6f3ec", "center": [0.016, 0.81, 0.76], "radius": [0.125, 0.078, 0.11], "maxY": 0.88, "parts": ["head"] },
+      { "type": "blob", "color": "#f6f3ec", "center": [0.020, 0.90, 0.77], "radius": [0.038, 0.068, 0.08], "minX": -0.010, "parts": ["head", "muzzle"] },
+      { "type": "blob", "color": "#f6f3ec", "center": [0.028, 0.96, 0.75], "radius": [0.026, 0.048, 0.07], "minX": 0.0, "parts": ["head"] },
 
-      { "type": "blob", "color": "#c68b59", "center": [-0.068, 0.845, 0.84], "radius": [0.085, 0.065, 0.09], "maxX": -0.003, "minY": 0.782, "noise": 0.08, "parts": ["muzzle", "head"] },
-      { "type": "blob", "color": "#c68b59", "center": [-0.035, 0.895, 0.84], "radius": [0.045, 0.045, 0.07], "maxX": 0.002, "minY": 0.84, "parts": ["muzzle", "head"] },
-      { "type": "blob", "color": "#4a3325", "center": [-0.052, 0.838, 0.872], "radius": [0.011, 0.009, 0.03], "parts": ["muzzle"] },
-      { "type": "blob", "color": "#4a3325", "center": [-0.080, 0.826, 0.858], "radius": [0.011, 0.009, 0.03], "parts": ["muzzle"] },
+      { "type": "blob", "color": "#c68b59", "center": [-0.062, 0.835, 0.78], "radius": [0.076, 0.060, 0.085], "maxX": -0.003, "minY": 0.778, "noise": 0.06, "parts": ["muzzle", "head"] },
+      { "type": "blob", "color": "#c68b59", "center": [-0.032, 0.88, 0.78], "radius": [0.040, 0.040, 0.07], "maxX": 0.002, "minY": 0.83, "parts": ["muzzle", "head"] },
+      { "type": "blob", "color": "#4a3325", "center": [-0.048, 0.828, 0.805], "radius": [0.011, 0.009, 0.03], "parts": ["muzzle"] },
+      { "type": "blob", "color": "#4a3325", "center": [-0.074, 0.818, 0.792], "radius": [0.011, 0.009, 0.03], "parts": ["muzzle"] },
 
-      { "type": "blob", "color": "#dca675", "center": [0.052, 0.800, 0.855], "radius": [0.054, 0.018, 0.065], "minX": 0.012, "minY": 0.784, "maxY": 0.816, "parts": ["muzzle"] },
-      { "type": "blob", "color": "#f6f3ec", "center": [0, 0.75, 0.82], "radius": [0.12, 0.022, 0.08], "maxY": 0.768, "parts": ["muzzle"] }
+      { "type": "blob", "color": "#dca675", "center": [0.048, 0.792, 0.795], "radius": [0.052, 0.018, 0.065], "minX": 0.010, "minY": 0.776, "maxY": 0.810, "parts": ["muzzle"] },
+      { "type": "blob", "color": "#f6f3ec", "center": [0, 0.745, 0.76], "radius": [0.12, 0.024, 0.08], "maxY": 0.765, "parts": ["muzzle"] }
     ]
   },
   "earInner": "#dfa09a",
-  "eyes": { "iris": "#8fb369", "pupil": "#1b2416" },
+  "eyes": { "iris": "#68b85b", "pupil": "#162112" },
   "nose": "#c85a48",
   "personality": { "idle": 0.2, "walk": 0.25, "sit": 0.15, "loaf": 0.15, "groom": 0.15, "belly": 0.1 }
 }

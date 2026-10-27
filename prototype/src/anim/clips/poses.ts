@@ -3,12 +3,12 @@ import type { Pose } from '../clipDsl';
 /** 动作之间共享的基础姿态（只描述骨骼，与具体宠物无关） */
 
 export const TAIL_RELAXED: Pose = {
-  tail0: [-35, 0, 0],
-  tail1: [-10, 0, 0],
-  tail2: [5, 0, 0],
-  tail3: [10, 0, 0],
-  tail4: [10, 0, 0],
-  tail5: [10, 0, 0],
+  tail0: [-42, -16, 0],
+  tail1: [-12, -8, 0],
+  tail2: [8, 0, 0],
+  tail3: [14, 6, 0],
+  tail4: [14, 8, 0],
+  tail5: [12, 8, 0],
 };
 
 export const SIT_HIPS: [number, number, number] = [0, -0.31, -0.03];
