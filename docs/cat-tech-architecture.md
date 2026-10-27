@@ -233,3 +233,11 @@ URL 参数（方便截图对比）：`pet=mimi|juzi|nainiu`、`action=idle|walk|
 - `prototype/server/vlm-proxy.mjs`：本地 Node 代理（`npm run vlm-proxy`），转发最多 8 张猫咪照片至 OpenAI 兼容视觉大模型，强制「左右 = 猫自身的左右」并输出 JSON Schema 结构化 DNA。
 - `prototype/src/photo/semanticMarkings.ts`：根据 `RestMap.partBoxes` 与 `faceAnchors` 自动解算 22 项语义区域（如 `muzzle.right`, `nose_bridge.blaze_left`, `muzzle.left_lip`, `paw.frontRight.inner_wrist`, `belly.center_spot`, `flank.left`）的 3D 中心与半径。
 - `prototype/src/photo/faceProjection.ts`：用正脸照片 10 个关键点与 3D 脸部锚点构建 16 个分片仿射三角形（Piecewise Affine Warp），将正脸真照片直接投影到 `head` 与 `muzzle` 的正脸 UV 区域，自动白平衡校正、调色板量化吸附并经 3×3 众数滤波清理为干净像素画。
+
+---
+
+## 11. 全链路闭环总纲文档（前半段 + 后半段完整拼合）
+
+完整的「**前半段（Blender/AI 一体流形母版 + 512×512 UV Rest-Map 光栅化烘焙 + 8 张真照片转 22 语义区域 DNA + 正脸 10 关键点 16 三角片分片仿射投影）**」与「**后半段（Full HD 古镇场景 + 真实 3D 地面软阴影 + 猫咪独立低分像素层 + 单档 0.76 硬阴影平涂 + 1px 深暖黑褐描边 + 灵动像素眼与贴面像素胡须）**」全链路回顾总结与工程规范，详见：
+
+- [`docs/HD2D_CAT_FULL_LOOP_TECHNICAL_SPEC.md`](./HD2D_CAT_FULL_LOOP_TECHNICAL_SPEC.md)
