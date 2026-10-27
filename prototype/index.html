@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>喵汪小镇 · 猫猫技术验证</title>
+    <title>喵汪小镇 · HD-2D 猫猫技术验证</title>
     <style>
-      html, body { margin: 0; height: 100%; overflow: hidden; background: #a9d4e8; font-family: -apple-system, "PingFang SC", sans-serif; }
+      html, body { margin: 0; height: 100%; overflow: hidden; background: #26323c; font-family: -apple-system, "PingFang SC", sans-serif; }
       #view { width: 100vw; height: 100vh; display: block; image-rendering: pixelated; cursor: pointer; }
       #view.painting { cursor: crosshair; }
       #panel {
-        position: fixed; top: 12px; left: 12px; width: 280px; max-height: calc(100vh - 24px); overflow-y: auto;
-        background: rgba(255, 251, 242, 0.94); border-radius: 10px; padding: 12px 14px; box-shadow: 0 4px 16px rgba(60, 40, 20, 0.18);
+        position: fixed; top: 12px; left: 12px; width: 292px; max-height: calc(100vh - 24px); overflow-y: auto;
+        background: rgba(255, 251, 242, 0.94); border-radius: 10px; padding: 12px 14px; box-shadow: 0 4px 16px rgba(20, 14, 10, 0.32);
         font-size: 13px; color: #4a3a2c;
       }
       #panel.hidden { display: none; }
@@ -34,8 +34,8 @@
   <body>
     <canvas id="view"></canvas>
     <div id="panel">
-      <h1>喵汪小镇 · 猫猫技术验证</h1>
-      <div class="hint">一套母版骨骼 + 一份 DNA = 一只猫。点猫会歪头开心，鼠标移动它会看你。</div>
+      <h1>喵汪小镇 · HD-2D 技术验证</h1>
+      <div class="hint">小桥流水 HD-2D 古镇 + 3D 骨骼像素猫。点猫会歪头开心，鼠标移动它会看你。</div>
       <div id="status"></div>
 
       <h2>宠物（只换 DNA，不换动作）</h2>
@@ -44,11 +44,23 @@
       <h2>动作（全猫共用）</h2>
       <div class="row" id="actions"></div>
 
-      <h2>画风</h2>
-      <div class="row"><label>像素倍率 <input id="scale" type="range" min="1" max="6" step="1" /></label></div>
-      <div class="row"><label>镜头缩放 <input id="zoom" type="range" min="2.5" max="10" step="0.1" /></label></div>
+      <h2>画风与 HD-2D 管线</h2>
       <div class="row">
-        <label><input id="outline" type="checkbox" checked /> 描边</label>
+        <button id="presetTown">古镇全景 (Zoom 6.8)</button>
+        <button id="presetBridge" class="active">石桥中景 (Zoom 4.2)</button>
+        <button id="presetCloseup">特写验猫 (Zoom 2.6)</button>
+      </div>
+      <div class="row"><label>像素倍率 <input id="scale" type="range" min="1" max="6" step="1" /></label></div>
+      <div class="row"><label>镜头缩放 <input id="zoom" type="range" min="2.2" max="10" step="0.1" /></label></div>
+      <div class="row">
+        <label><input id="tiltShift" type="checkbox" checked /> 移轴景深 (Tilt-Shift)</label>
+        <label><input id="bloom" type="checkbox" checked /> 暖阳体积光 (Bloom & Rays)</label>
+      </div>
+      <div class="row">
+        <label><input id="vignette" type="checkbox" checked /> 暗角与调色 (Vignette)</label>
+        <label><input id="outline" type="checkbox" checked /> 暖褐描边</label>
+      </div>
+      <div class="row">
         <label><input id="posterize" type="checkbox" /> 色阶量化</label>
         <label><input id="follow" type="checkbox" checked /> 镜头跟随</label>
       </div>

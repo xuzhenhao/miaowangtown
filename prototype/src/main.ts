@@ -17,16 +17,52 @@ const gradient = makeToonGradient();
 const town = new Town(gradient);
 const actor = new CatActor(gradient, town);
 town.scene.add(actor.group);
-actor.group.position.set(0, 0, 0.4);
+actor.group.position.set(0, 0, 0.35);
 const painter = new CoatPainter(actor);
 
-pipeline.pixelScale = Number(params.get('scale') ?? 3);
-pipeline.viewHeight = Number(params.get('zoom') ?? 5.2);
-pipeline.yawDeg = Number(params.get('yaw') ?? 0);
-pipeline.pitchDeg = Number(params.get('pitch') ?? 32);
+// 预设镜头配置
+const preset = params.get('preset');
+if (preset === 'town') {
+  pipeline.viewHeight = 6.8;
+  pipeline.pitchDeg = 30;
+  pipeline.yawDeg = -18;
+} else if (preset === 'closeup') {
+  pipeline.viewHeight = 2.6;
+  pipeline.pitchDeg = 24;
+  pipeline.yawDeg = 0;
+} else if (preset === 'belly') {
+  pipeline.viewHeight = 2.6;
+  pipeline.pitchDeg = 34;
+  pipeline.yawDeg = 0;
+} else {
+  pipeline.viewHeight = 4.2;
+  pipeline.pitchDeg = 28;
+  pipeline.yawDeg = -12;
+}
+
+if (params.has('scale')) pipeline.pixelScale = Number(params.get('scale'));
+if (params.has('zoom')) pipeline.viewHeight = Number(params.get('zoom'));
+if (params.has('pitch')) pipeline.pitchDeg = Number(params.get('pitch'));
+if (params.has('yaw')) {
+  pipeline.yawDeg = Number(params.get('yaw'));
+} else if (!preset && pipeline.viewHeight <= 3.0) {
+  pipeline.yawDeg = 0;
+}
+if (params.get('hd2d') === '0') {
+  pipeline.tiltShift = false;
+  pipeline.bloom = false;
+  pipeline.vignette = false;
+}
+if (params.has('tiltShift')) pipeline.tiltShift = params.get('tiltShift') !== '0';
+if (params.has('bloom')) pipeline.bloom = params.get('bloom') !== '0';
+if (params.has('vignette')) pipeline.vignette = params.get('vignette') !== '0';
+
 pipeline.resize();
 if (params.get('ui') === '0') $('panel').classList.add('hidden');
 if (params.has('heading')) actor.heading = Number(params.get('heading'));
+if (params.has('x')) actor.group.position.x = Number(params.get('x'));
+if (params.has('z')) actor.group.position.z = Number(params.get('z'));
+town.update(0, actor.group.position, actor.heading, actor.brain.state);
 
 // ------------------------------------------------------------------ 宠物
 
@@ -74,26 +110,65 @@ function markAction(btn: HTMLButtonElement) {
   actionsRow.querySelectorAll('button').forEach((x) => x.classList.toggle('active', x === btn));
 }
 markAction(autoBtn);
-if (params.get('action')) {
-  actor.brain.force(params.get('action')!, true);
-  const idx = CLIPS.findIndex((c) => c.name === params.get('action'));
-  markAction(actionsRow.querySelectorAll('button')[idx + 1] as HTMLButtonElement);
+const initialAction = params.get('action') ?? (preset === 'closeup' ? 'sit' : preset === 'belly' ? 'belly' : null);
+if (initialAction) {
+  actor.brain.force(initialAction, true);
+  const idx = CLIPS.findIndex((c) => c.name === initialAction);
+  if (idx >= 0) markAction(actionsRow.querySelectorAll('button')[idx + 1] as HTMLButtonElement);
 }
 
-// ------------------------------------------------------------------ 画风
+// ------------------------------------------------------------------ 画风与 HD-2D 控制
 
 const scale = $<HTMLInputElement>('scale');
 const zoom = $<HTMLInputElement>('zoom');
+const tiltShiftEl = $<HTMLInputElement>('tiltShift');
+const bloomEl = $<HTMLInputElement>('bloom');
+const vignetteEl = $<HTMLInputElement>('vignette');
+const outlineEl = $<HTMLInputElement>('outline');
+const posterizeEl = $<HTMLInputElement>('posterize');
+const follow = $<HTMLInputElement>('follow');
+
 scale.value = String(pipeline.pixelScale);
 zoom.value = String(pipeline.viewHeight);
+tiltShiftEl.checked = pipeline.tiltShift;
+bloomEl.checked = pipeline.bloom;
+vignetteEl.checked = pipeline.vignette;
+outlineEl.checked = pipeline.outline;
+posterizeEl.checked = pipeline.posterize;
+
 scale.oninput = () => {
   pipeline.pixelScale = Number(scale.value);
   pipeline.resize();
 };
 zoom.oninput = () => (pipeline.viewHeight = Number(zoom.value));
-$<HTMLInputElement>('outline').onchange = (e) => (pipeline.outline = (e.target as HTMLInputElement).checked);
-$<HTMLInputElement>('posterize').onchange = (e) => (pipeline.posterize = (e.target as HTMLInputElement).checked);
-const follow = $<HTMLInputElement>('follow');
+tiltShiftEl.onchange = () => (pipeline.tiltShift = tiltShiftEl.checked);
+bloomEl.onchange = () => (pipeline.bloom = bloomEl.checked);
+vignetteEl.onchange = () => (pipeline.vignette = vignetteEl.checked);
+outlineEl.onchange = () => (pipeline.outline = outlineEl.checked);
+posterizeEl.onchange = () => (pipeline.posterize = posterizeEl.checked);
+
+const presetButtons = [$('presetTown'), $('presetBridge'), $('presetCloseup')];
+function applyPreset(name: 'town' | 'bridge' | 'closeup', btn: HTMLElement) {
+  presetButtons.forEach((b) => b.classList.toggle('active', b === btn));
+  if (name === 'town') {
+    pipeline.viewHeight = 6.8;
+    pipeline.pitchDeg = 30;
+    pipeline.yawDeg = -18;
+  } else if (name === 'bridge') {
+    pipeline.viewHeight = 4.2;
+    pipeline.pitchDeg = 28;
+    pipeline.yawDeg = -12;
+  } else {
+    pipeline.viewHeight = 2.6;
+    pipeline.pitchDeg = 24;
+    pipeline.yawDeg = 0;
+    actor.heading = 0;
+  }
+  zoom.value = String(pipeline.viewHeight);
+}
+$('presetTown').onclick = () => applyPreset('town', $('presetTown'));
+$('presetBridge').onclick = () => applyPreset('bridge', $('presetBridge'));
+$('presetCloseup').onclick = () => applyPreset('closeup', $('presetCloseup'));
 
 // ------------------------------------------------------------------ 印记
 
@@ -160,17 +235,31 @@ window.addEventListener('resize', () => pipeline.resize());
 
 const clock = new Clock();
 const focusTarget = new Vector3();
-pipeline.focus.copy(actor.group.position).add(new Vector3(0, 0.5, 0));
+pipeline.focus.copy(actor.group.position).add(new Vector3(0, 0.45, 0));
+
+const lockHeading = params.has('heading') ? Number(params.get('heading')) : null;
+const lockPos = lockHeading !== null && initialAction === 'walk' ? actor.group.position.clone() : null;
+
+function stepSimulation(dt: number) {
+  actor.update(dt);
+  if (lockHeading !== null) actor.heading = lockHeading;
+  if (lockPos) {
+    actor.group.position.x = lockPos.x;
+    actor.group.position.z = lockPos.z;
+    actor.group.rotation.y = actor.heading;
+  }
+  town.update(dt, actor.group.position, actor.heading, actor.brain.state);
+  if (follow.checked) {
+    focusTarget.copy(actor.group.position).add(new Vector3(0, 0.45, 0));
+    pipeline.focus.lerp(focusTarget, 1 - Math.exp(-4 * dt));
+  }
+  town.sun.position.copy(pipeline.focus).add(new Vector3(6.8, 8.6, 4.8));
+  town.sun.target.position.copy(pipeline.focus);
+}
 
 function frame() {
   const dt = Math.min(clock.getDelta(), 1 / 20);
-  actor.update(dt);
-  if (follow.checked) {
-    focusTarget.copy(actor.group.position).add(new Vector3(0, 0.5, 0));
-    pipeline.focus.lerp(focusTarget, 1 - Math.exp(-3 * dt));
-  }
-  town.sun.position.copy(pipeline.focus).add(new Vector3(5, 9, 6));
-  town.sun.target.position.copy(pipeline.focus);
+  stepSimulation(dt);
   pipeline.render(town.scene);
   const d = actor.dna;
   $('status').textContent = d
@@ -180,4 +269,4 @@ function frame() {
 }
 
 initPets().then(() => requestAnimationFrame(frame));
-Object.assign(window, { actor, pipeline, town, buildBaseGlb });
+Object.assign(window, { actor, pipeline, town, buildBaseGlb, stepSimulation });
