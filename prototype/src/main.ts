@@ -6,7 +6,7 @@ import { loadPet, loadPetIndex, type PetDNA } from './cat/dna';
 import { bakeCoat } from './cat/coatBaker';
 import { CLIPS } from './anim/clips';
 import { CoatPainter } from './tools/paint';
-import { exportBaseGlb, exportCoatPng } from './tools/exporters';
+import { buildBaseGlb, exportBaseGlb, exportCoatPng } from './tools/exporters';
 
 const params = new URLSearchParams(location.search);
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -180,4 +180,4 @@ function frame() {
 }
 
 initPets().then(() => requestAnimationFrame(frame));
-Object.assign(window, { actor, pipeline, town });
+Object.assign(window, { actor, pipeline, town, buildBaseGlb });

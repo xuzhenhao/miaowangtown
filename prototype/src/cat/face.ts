@@ -23,101 +23,125 @@ export type EyeState = (typeof EYE_STATES)[number];
 export const MOUTH_STATES = ['closed', 'open', 'tongue'] as const;
 export type MouthState = (typeof MOUTH_STATES)[number];
 
-// k=描边 i=虹膜 p=瞳孔 w=高光 .=透明
+function scaleHex(hex: string, factor: number): string {
+  const h = hex.replace('#', '');
+  const r = Math.min(255, Math.max(0, Math.round(parseInt(h.slice(0, 2), 16) * factor)));
+  const g = Math.min(255, Math.max(0, Math.round(parseInt(h.slice(2, 4), 16) * factor)));
+  const b = Math.min(255, Math.max(0, Math.round(parseInt(h.slice(4, 6), 16) * factor)));
+  return `#${[r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+}
+
+// k=眼线描边 r=深色外虹膜环 i=主虹膜 p=竖瞳 w=高光 .=透明
 const EYE_ART: Record<EyeState, string[]> = {
   open: [
-    '..........',
-    '...kkkk...',
-    '..kiiiik..',
-    '.kiipiiik.',
-    '.kiwppiik.',
-    '.kiippiik.',
-    '.kiippiik.',
-    '..kiipik..',
-    '...kkkk...',
-    '..........',
+    '............',
+    '...kkkkkk...',
+    '..krriirrk..',
+    '.kriiwwppik.',
+    '.kriiwwppik.',
+    '.kriippppik.',
+    '.kriippppik.',
+    '.kriipppiik.',
+    '.krriippiwk.',
+    '..krriirrk..',
+    '...kkkkkk...',
+    '............',
   ],
   closed: [
-    '..........',
-    '..........',
-    '..........',
-    '..........',
-    '..........',
-    '.k......k.',
-    '..kkkkkk..',
-    '..........',
-    '..........',
-    '..........',
+    '............',
+    '............',
+    '............',
+    '............',
+    '............',
+    '............',
+    '.kk......kk.',
+    '..kkkkkkkk..',
+    '............',
+    '............',
+    '............',
+    '............',
   ],
   happy: [
-    '..........',
-    '..........',
-    '..........',
-    '...kkkk...',
-    '..k....k..',
-    '.k......k.',
-    '..........',
-    '..........',
-    '..........',
-    '..........',
+    '............',
+    '............',
+    '............',
+    '............',
+    '...kkkkkk...',
+    '..kk....kk..',
+    '.kk......kk.',
+    '............',
+    '............',
+    '............',
+    '............',
+    '............',
   ],
   sleepy: [
-    '..........',
-    '..........',
-    '..........',
-    '.kkkkkkkk.',
-    '.kiippiik.',
-    '.kiippiik.',
-    '..kiipik..',
-    '...kkkk...',
-    '..........',
-    '..........',
+    '............',
+    '............',
+    '............',
+    '............',
+    '.kkkkkkkkkk.',
+    '.kriippppik.',
+    '.kriippppik.',
+    '.krriippiwk.',
+    '..krriirrk..',
+    '...kkkkkk...',
+    '............',
+    '............',
   ],
   surprised: [
-    '...kkkk...',
-    '..kiiiik..',
-    '.kipppiik.',
-    '.kpwpppik.',
-    '.kpppppik.',
-    '.kpppppik.',
-    '.kipppiik.',
-    '..kiiiik..',
-    '...kkkk...',
-    '..........',
+    '............',
+    '...kkkkkk...',
+    '..krrrrrrk..',
+    '.kripppppik.',
+    '.krpwppppik.',
+    '.krppppppik.',
+    '.krppppppik.',
+    '.krpppppwik.',
+    '.kripppppik.',
+    '..krrrrrrk..',
+    '...kkkkkk...',
+    '............',
   ],
 };
 
-// n=鼻子 k=线条 m=口腔 t=舌头
+// n=鼻头主色 h=鼻头高光 k=嘴线 m=口腔 t=舌头
 const MOUTH_ART: Record<MouthState, string[]> = {
   closed: [
-    '...........',
-    '...nnnnn...',
-    '....nnn....',
-    '.....k.....',
-    '..k..k..k..',
-    '...kk.kk...',
-    '...........',
-    '...........',
+    '.............',
+    '..nnnnnnnnn..',
+    '...nnnhnnn...',
+    '....nnnnn....',
+    '.....nnn.....',
+    '......k......',
+    '..k...k...k..',
+    '...kkk.kkk...',
+    '.............',
+    '.............',
   ],
   open: [
-    '...........',
-    '...nnnnn...',
-    '....nnn....',
-    '.....k.....',
-    '...kkkkk...',
-    '...kmmmk...',
-    '....kkk....',
-    '...........',
+    '.............',
+    '..nnnnnnnnn..',
+    '...nnnhnnn...',
+    '....nnnnn....',
+    '.....nnn.....',
+    '......k......',
+    '....kkkkk....',
+    '...kmmmmmk...',
+    '....kkkkk....',
+    '.............',
   ],
   tongue: [
-    '...........',
-    '...nnnnn...',
-    '....nnn....',
-    '.....k.....',
-    '...kk.kk...',
-    '....ttt....',
-    '....ttt....',
-    '.....t.....',
+    '.............',
+    '..nnnnnnnnn..',
+    '...nnnhnnn...',
+    '....nnnnn....',
+    '.....nnn.....',
+    '......k......',
+    '...kkk.kkk...',
+    '....ttttt....',
+    '....ttttt....',
+    '.....ttt.....',
   ],
 };
 
@@ -156,9 +180,9 @@ function pixelTexture(canvas: HTMLCanvasElement, cells: number): CanvasTexture {
 
 const EYE_THETA = 0.42;
 const EYE_PHI = 0.45;
-const EYE_SIZE = 0.15;
-const MOUTH_W = 0.165;
-const MOUTH_PHI = 0.4;
+const EYE_SIZE = 0.162;
+const MOUTH_W = 0.172;
+const MOUTH_PHI = 0.41;
 const DECAL_LIFT = 0.012;
 
 export class FaceRig {
@@ -171,22 +195,38 @@ export class FaceRig {
 
   constructor(private sk: CatSkeleton) {
     const eyeGeo = new PlaneGeometry(EYE_SIZE, EYE_SIZE);
-    const mouthGeo = new PlaneGeometry(MOUTH_W, (MOUTH_W * 8) / 11);
+    const mouthGeo = new PlaneGeometry(MOUTH_W, (MOUTH_W * 10) / 13);
     this.eyes = [new Mesh(eyeGeo, this.eyeMat), new Mesh(eyeGeo, this.eyeMat)];
     this.mouth = new Mesh(mouthGeo, this.mouthMat);
     for (const m of [...this.eyes, this.mouth]) sk.bones.head.add(m);
   }
 
   applyColors(dna: PetDNA) {
-    const outline = '#2a1d16';
+    const outline = '#241a14';
+    const iris = dna.eyes.iris;
+    const irisRim = scaleHex(iris, 0.65);
+    const nose = dna.nose ?? '#c85a48';
+    const noseHighlight = scaleHex(nose, 1.18);
     this.eyeMat.map?.dispose();
     this.mouthMat.map?.dispose();
     this.eyeMat.map = pixelTexture(
-      drawAtlas(EYE_STATES, EYE_ART, { k: outline, i: dna.eyes.iris, p: dna.eyes.pupil ?? '#1a120e', w: '#ffffff' }),
+      drawAtlas(EYE_STATES, EYE_ART, {
+        k: outline,
+        r: irisRim,
+        i: iris,
+        p: dna.eyes.pupil ?? '#1b2416',
+        w: '#f9fbf6',
+      }),
       EYE_STATES.length,
     );
     this.mouthMat.map = pixelTexture(
-      drawAtlas(MOUTH_STATES, MOUTH_ART, { k: outline, n: dna.nose ?? '#d98c8c', m: '#5a2626', t: '#e57d8e' }),
+      drawAtlas(MOUTH_STATES, MOUTH_ART, {
+        k: outline,
+        n: nose,
+        h: noseHighlight,
+        m: '#5a2626',
+        t: '#e57d8e',
+      }),
       MOUTH_STATES.length,
     );
     this.eyeMat.needsUpdate = true;

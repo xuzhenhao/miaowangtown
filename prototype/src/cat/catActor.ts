@@ -11,6 +11,7 @@ import {
 } from 'three';
 import { applyShape, buildCatMesh, type CatMesh } from './buildCat';
 import { bakeCoat, loadCoatImage, makeCoatTexture, snapToPalette } from './coatBaker';
+import { ATLAS_SIZE } from './parts';
 import { FaceRig, type EyeState, type MouthState } from './face';
 import type { PetDNA } from './dna';
 import { ANIM_BONES } from './skeleton';
@@ -43,7 +44,7 @@ export class CatActor {
   expression: { eyes: EyeState; mouth: MouthState } = { eyes: 'open', mouth: 'closed' };
 
   constructor(gradientMap: Texture, nav: WorldNav) {
-    this.coatCanvas.width = this.coatCanvas.height = 256;
+    this.coatCanvas.width = this.coatCanvas.height = ATLAS_SIZE;
     this.coatTexture = makeCoatTexture(this.coatCanvas);
     this.material = new MeshToonMaterial({ map: this.coatTexture, gradientMap });
     this.cat = buildCatMesh(this.material);

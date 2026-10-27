@@ -16,6 +16,7 @@ const DURATION: Record<string, [number, number]> = {
   sit: [6, 12],
   loaf: [9, 16],
   groom: [4.8, 7.2],
+  belly: [6, 11],
 };
 
 /**

@@ -18,5 +18,5 @@
   "earInner": "#e3a19a",
   "eyes": { "iris": "#d9a03a" },
   "nose": "#e3a19a",
-  "personality": { "idle": 0.2, "walk": 0.1, "sit": 0.2, "loaf": 0.45, "groom": 0.05 }
+  "personality": { "idle": 0.2, "walk": 0.1, "sit": 0.15, "loaf": 0.4, "groom": 0.05, "belly": 0.1 }
 }

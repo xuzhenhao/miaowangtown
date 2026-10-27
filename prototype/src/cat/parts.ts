@@ -7,7 +7,7 @@ import type { ShapeParams } from './shape';
  * 坐标系：地面 y=0，猫朝 +Z，猫自身左侧为 +X。
  */
 
-export const ATLAS_SIZE = 256;
+export const ATLAS_SIZE = 512;
 const TAU = Math.PI * 2;
 
 export type Weights = Array<[string, number]>;
@@ -66,9 +66,9 @@ export function headPos(s: number, t: number, k: ShapeParams, out: Vector3): Vec
 
 const head: PartDef = {
   name: 'head',
-  rect: [0, 0, 128, 64],
-  segS: 40,
-  segT: 24,
+  rect: [0, 0, 256, 128],
+  segS: 44,
+  segT: 26,
   pos: headPos,
   core: (_s, _t, _k, out) => out.copy(HEAD_CENTER),
   weights: () => [['head', 1]],
@@ -94,9 +94,9 @@ export function muzzlePos(s: number, t: number, k: ShapeParams, out: Vector3): V
 
 const muzzle: PartDef = {
   name: 'muzzle',
-  rect: [128, 0, 64, 32],
-  segS: 24,
-  segT: 12,
+  rect: [256, 0, 128, 64],
+  segS: 28,
+  segT: 14,
   pos: muzzlePos,
   core: (_s, _t, _k, out) => out.copy(MUZZLE_CENTER),
   weights: () => [['head', 1]],
@@ -112,7 +112,7 @@ const NECK_W = new Vector3().crossVectors(NECK_U, NECK_D).normalize();
 
 const neck: PartDef = {
   name: 'neck',
-  rect: [192, 0, 64, 32],
+  rect: [384, 0, 128, 64],
   segS: 20,
   segT: 6,
   pos(s, t, k, out) {
@@ -150,7 +150,7 @@ function bodyPos(s: number, t: number, k: ShapeParams, out: Vector3): Vector3 {
 
 const body: PartDef = {
   name: 'body',
-  rect: [0, 64, 128, 96],
+  rect: [0, 128, 256, 192],
   segS: 36,
   segT: 28,
   pos: bodyPos,
@@ -224,10 +224,10 @@ function makeLeg(spec: LegSpec): PartDef {
 }
 
 export const LEGS: LegSpec[] = [
-  { name: 'fLegL', x: 0.16, z: 0.31, front: true, bones: ['chest', 'shoulderL', 'elbowL', 'fpawL'], rect: [128, 32, 32, 48] },
-  { name: 'fLegR', x: -0.16, z: 0.31, front: true, bones: ['chest', 'shoulderR', 'elbowR', 'fpawR'], rect: [160, 32, 32, 48] },
-  { name: 'hLegL', x: 0.17, z: -0.23, front: false, bones: ['hips', 'hipL', 'kneeL', 'hpawL'], rect: [192, 32, 32, 48] },
-  { name: 'hLegR', x: -0.17, z: -0.23, front: false, bones: ['hips', 'hipR', 'kneeR', 'hpawR'], rect: [224, 32, 32, 48] },
+  { name: 'fLegL', x: 0.16, z: 0.31, front: true, bones: ['chest', 'shoulderL', 'elbowL', 'fpawL'], rect: [256, 64, 64, 96] },
+  { name: 'fLegR', x: -0.16, z: 0.31, front: true, bones: ['chest', 'shoulderR', 'elbowR', 'fpawR'], rect: [320, 64, 64, 96] },
+  { name: 'hLegL', x: 0.17, z: -0.23, front: false, bones: ['hips', 'hipL', 'kneeL', 'hpawL'], rect: [384, 64, 64, 96] },
+  { name: 'hLegR', x: -0.17, z: -0.23, front: false, bones: ['hips', 'hipR', 'kneeR', 'hpawR'], rect: [448, 64, 64, 96] },
 ];
 
 // ---------------------------------------------------------------- 耳朵
@@ -302,7 +302,7 @@ const tailW = new Vector3();
 
 const tail: PartDef = {
   name: 'tail',
-  rect: [0, 160, 128, 32],
+  rect: [0, 320, 256, 64],
   transposeUV: true,
   segS: 12,
   segT: 30,
@@ -328,8 +328,8 @@ export const PARTS: PartDef[] = [
   neck,
   body,
   ...LEGS.map(makeLeg),
-  makeEar(1, [128, 80, 32, 32]),
-  makeEar(-1, [160, 80, 32, 32]),
+  makeEar(1, [256, 160, 64, 64]),
+  makeEar(-1, [320, 160, 64, 64]),
   tail,
 ];
 

@@ -1,28 +1,52 @@
 {
   "id": "mimi",
   "name": "咪咪",
-  "shape": { "headRound": 0.6, "weight": 0.35, "earSize": 0.4, "tailFluff": 0.4, "cheekFluff": 0.5, "muzzleSize": 0.7 },
+  "shape": { "headRound": 0.65, "weight": 0.38, "earSize": 0.42, "tailFluff": 0.42, "cheekFluff": 0.55, "muzzleSize": 0.72 },
   "coat": {
     "texture": null,
-    "base": "#9a7a5c",
-    "palette": ["#9a7a5c", "#5e4634", "#f3eee4", "#c98a3e", "#b8946f", "#d9958f"],
+    "base": "#a87d56",
+    "palette": ["#a87d56", "#4a3325", "#2f2017", "#f6f3ec", "#c68b59", "#dca675", "#dfa09a"],
     "markings": [
-      { "type": "stripes", "color": "#5e4634", "axis": "z", "frequency": 5, "width": 0.28, "noise": 0.5, "parts": ["body"], "minY": 0.45 },
-      { "type": "stripes", "color": "#5e4634", "axis": "y", "frequency": 9, "width": 0.25, "noise": 0.3, "parts": ["fLegL", "fLegR", "hLegL", "hLegR"], "minY": 0.15 },
-      { "type": "stripes", "color": "#5e4634", "axis": "y", "frequency": 7, "width": 0.35, "parts": ["tail"] },
-      { "type": "stripes", "color": "#5e4634", "axis": "x", "frequency": 9, "width": 0.3, "noise": 0.2, "parts": ["head"], "minY": 1.02, "minZ": 0.55 },
-      { "type": "underside", "color": "#f3eee4", "threshold": -0.45, "noise": 0.3, "parts": ["body", "neck", "head"] },
-      { "type": "blob", "color": "#f3eee4", "center": [0, 0.62, 0.42], "radius": [0.16, 0.2, 0.15], "noise": 0.3, "parts": ["neck", "body"] },
+      { "type": "stripes", "color": "#4a3325", "axis": "z", "frequency": 5.5, "width": 0.30, "noise": 0.45, "parts": ["body"], "minY": 0.38 },
+      { "type": "blob", "color": "#2f2017", "center": [0, 0.78, -0.02], "radius": [0.075, 0.08, 0.42], "noise": 0.3, "parts": ["body"] },
+      { "type": "stripes", "color": "#4a3325", "axis": "y", "frequency": 9, "width": 0.30, "noise": 0.25, "parts": ["hLegL", "hLegR"], "minY": 0.22 },
+      { "type": "stripes", "color": "#4a3325", "axis": "y", "frequency": 8, "width": 0.28, "noise": 0.25, "parts": ["fLegL", "fLegR"], "minY": 0.40 },
+      { "type": "stripes", "color": "#4a3325", "axis": "y", "frequency": 7.5, "width": 0.36, "parts": ["tail"] },
+      { "type": "blob", "color": "#2f2017", "center": [0, 1.13, -0.73], "radius": [0.09, 0.09, 0.09], "parts": ["tail"] },
+      { "type": "stripes", "color": "#4a3325", "axis": "x", "frequency": 9.5, "width": 0.30, "noise": 0.18, "parts": ["head"], "minY": 0.99, "minZ": 0.50 },
+      { "type": "stripes", "color": "#4a3325", "axis": "z", "frequency": 6, "width": 0.28, "noise": 0.3, "parts": ["head"], "minY": 0.90, "maxZ": 0.55 },
 
-      { "type": "blob", "color": "#f3eee4", "center": [0.05, 0.8, 0.86], "radius": [0.11, 0.08, 0.1], "minX": -0.01, "parts": ["muzzle", "head"] },
-      { "type": "blob", "color": "#c98a3e", "center": [-0.07, 0.84, 0.86], "radius": [0.12, 0.1, 0.12], "maxX": 0.02, "noise": 0.15, "parts": ["muzzle", "head"] },
-      { "type": "blob", "color": "#c98a3e", "center": [-0.02, 0.93, 0.85], "radius": [0.05, 0.08, 0.06], "parts": ["muzzle", "head"] },
-      { "type": "blob", "color": "#b8946f", "center": [0.04, 0.755, 0.84], "radius": [0.06, 0.018, 0.06], "minX": 0, "parts": ["muzzle"] },
-      { "type": "blob", "color": "#f3eee4", "center": [0.18, 0.55, -0.08], "radius": [0.22, 0.4, 0.17], "noise": 0.35, "minX": -0.06, "parts": ["body"] }
+      { "type": "underside", "color": "#f6f3ec", "threshold": -0.35, "noise": 0.2, "parts": ["body", "neck", "head"] },
+      { "type": "blob", "color": "#f6f3ec", "center": [0, 0.26, 0.02], "radius": [0.25, 0.14, 0.44], "noise": 0.15, "parts": ["body"] },
+      { "type": "blob", "color": "#f6f3ec", "center": [0, 0.62, 0.40], "radius": [0.24, 0.26, 0.22], "noise": 0.22, "parts": ["neck", "body", "head"] },
+      { "type": "blob", "color": "#f6f3ec", "center": [0, 0.74, 0.68], "radius": [0.32, 0.15, 0.22], "noise": 0.18, "parts": ["head"] },
+
+      { "type": "blob", "color": "#f6f3ec", "center": [0.20, 0.55, -0.05], "radius": [0.22, 0.36, 0.19], "noise": 0.30, "minX": 0.02, "parts": ["body"] },
+
+      { "type": "part", "color": "#f6f3ec", "maxY": 0.40, "noise": 0.12, "parts": ["fLegL", "fLegR"] },
+      { "type": "blob", "color": "#dca675", "center": [-0.10, 0.25, 0.34], "radius": [0.055, 0.055, 0.06], "minX": -0.16, "parts": ["fLegR"] },
+      { "type": "blob", "color": "#c68b59", "center": [-0.10, 0.25, 0.34], "radius": [0.042, 0.042, 0.048], "minX": -0.15, "parts": ["fLegR"] },
+      { "type": "part", "color": "#f6f3ec", "maxY": 0.22, "noise": 0.10, "parts": ["hLegL", "hLegR"] },
+
+      { "type": "blob", "color": "#dca675", "center": [0, 0.25, -0.02], "radius": [0.095, 0.08, 0.115], "maxY": 0.34, "noise": 0.10, "parts": ["body"] },
+      { "type": "blob", "color": "#c68b59", "center": [0, 0.25, -0.02], "radius": [0.075, 0.07, 0.092], "maxY": 0.33, "noise": 0.08, "parts": ["body"] },
+
+      { "type": "part", "color": "#f6f3ec", "parts": ["muzzle"] },
+      { "type": "blob", "color": "#f6f3ec", "center": [0.02, 0.85, 0.82], "radius": [0.15, 0.10, 0.12], "parts": ["head"] },
+      { "type": "blob", "color": "#f6f3ec", "center": [0.022, 0.94, 0.82], "radius": [0.046, 0.075, 0.08], "minX": -0.015, "parts": ["head", "muzzle"] },
+      { "type": "blob", "color": "#f6f3ec", "center": [0.032, 1.00, 0.80], "radius": [0.032, 0.055, 0.07], "minX": 0.0, "parts": ["head"] },
+
+      { "type": "blob", "color": "#c68b59", "center": [-0.068, 0.845, 0.84], "radius": [0.085, 0.065, 0.09], "maxX": -0.003, "minY": 0.782, "noise": 0.08, "parts": ["muzzle", "head"] },
+      { "type": "blob", "color": "#c68b59", "center": [-0.035, 0.895, 0.84], "radius": [0.045, 0.045, 0.07], "maxX": 0.002, "minY": 0.84, "parts": ["muzzle", "head"] },
+      { "type": "blob", "color": "#4a3325", "center": [-0.052, 0.838, 0.872], "radius": [0.011, 0.009, 0.03], "parts": ["muzzle"] },
+      { "type": "blob", "color": "#4a3325", "center": [-0.080, 0.826, 0.858], "radius": [0.011, 0.009, 0.03], "parts": ["muzzle"] },
+
+      { "type": "blob", "color": "#dca675", "center": [0.052, 0.800, 0.855], "radius": [0.054, 0.018, 0.065], "minX": 0.012, "minY": 0.784, "maxY": 0.816, "parts": ["muzzle"] },
+      { "type": "blob", "color": "#f6f3ec", "center": [0, 0.75, 0.82], "radius": [0.12, 0.022, 0.08], "maxY": 0.768, "parts": ["muzzle"] }
     ]
   },
-  "earInner": "#d9958f",
-  "eyes": { "iris": "#c9b03a" },
-  "nose": "#d68e86",
-  "personality": { "idle": 0.25, "walk": 0.3, "sit": 0.15, "loaf": 0.15, "groom": 0.15 }
+  "earInner": "#dfa09a",
+  "eyes": { "iris": "#8fb369", "pupil": "#1b2416" },
+  "nose": "#c85a48",
+  "personality": { "idle": 0.2, "walk": 0.25, "sit": 0.15, "loaf": 0.15, "groom": 0.15, "belly": 0.1 }
 }
