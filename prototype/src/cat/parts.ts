@@ -218,15 +218,15 @@ export interface LegSpec {
   rect: [number, number, number, number];
 }
 
-const LEG_TOP = 0.53;
-export const PAW_Y = 0.062;
-const PAW_R = 0.064;
+const LEG_TOP = 0.56;
+export const PAW_Y = 0.055;
+const PAW_R = 0.068;
 
 function legRadius(y: number, front: boolean): [number, number] {
-  // 返回 [rx, rz]：后腿大腿有饱满猫科肌肉弧度，向下收细至踝腕，再落向圆润小巧猫爪
-  const rxUpper = front ? 0.082 : 0.092;
-  const rzUpper = front ? 0.088 : 0.116;
-  const rWrist = front ? 0.055 : 0.054;
+  // 返回 [rx, rz]：后腿大腿股四头肌更宽厚，前腕/飞节纤细
+  const rxUpper = front ? 0.086 : 0.105;
+  const rzUpper = front ? 0.092 : 0.155;
+  const rWrist = front ? 0.052 : 0.052;
   if (y >= 0.34) {
     const f = clamp((y - 0.34) / (LEG_TOP - 0.34), 0, 1);
     return [lerp(rxUpper * 0.88, rxUpper, f), lerp(rzUpper * 0.88, rzUpper, f)];
@@ -239,27 +239,33 @@ function legRadius(y: number, front: boolean): [number, number] {
   return [lerp(PAW_R * 0.98, rWrist, f), lerp(PAW_R * 1.18, rWrist * 1.04, f)];
 }
 
-function legZOffset(y: number, front: boolean): number {
+/** Stage 1 趾行解剖轴线：返回绝对 z（与 build_base.py front_axis_z / hind_axis_z 一致） */
+export function legAxisZ(y: number, front: boolean): number {
   if (front) {
-    // 前腿肘微收、腕微立、猫爪向正前轻探
-    const elbowCurve = -0.012 * Math.exp(-(((y - 0.28) / 0.1) ** 2));
-    const pawForward = 0.028 * clamp((0.14 - y) / 0.08, 0, 1);
-    return elbowCurve + pawForward;
+    // 肩 0.33 → 肘 0.27@0.30 → 腕 0.31@0.11 → 掌 0.35
+    if (y >= 0.3) return lerp(0.27, 0.33, clamp((y - 0.3) / (0.52 - 0.3), 0, 1));
+    if (y >= 0.11) return lerp(0.31, 0.27, clamp((y - 0.11) / (0.3 - 0.11), 0, 1));
+    return lerp(0.35, 0.31, clamp(y / 0.11, 0, 1));
   }
-  // 后腿大腿微前倾、踝关节（Hock）自然向后微折、后爪向前踩实
-  const thighForward = 0.022 * Math.exp(-(((y - 0.38) / 0.12) ** 2));
-  const hockBack = -0.024 * Math.exp(-(((y - 0.19) / 0.08) ** 2));
-  const pawForward = 0.03 * clamp((0.14 - y) / 0.08, 0, 1);
-  return thighForward + hockBack + pawForward;
+  // 髋 -0.22 → 膝 -0.15@0.33 → 飞节 -0.29@0.17 → 掌 -0.21
+  if (y >= 0.33) return lerp(-0.15, -0.22, clamp((y - 0.33) / (0.52 - 0.33), 0, 1));
+  if (y >= 0.17) return lerp(-0.29, -0.15, clamp((y - 0.17) / (0.33 - 0.17), 0, 1));
+  return lerp(-0.21, -0.29, clamp(y / 0.17, 0, 1));
+}
+
+/** 相对基准 z 的偏置（兼容旧调用 / 调试）；新几何优先用 legAxisZ */
+export function legZOffset(y: number, front: boolean): number {
+  const base = front ? 0.31 : -0.23;
+  return legAxisZ(y, front) - base;
 }
 
 function makeLeg(spec: LegSpec): PartDef {
-  const tc = 0.82;
+  const tc = 0.8;
   return {
     name: spec.name,
     rect: spec.rect,
-    segS: 16,
-    segT: 18,
+    segS: 18,
+    segT: 22,
     pos(s, t, _k, out) {
       const th = (s - 0.5) * TAU;
       let y: number;
@@ -269,36 +275,48 @@ function makeLeg(spec: LegSpec): PartDef {
         y = lerp(LEG_TOP, PAW_Y, t / tc);
         [rx, rz] = legRadius(y, spec.front);
       } else {
-        const a = ((t - tc) / (1 - tc)) * (Math.PI / 2);
-        y = PAW_Y - PAW_R * Math.sin(a) * 0.72;
+        const a = ((t - tc) / (1 - tc)) * (Math.PI / 2) * 0.92;
+        y = PAW_Y - PAW_R * Math.sin(a) * 0.35;
         const c = Math.cos(a);
-        rx = PAW_R * 0.98 * c;
-        rz = PAW_R * 1.22 * c;
+        const toe = 1 + 0.2 * Math.max(0, Math.cos(th)) * (1 - c);
+        rx = PAW_R * 1.05 * c * toe;
+        rz = PAW_R * 1.3 * c;
       }
-      const zOff = legZOffset(y, spec.front);
-      return out.set(spec.x + Math.sin(th) * rx, y, spec.z + zOff + Math.cos(th) * rz);
+      const lz = legAxisZ(y, spec.front);
+      return out.set(spec.x + Math.sin(th) * rx, y, lz + Math.cos(th) * rz);
     },
     core(_s, t, _k, out) {
       const y = t <= tc ? lerp(LEG_TOP, PAW_Y, t / tc) : PAW_Y;
-      return out.set(spec.x, y, spec.z + legZOffset(y, spec.front));
+      return out.set(spec.x, y, legAxisZ(y, spec.front));
     },
     weights: (_s, _t, p) =>
-      chainWeights(p.y, [
-        [spec.bones[3], 0.07],
-        [spec.bones[2], 0.11],
-        [spec.bones[2], 0.205],
-        [spec.bones[1], 0.26],
-        [spec.bones[1], 0.405],
-        [spec.bones[0], 0.49],
-      ]),
+      chainWeights(p.y, spec.front
+        ? [
+            [spec.bones[3], 0.055],
+            [spec.bones[3], 0.095],
+            [spec.bones[2], 0.13],
+            [spec.bones[2], 0.275],
+            [spec.bones[1], 0.32],
+            [spec.bones[1], 0.455],
+            [spec.bones[0], 0.51],
+          ]
+        : [
+            [spec.bones[3], 0.06],
+            [spec.bones[3], 0.145],
+            [spec.bones[2], 0.185],
+            [spec.bones[2], 0.305],
+            [spec.bones[1], 0.35],
+            [spec.bones[1], 0.47],
+            [spec.bones[0], 0.52],
+          ]),
   };
 }
 
 export const LEGS: LegSpec[] = [
-  { name: 'fLegL', x: 0.145, z: 0.31, front: true, bones: ['chest', 'shoulderL', 'elbowL', 'fpawL'], rect: [256, 64, 64, 96] },
-  { name: 'fLegR', x: -0.145, z: 0.31, front: true, bones: ['chest', 'shoulderR', 'elbowR', 'fpawR'], rect: [320, 64, 64, 96] },
-  { name: 'hLegL', x: 0.155, z: -0.23, front: false, bones: ['hips', 'hipL', 'kneeL', 'hpawL'], rect: [384, 64, 64, 96] },
-  { name: 'hLegR', x: -0.155, z: -0.23, front: false, bones: ['hips', 'hipR', 'kneeR', 'hpawR'], rect: [448, 64, 64, 96] },
+  { name: 'fLegL', x: 0.145, z: 0.33, front: true, bones: ['chest', 'shoulderL', 'elbowL', 'fpawL'], rect: [256, 64, 64, 96] },
+  { name: 'fLegR', x: -0.145, z: 0.33, front: true, bones: ['chest', 'shoulderR', 'elbowR', 'fpawR'], rect: [320, 64, 64, 96] },
+  { name: 'hLegL', x: 0.155, z: -0.22, front: false, bones: ['hips', 'hipL', 'kneeL', 'hpawL'], rect: [384, 64, 64, 96] },
+  { name: 'hLegR', x: -0.155, z: -0.22, front: false, bones: ['hips', 'hipR', 'kneeR', 'hpawR'], rect: [448, 64, 64, 96] },
 ];
 
 // ---------------------------------------------------------------- 耳朵（挺拔饱满的三角猫耳，对标左图神态）
@@ -311,7 +329,7 @@ export function earBase(side: 1 | -1, k: ShapeParams, out = new Vector3()): Vect
 }
 
 function makeEar(side: 1 | -1, rect: [number, number, number, number]): PartDef {
-  const axis = new Vector3(side * 0.34, 1, 0.1).normalize();
+  const axis = new Vector3(side * 0.32, 1, 0.12).normalize();
   const f0 = new Vector3(0, 0, 1);
   const front = f0.clone().addScaledVector(axis, -axis.dot(f0)).normalize();
   const sideways = new Vector3().crossVectors(axis, front).normalize();
@@ -329,7 +347,7 @@ function makeEar(side: 1 | -1, rect: [number, number, number, number]): PartDef 
       const th = (s - 0.5) * TAU;
       const r = rb * Math.pow(1 - t, 0.88);
       // 耳廓正面微凹呈小勺状，凸显粉色内耳与深色外耳廓边
-      const cup = Math.cos(th) > 0 ? 0.36 : 0.52;
+      const cup = Math.cos(th) > 0 ? 0.22 : 0.58;
       out.copy(base).addScaledVector(axis, -0.045 + t * (h + 0.045));
       return out.addScaledVector(sideways, Math.sin(th) * r).addScaledVector(front, Math.cos(th) * r * cup);
     },
@@ -349,13 +367,13 @@ function makeEar(side: 1 | -1, rect: [number, number, number, number]): PartDef 
 // ---------------------------------------------------------------- 尾巴（自然修长 S 型微翘虎斑尾）
 
 const TAIL_CURVE = new CatmullRomCurve3([
-  new Vector3(0, 0.51, -0.43),
-  new Vector3(0, 0.52, -0.56),
-  new Vector3(0, 0.56, -0.68),
-  new Vector3(0, 0.63, -0.79),
-  new Vector3(0, 0.72, -0.87),
-  new Vector3(0, 0.82, -0.92),
-  new Vector3(0, 0.91, -0.94),
+  new Vector3(0, 0.64, -0.44),
+  new Vector3(0, 0.6, -0.56),
+  new Vector3(0, 0.58, -0.68),
+  new Vector3(0, 0.62, -0.8),
+  new Vector3(0, 0.7, -0.88),
+  new Vector3(0, 0.8, -0.93),
+  new Vector3(0, 0.9, -0.95),
 ]);
 export const TAIL_BONE_T = [0.04, 0.2, 0.36, 0.52, 0.68, 0.84];
 

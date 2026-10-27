@@ -65,13 +65,13 @@ PART_RECTS = {
 SHAPE_KEYS = ["headRound", "weight", "earSize", "tailFluff", "cheekFluff", "muzzleSize"]
 
 TAIL_CURVE_PTS = [
-    Vector((0.0, 0.51, -0.43)),
-    Vector((0.0, 0.52, -0.56)),
-    Vector((0.0, 0.56, -0.68)),
-    Vector((0.0, 0.63, -0.79)),
-    Vector((0.0, 0.72, -0.87)),
-    Vector((0.0, 0.82, -0.92)),
-    Vector((0.0, 0.91, -0.94)),
+    Vector((0.0, 0.64, -0.44)),
+    Vector((0.0, 0.60, -0.56)),
+    Vector((0.0, 0.58, -0.68)),
+    Vector((0.0, 0.62, -0.80)),
+    Vector((0.0, 0.70, -0.88)),
+    Vector((0.0, 0.80, -0.93)),
+    Vector((0.0, 0.90, -0.95)),
 ]
 TAIL_BONE_T = [0.04, 0.20, 0.36, 0.52, 0.68, 0.84]
 
@@ -197,38 +197,47 @@ def create_closed_part_object(name: str, seg_s: int, seg_t: int, pos_fn, core_fn
 
 
 def build_organic_part_objects() -> list[bpy.types.Object]:
+    """
+    Stage 1 写实家猫解剖母版：按 CAT_ANATOMY_AND_MIEMIE_SCULPT_SPEC G-01~G-07
+    生成眉弓/额鼻台阶、花生形口套、内凹耳廓、肩胛/深胸/收腰/圆臀、趾行四肢与平底四趾猫掌。
+    """
     tau = math.pi * 2.0
     objs: list[bpy.types.Object] = []
 
-    # 1. 躯干 (body)
+    # 1. 躯干 G-04：肩胛峰 / 深胸腔 / 后腹收腰 / 圆润十字部
     body_center = Vector((0.0, 0.50, 0.0))
 
     def body_pos(s: float, t: float) -> Vector:
         ph = clamp(t, 0.01, 0.99) * math.pi
-        zc = -math.cos(ph)
+        zc = -math.cos(ph)  # -1 臀, +1 胸
         r = math.sin(ph)
         th = (s - 0.5) * tau
-        width_profile = 1.0 - 0.08 * zc + 0.06 * math.sin(ph)
-        height_profile = 1.0 + 0.06 * math.cos((zc - 0.15) * math.pi * 0.8)
-        rx = 0.232 * width_profile
-        ry = 0.236 * height_profile
+        # 肩胸更宽、腰肋收、后臀圆
+        width_profile = 1.0 - 0.10 * zc + 0.10 * math.sin(ph) + 0.05 * math.exp(-(((zc + 0.45) / 0.38) ** 2))
+        height_profile = 1.0 + 0.10 * math.cos((zc - 0.18) * math.pi * 0.85)
+        rx = 0.238 * width_profile
+        ry = 0.248 * height_profile
         X = math.sin(th) * r * rx
-        Y = MathY = math.cos(th) * r * ry
+        Y = math.cos(th) * r * ry
         if Y < 0:
-            waist_tuck = 0.92 if (-0.65 < zc < -0.1) else 1.0
-            Y *= waist_tuck
+            # 后腹收腰（Abdominal Tuck）：腹线向后上收
+            tuck = 0.82 + 0.10 * clamp((zc + 0.75) / 0.55, 0.0, 1.0) if (-0.75 < zc < -0.05) else 1.0
+            # 深胸腔：前下胸向下鼓出
+            brisket = 1.12 if (zc > 0.25) else 1.0
+            Y *= tuck * brisket
+        # 背线：肩胛峰(withers) / 鞍区微凹 / 十字部(croup)
         spine_arc = (
-            0.026 * math.exp(-(((zc - 0.48) / 0.38) ** 2))
-            + 0.018 * math.exp(-(((zc + 0.45) / 0.42) ** 2))
-            - 0.014 * math.exp(-((zc / 0.35) ** 2))
+            0.048 * math.exp(-(((zc - 0.48) / 0.32) ** 2))   # withers ~ z=0.24
+            + 0.040 * math.exp(-(((zc + 0.48) / 0.34) ** 2))  # croup ~ z=-0.24
+            - 0.022 * math.exp(-((zc / 0.30) ** 2))           # thoracolumbar dip
         )
-        chest_bib_z = 0.045 * clamp((zc - 0.3) / 0.7, 0.0, 1.0) * r if (zc > 0.3 and MathY > -0.12) else 0.0
-        return Vector((X, body_center.y + spine_arc + Y, zc * 0.485 + chest_bib_z))
+        chest_bib_z = 0.055 * clamp((zc - 0.25) / 0.75, 0.0, 1.0) * r if (zc > 0.25 and Y > -0.18) else 0.0
+        return Vector((X, body_center.y + spine_arc + Y, zc * 0.495 + chest_bib_z))
 
-    objs.append(create_closed_part_object("part_body", 44, 36, body_pos, lambda p: Vector((0.0, 0.50, clamp(p.z, -0.35, 0.35)))))
+    objs.append(create_closed_part_object("part_body", 48, 40, body_pos, lambda p: Vector((0.0, 0.50, clamp(p.z, -0.38, 0.38)))))
 
-    # 2. 脖子与胸前围脖 (neck)
-    neck_a = Vector((0.0, 0.50, 0.20))
+    # 2. 脖子与胸前围脖
+    neck_a = Vector((0.0, 0.52, 0.22))
     neck_b = Vector((0.0, 0.88, 0.52))
     neck_d = (neck_b - neck_a).normalized()
     neck_u = Vector((1.0, 0.0, 0.0))
@@ -237,8 +246,8 @@ def build_organic_part_objects() -> list[bpy.types.Object]:
     def neck_pos(s: float, t: float) -> Vector:
         th = (s - 0.5) * tau
         cap = math.sin(clamp(t, 0.02, 0.98) * math.pi) ** 0.25
-        base_r = lerp(0.222, 0.176, t) * cap
-        chest_fluff = (1.0 - t) * 0.058 * max(0.0, math.cos(th)) * cap
+        base_r = lerp(0.230, 0.172, t) * cap
+        chest_fluff = (1.0 - t) * 0.070 * max(0.0, math.cos(th)) * cap
         c = neck_a.lerp(neck_b, t)
         return c + neck_u * (math.sin(th) * base_r * 0.95) + neck_w * (math.cos(th) * (base_r + chest_fluff))
 
@@ -247,9 +256,9 @@ def build_organic_part_objects() -> list[bpy.types.Object]:
         t = clamp((p - neck_a).dot(ab) / ab.length_squared, 0.05, 0.95)
         return neck_a.lerp(neck_b, t)
 
-    objs.append(create_closed_part_object("part_neck", 32, 18, neck_pos, neck_core))
+    objs.append(create_closed_part_object("part_neck", 32, 20, neck_pos, neck_core))
 
-    # 3. 头颅 (head)
+    # 3. 头颅 G-01：眉弓 / 浅凹眼窝 / 额鼻台阶(Stop) / 平直鼻梁
     head_center = Vector((0.0, 0.90, 0.54))
 
     def head_pos(s: float, t: float) -> Vector:
@@ -258,22 +267,42 @@ def build_organic_part_objects() -> list[bpy.types.Object]:
         dx = math.sin(ph) * math.sin(th)
         dy = math.cos(ph)
         dz = math.sin(ph) * math.cos(th)
-        rx, ry, rz = 0.282, 0.272, 0.252
-        crown_taper = 1.0 - 0.11 * clamp((dy - 0.2) / 0.8, 0.0, 1.0) if dy > 0.2 else 1.0
-        chin_taper = 1.0 - 0.22 * clamp((-0.35 - dy) / 0.65, 0.0, 1.0) if dy < -0.35 else 1.0
-        cheek_bell = math.exp(-(((dy + 0.14) / 0.36) ** 2))
-        cheek = 0.068 * cheek_bell * (abs(math.sin(th)) ** 0.85) * math.sin(ph)
-        face_flatten = (1.0 - 0.05 * dz * dz) if dz > 0 else 0.96
+        rx, ry, rz = 0.275, 0.268, 0.258
+        crown_taper = 1.0 - 0.10 * clamp((dy - 0.25) / 0.75, 0.0, 1.0) if dy > 0.25 else 1.0
+        chin_taper = 1.0 - 0.20 * clamp((-0.40 - dy) / 0.60, 0.0, 1.0) if dy < -0.40 else 1.0
+        cheek_bell = math.exp(-(((dy + 0.10) / 0.34) ** 2))
+        cheek = 0.055 * cheek_bell * (abs(math.sin(th)) ** 0.80) * math.sin(ph)
+        # 眉弓 + 额鼻台阶：双目上方向前微凸，鼻梁根部下凹台阶
+        brow = 0.0
+        if dz > 0.15 and -0.05 < dy < 0.42:
+            brow = 0.022 * math.exp(-(((dy - 0.18) / 0.16) ** 2)) * clamp((dz - 0.15) / 0.55, 0.0, 1.0)
+            # Stop 台阶：眉心正中略向前，再向下收成鼻梁起点
+            if abs(dx) < 0.35:
+                brow += 0.012 * math.exp(-((dx / 0.22) ** 2)) * math.exp(-(((dy - 0.12) / 0.14) ** 2))
+        # 浅凹眼窝平面（Orbital sockets）
+        orbit = 0.0
+        for sx in (1.0, -1.0):
+            ox = sx * 0.38  # 单位球上眼窝方位
+            oy = 0.05
+            oz = 0.72
+            d2 = (dx - ox) ** 2 + (dy - oy) ** 2 + (dz - oz) ** 2
+            orbit -= 0.028 * math.exp(-(d2 / 0.085)) * clamp(dz, 0.0, 1.0)
+        # 鼻梁骨脊：从眉心向前下伸出平直微翘平面
+        nasal = 0.0
+        if dz > 0.35 and abs(dx) < 0.22 and -0.55 < dy < 0.20:
+            ridge = math.exp(-((dx / 0.10) ** 2)) * clamp((dz - 0.35) / 0.50, 0.0, 1.0)
+            nasal = 0.030 * ridge * math.exp(-(((dy + 0.15) / 0.28) ** 2))
+        face_flatten = (1.0 - 0.04 * dz * dz) if dz > 0 else 0.97
         return Vector((
             head_center.x + dx * rx * crown_taper * chin_taper * (1.0 + cheek),
             head_center.y + dy * ry,
-            head_center.z + dz * rz * face_flatten,
+            head_center.z + dz * rz * face_flatten + brow + orbit + nasal,
         ))
 
-    objs.append(create_closed_part_object("part_head", 48, 32, head_pos, lambda _p: head_center))
+    objs.append(create_closed_part_object("part_head", 52, 36, head_pos, lambda _p: head_center))
 
-    # 4. 嘴套 (muzzle)
-    muzzle_center = Vector((0.0, 0.822, 0.732))
+    # 4. 嘴套 G-02：左右花生形胡须垫 + 人中浅沟 + 独立下巴颏
+    muzzle_center = Vector((0.0, 0.820, 0.760))
 
     def muzzle_pos(s: float, t: float) -> Vector:
         th = (s - 0.5) * tau
@@ -281,98 +310,137 @@ def build_organic_part_objects() -> list[bpy.types.Object]:
         dx = math.sin(ph) * math.sin(th)
         dy = math.cos(ph)
         dz = math.sin(ph) * math.cos(th)
-        pad = 1.0 + 0.10 * (math.sin(2.0 * th) ** 2) * clamp(dy + 0.35, 0.0, 1.0)
-        chin = 1.0 - 0.18 * clamp((-0.25 - dy) / 0.75, 0.0, 1.0) if dy < -0.25 else 1.0
+        # 花生形分瓣：两侧鼓、正中人中浅沟
+        pad = 1.0 + 0.22 * (math.sin(2.0 * th) ** 2) * clamp(dy + 0.45, 0.0, 1.0)
+        philtrum = 1.0 - 0.16 * math.exp(-((math.sin(th) / 0.28) ** 2)) * clamp(dz, 0.0, 1.0) * clamp(1.0 - abs(dy), 0.0, 1.0)
+        # 独立下巴颏：下半收窄并略向前
+        chin = 1.0
+        chin_fwd = 0.0
+        if dy < -0.15:
+            chin = 1.0 - 0.28 * clamp((-0.15 - dy) / 0.85, 0.0, 1.0)
+            chin_fwd = 0.018 * clamp((-0.20 - dy) / 0.70, 0.0, 1.0) * clamp(dz, 0.0, 1.0)
+        # 倒三角鼻头凸起（鼻梁末端）
+        nose_tip = 0.0
+        if dy > 0.15 and abs(dx) < 0.35 and dz > 0.2:
+            nose_tip = 0.022 * math.exp(-((dx / 0.18) ** 2)) * clamp((dy - 0.15) / 0.55, 0.0, 1.0) * clamp(dz, 0.0, 1.0)
         return Vector((
-            muzzle_center.x + dx * 0.134 * pad * chin,
-            muzzle_center.y + dy * 0.076,
-            muzzle_center.z + dz * 0.076,
+            muzzle_center.x + dx * 0.138 * pad * chin * philtrum,
+            muzzle_center.y + dy * 0.082,
+            muzzle_center.z + dz * 0.088 + chin_fwd + nose_tip,
         ))
 
-    objs.append(create_closed_part_object("part_muzzle", 32, 18, muzzle_pos, lambda _p: muzzle_center))
+    objs.append(create_closed_part_object("part_muzzle", 36, 22, muzzle_pos, lambda _p: muzzle_center))
 
-    # 5. 四肢与猫爪 (legs)
+    # 5. 四肢 G-05/G-06/G-07：趾行折角 + 平底楔形四趾猫掌
     legs = [
-        ("part_fLegL", 0.145, 0.31, True),
-        ("part_fLegR", -0.145, 0.31, True),
-        ("part_hLegL", 0.155, -0.23, False),
-        ("part_hLegR", -0.155, -0.23, False),
+        ("part_fLegL", 0.145, True),
+        ("part_fLegR", -0.145, True),
+        ("part_hLegL", 0.155, False),
+        ("part_hLegR", -0.155, False),
     ]
-    leg_top = 0.54
-    paw_y = 0.062
-    paw_r = 0.064
+    leg_top = 0.56
+    paw_y = 0.055
+    paw_r = 0.068
 
-    for lname, lx, lz, is_front in legs:
-        def make_leg(lx=lx, lz=lz, is_front=is_front):
-            tc = 0.82
+    def front_axis_z(y: float) -> float:
+        # 肩 z=0.33 → 肘 z=0.27,y=0.30 → 腕 z=0.31,y=0.11 → 掌 z=0.35
+        if y >= 0.30:
+            t = clamp((y - 0.30) / (0.52 - 0.30), 0.0, 1.0)
+            return lerp(0.27, 0.33, t)
+        if y >= 0.11:
+            t = clamp((y - 0.11) / (0.30 - 0.11), 0.0, 1.0)
+            return lerp(0.31, 0.27, t)
+        t = clamp(y / 0.11, 0.0, 1.0)
+        return lerp(0.35, 0.31, t)
 
-            def leg_z_off(y: float) -> float:
-                if is_front:
-                    return -0.012 * math.exp(-(((y - 0.28) / 0.10) ** 2)) + 0.028 * clamp((0.14 - y) / 0.08, 0.0, 1.0)
-                return (
-                    0.022 * math.exp(-(((y - 0.38) / 0.12) ** 2))
-                    - 0.024 * math.exp(-(((y - 0.19) / 0.08) ** 2))
-                    + 0.030 * clamp((0.14 - y) / 0.08, 0.0, 1.0)
-                )
+    def hind_axis_z(y: float) -> float:
+        # 髋 z=-0.22 → 膝 z=-0.15,y=0.33 → 飞节 z=-0.29,y=0.17 → 掌 z=-0.21
+        if y >= 0.33:
+            t = clamp((y - 0.33) / (0.52 - 0.33), 0.0, 1.0)
+            return lerp(-0.15, -0.22, t)
+        if y >= 0.17:
+            t = clamp((y - 0.17) / (0.33 - 0.17), 0.0, 1.0)
+            return lerp(-0.29, -0.15, t)
+        t = clamp(y / 0.17, 0.0, 1.0)
+        return lerp(-0.21, -0.29, t)
+
+    for lname, lx, is_front in legs:
+        def make_leg(lx=lx, is_front=is_front):
+            tc = 0.80
+            axis_z = front_axis_z if is_front else hind_axis_z
 
             def leg_pos(s: float, t: float) -> Vector:
                 th = (s - 0.5) * tau
                 if t <= tc:
                     u = t / tc
                     y = lerp(leg_top, paw_y, u)
-                    rx_u = 0.084 if is_front else 0.095
-                    rz_u = 0.090 if is_front else 0.118
-                    r_w = 0.056 if is_front else 0.055
+                    if is_front:
+                        rx_u, rz_u, r_w = 0.086, 0.092, 0.052
+                    else:
+                        # 宽厚大腿股部
+                        rx_u, rz_u, r_w = 0.105, 0.155, 0.052
                     if y >= 0.34:
                         f = clamp((y - 0.34) / (leg_top - 0.34), 0.0, 1.0)
-                        top_cap = math.sin(clamp(u, 0.03, 1.0) * math.pi * 0.5) ** 0.30 if u < 0.16 else 1.0
-                        rx = lerp(rx_u * 0.88, rx_u, f) * top_cap
-                        rz = lerp(rz_u * 0.88, rz_u, f) * top_cap
-                    elif y > 0.15:
-                        f = (y - 0.15) / 0.19
-                        rx = lerp(r_w, rx_u * 0.88, f)
-                        rz = lerp(r_w * 1.04, rz_u * 0.88, f)
+                        top_cap = math.sin(clamp(u, 0.03, 1.0) * math.pi * 0.5) ** 0.28 if u < 0.14 else 1.0
+                        rx = lerp(rx_u * 0.86, rx_u, f) * top_cap
+                        rz = lerp(rz_u * 0.86, rz_u, f) * top_cap
+                    elif y > 0.14:
+                        f = (y - 0.14) / 0.20
+                        rx = lerp(r_w, rx_u * 0.86, f)
+                        rz = lerp(r_w * 1.05, rz_u * 0.86, f)
                     else:
-                        f = clamp((y - paw_y) / (0.15 - paw_y), 0.0, 1.0)
-                        rx = lerp(paw_r * 0.98, r_w, f)
-                        rz = lerp(paw_r * 1.18, r_w * 1.04, f)
+                        f = clamp((y - paw_y) / (0.14 - paw_y), 0.0, 1.0)
+                        # 前端微宽的四趾楔形掌
+                        toe_widen = 1.0 + 0.18 * (1.0 - f) * max(0.0, math.cos(th))
+                        rx = lerp(paw_r * 1.05, r_w, f) * toe_widen
+                        rz = lerp(paw_r * 1.28, r_w * 1.05, f)
                 else:
-                    a = clamp((t - tc) / (1.0 - tc), 0.0, 0.96) * (math.pi / 2.0)
-                    y = paw_y - paw_r * math.sin(a) * 0.72
+                    a = clamp((t - tc) / (1.0 - tc), 0.0, 0.92) * (math.pi / 2.0)
+                    # 平底贴地：底面压平而非半球
+                    y = paw_y - paw_r * math.sin(a) * 0.35
                     c = math.cos(a)
-                    rx = paw_r * 0.98 * c
-                    rz = paw_r * 1.22 * c
-                return Vector((lx + math.sin(th) * rx, y, lz + leg_z_off(y) + math.cos(th) * rz))
+                    toe = 1.0 + 0.20 * max(0.0, math.cos(th)) * (1.0 - c)
+                    rx = paw_r * 1.05 * c * toe
+                    rz = paw_r * 1.30 * c
+                lz = axis_z(y)
+                return Vector((lx + math.sin(th) * rx, y, lz + math.cos(th) * rz))
 
             def leg_core(p: Vector) -> Vector:
-                yc = clamp(p.y, paw_y, leg_top - 0.04)
-                return Vector((lx, yc, lz + leg_z_off(yc)))
+                yc = clamp(p.y, 0.0, leg_top - 0.04)
+                return Vector((lx, yc, axis_z(yc)))
 
             return leg_pos, leg_core
 
         lpos, lcore = make_leg()
-        objs.append(create_closed_part_object(lname, 22, 24, lpos, lcore))
+        objs.append(create_closed_part_object(lname, 24, 28, lpos, lcore))
 
-    # 6. 双耳 (ears)
+    # 6. 双耳 G-03：外凸内凹真猫耳廓（Concha + 薄耳缘）
     for side, ename in ((1, "part_earL"), (-1, "part_earR")):
         def make_ear(side=side):
-            ear_base = head_pos(0.5 + (side * 0.76) / tau, 0.23)
-            axis = Vector((side * 0.34, 1.0, 0.10)).normalized()
+            ear_base = Vector((side * 0.125, 1.08, 0.62))
+            axis = Vector((side * 0.32, 1.0, 0.12)).normalized()
             f0 = Vector((0.0, 0.0, 1.0))
             front = (f0 - axis * axis.dot(f0)).normalized()
             sideways = axis.cross(front).normalized()
-            h = 0.238
+            h = 0.245
 
             def ear_pos(s: float, t: float) -> Vector:
                 th = (s - 0.5) * tau
                 tc = clamp(t, 0.02, 0.98)
-                rb = 0.128
-                r = rb * ((1.0 - tc) ** 0.86)
+                rb = 0.122
+                r = rb * ((1.0 - tc) ** 0.82)
                 if tc < 0.08:
-                    r *= (tc / 0.08) ** 0.30
-                cup = 0.38 if math.cos(th) > 0 else 0.54
-                c = ear_base + axis * (-0.055 + tc * (h + 0.055))
-                return c + sideways * (math.sin(th) * r) + front * (math.cos(th) * r * cup)
+                    r *= (tc / 0.08) ** 0.28
+                # 前表面大幅内凹成耳窝，后表面圆润外凸；薄耳缘
+                if math.cos(th) > 0:
+                    cup = 0.22  # 内耳窝深凹
+                    r *= 0.92   # 薄耳缘略收
+                else:
+                    cup = 0.58  # 圆润耳背
+                c = ear_base + axis * (-0.040 + tc * (h + 0.040))
+                # 内耳缘较直、外耳缘弧线
+                side_bias = 1.0 + 0.08 * math.sin(th) * side
+                return c + sideways * (math.sin(th) * r * side_bias) + front * (math.cos(th) * r * cup)
 
             def ear_core(p: Vector) -> Vector:
                 proj = clamp((p - ear_base).dot(axis), -0.03, h * 0.88)
@@ -381,9 +449,9 @@ def build_organic_part_objects() -> list[bpy.types.Object]:
             return ear_pos, ear_core
 
         epos, ecore = make_ear()
-        objs.append(create_closed_part_object(ename, 22, 16, epos, ecore))
+        objs.append(create_closed_part_object(ename, 24, 18, epos, ecore))
 
-    # 7. 尾巴 (tail)
+    # 7. 尾巴：从十字部自然延伸
     tail_u = Vector((1.0, 0.0, 0.0))
 
     def tail_pos(s: float, t: float) -> Vector:
@@ -392,9 +460,9 @@ def build_organic_part_objects() -> list[bpy.types.Object]:
         c = catmull_rom(TAIL_CURVE_PTS, tc)
         tan = catmull_tangent(TAIL_CURVE_PTS, tc)
         w = tail_u.cross(tan).normalized()
-        r = 0.046 * lerp(1.05, 0.74, tc)
+        r = 0.052 * lerp(1.12, 0.70, tc)
         if tc < 0.07:
-            r *= (tc / 0.07) ** 0.30
+            r *= (tc / 0.07) ** 0.28
         if tc > 0.88:
             r *= math.sqrt(max(0.02, 1.0 - ((tc - 0.88) / 0.12) ** 2))
         return c + tail_u * (math.sin(th) * r) + w * (math.cos(th) * r)
@@ -410,8 +478,9 @@ def build_organic_part_objects() -> list[bpy.types.Object]:
                 best_p = cp
         return best_p
 
-    objs.append(create_closed_part_object("part_tail", 18, 32, tail_pos, tail_core))
+    objs.append(create_closed_part_object("part_tail", 18, 34, tail_pos, tail_core))
     return objs
+
 
 
 def normalize_imported_mesh(obj: bpy.types.Object):
@@ -472,15 +541,16 @@ def build_manifold_mesh(input_path: str | None = None) -> bpy.types.Object:
     # 步骤 2：Blender Voxel Remesh 体素重建（融合成 100% 单一连通水密流形网格）
     remesh = obj.modifiers.new(name="VoxelRemesh", type="REMESH")
     remesh.mode = "VOXEL"
-    remesh.voxel_size = 0.0115
+    remesh.voxel_size = 0.0100
     remesh.adaptivity = 0.0
     remesh.use_smooth_shade = True
     bpy.ops.object.modifier_apply(modifier=remesh.name)
 
     # 平滑体素过渡（消除头颈、四肢与躯干交界折痕）
+    # 轻量平滑：只抹掉体素台阶，尽量保留解剖折角
     smooth = obj.modifiers.new(name="OrganicSmooth", type="SMOOTH")
-    smooth.factor = 0.42
-    smooth.iterations = 4
+    smooth.factor = 0.22
+    smooth.iterations = 2
     bpy.ops.object.modifier_apply(modifier=smooth.name)
 
     # 减面到 4k~6k 三角面（目标约 5200 三角面）
@@ -490,7 +560,7 @@ def build_manifold_mesh(input_path: str | None = None) -> bpy.types.Object:
     bm_tmp.to_mesh(obj.data)
     bm_tmp.free()
     current_tris = len(obj.data.polygons)
-    target_tris = 4200
+    target_tris = 4800
     if current_tris > target_tris:
         dec = obj.modifiers.new(name="DecimateTo5k", type="DECIMATE")
         dec.decimate_type = "COLLAPSE"
@@ -506,17 +576,85 @@ def build_manifold_mesh(input_path: str | None = None) -> bpy.types.Object:
     bm.to_mesh(obj.data)
     bm.free()
 
-    # 雕刻级细节精修：脚底踩实 y=0、内耳勺状微凹
+    # Stage 1 解剖精修（Remesh 后二次雕刻，把被体素抹平的骨相折角重新抠回来）
     for v in obj.data.vertices:
         p = b2t(v.co)
-        if p.y < 0.018:
-            p.y = max(0.0, p.y * 0.4)
+        # G-07：四掌底面严格贴合地面 + 前端四趾微鼓
+        if p.y < 0.030:
+            p.y = max(0.0, p.y * 0.15)
+            for side_x, lz_base in ((0.145, 0.35), (-0.145, 0.35), (0.155, -0.21), (-0.155, -0.21)):
+                if abs(p.x - side_x) < 0.09 and abs(p.z - lz_base) < 0.10:
+                    # 四趾：沿 x 做正弦微鼓
+                    toe = 0.006 * abs(math.sin(((p.x - side_x) / 0.07) * math.pi * 2.0))
+                    if p.z * math.copysign(1.0, lz_base) > abs(lz_base) - 0.04:
+                        p.z += math.copysign(toe, lz_base) if abs(lz_base) > 0.25 else toe
+        # G-03：耳窝 Concha 深度
         for side in (1, -1):
-            ear_b = Vector((side * 0.122, 1.106, 0.670))
+            ear_b = Vector((side * 0.125, 1.08, 0.62))
+            axis = Vector((side * 0.32, 1.0, 0.12)).normalized()
+            front = (Vector((0.0, 0.0, 1.0)) - axis * axis.dot(Vector((0.0, 0.0, 1.0)))).normalized()
+            sideways = axis.cross(front)
             rel = p - ear_b
-            if p.y > 1.02 and side * p.x > 0.04 and p.z > 0.35:
-                if rel.z > 0.015 and abs(rel.x) < 0.08:
-                    p.z -= 0.008 * clamp(1.0 - abs(rel.x) / 0.08, 0.0, 1.0)
+            proj = rel.dot(axis)
+            if proj > -0.02 and proj < 0.26 and side * p.x > 0.04 and p.y > 1.00:
+                fz = rel.dot(front)
+                sx = rel.dot(sideways)
+                if fz > -0.01 and abs(sx) < 0.11:
+                    depth = 0.038 * clamp(1.0 - abs(sx) / 0.11, 0.0, 1.0) * clamp(1.0 - abs(proj - 0.11) / 0.13, 0.0, 1.0)
+                    p -= front * depth
+        # G-01：眉弓凸起 + 眼窝深凹 + 鼻梁骨脊
+        for sx in (1.0, -1.0):
+            eye = Vector((sx * 0.108, 0.895, 0.755))
+            d = p - eye
+            if d.length < 0.085 and p.z > 0.66:
+                p -= Vector((d.x, d.y * 0.4, d.z)).normalized() * (0.018 * clamp(1.0 - d.length / 0.085, 0.0, 1.0))
+        # 眉弓
+        if abs(p.x) < 0.16 and 0.90 < p.y < 0.98 and 0.68 < p.z < 0.82:
+            p.z += 0.014 * math.exp(-((p.x / 0.12) ** 2)) * math.exp(-(((p.y - 0.94) / 0.05) ** 2))
+        # 鼻梁中轴微凸 + Stop 台阶（眉心下方向后微收再向前伸出）
+        if abs(p.x) < 0.040 and 0.84 < p.y < 0.94 and 0.68 < p.z < 0.86:
+            stop = 0.016 * clamp(1.0 - abs(p.x) / 0.040, 0.0, 1.0)
+            if p.y > 0.90:
+                p.z += stop * 0.6
+            else:
+                p.z += stop
+        # G-02：花生形口套两侧鼓起 + 人中沟 + 下巴颏
+        for sx in (1.0, -1.0):
+            pad = Vector((sx * 0.055, 0.815, 0.80))
+            d = p - pad
+            if d.length < 0.070 and p.z > 0.74:
+                p += Vector((sx * 0.012, 0.0, 0.010)) * clamp(1.0 - d.length / 0.070, 0.0, 1.0)
+        if abs(p.x) < 0.020 and 0.78 < p.y < 0.84 and p.z > 0.78:
+            p.z -= 0.012 * clamp(1.0 - abs(p.x) / 0.020, 0.0, 1.0)
+        if abs(p.x) < 0.06 and 0.72 < p.y < 0.78 and p.z > 0.74:
+            p.z += 0.010 * clamp(1.0 - abs(p.x) / 0.06, 0.0, 1.0)
+            p.y -= 0.004
+        # G-04：肩胛峰 / 十字部 / 收腰
+        if abs(p.x) < 0.12 and p.y > 0.62 and 0.10 < p.z < 0.36:
+            p.y += 0.016 * math.exp(-((p.x / 0.10) ** 2)) * math.exp(-(((p.z - 0.24) / 0.12) ** 2))
+        if abs(p.x) < 0.12 and p.y > 0.60 and -0.36 < p.z < -0.10:
+            p.y += 0.014 * math.exp(-((p.x / 0.10) ** 2)) * math.exp(-(((p.z + 0.24) / 0.12) ** 2))
+        if abs(p.x) < 0.18 and p.y < 0.42 and -0.28 < p.z < -0.02:
+            # 后腹上收
+            p.y += 0.012 * clamp(1.0 - abs(p.x) / 0.18, 0.0, 1.0) * clamp((-0.02 - p.z) / 0.20, 0.0, 1.0)
+        # G-05/G-06：强化肘后收、膝前伸、飞节后折的表面折角
+        for side_x in (0.145, -0.145):
+            if abs(p.x - side_x) < 0.09:
+                # 肘区 y≈0.30 向后推
+                if 0.26 < p.y < 0.34 and 0.20 < p.z < 0.38:
+                    p.z -= 0.018 * math.exp(-(((p.y - 0.30) / 0.04) ** 2))
+                # 腕区 y≈0.11 微前
+                if 0.08 < p.y < 0.15 and 0.22 < p.z < 0.40:
+                    p.z += 0.012 * math.exp(-(((p.y - 0.11) / 0.035) ** 2))
+        for side_x in (0.155, -0.155):
+            if abs(p.x - side_x) < 0.12:
+                # 膝前伸 y≈0.33
+                if 0.28 < p.y < 0.38 and -0.28 < p.z < -0.05:
+                    p.z += 0.022 * math.exp(-(((p.y - 0.33) / 0.045) ** 2))
+                # 飞节后折 y≈0.17
+                if 0.12 < p.y < 0.22 and -0.38 < p.z < -0.12:
+                    p.z -= 0.028 * math.exp(-(((p.y - 0.17) / 0.04) ** 2))
+                    p.y += 0.006 * math.exp(-(((p.y - 0.17) / 0.04) ** 2))
         v.co = t2b(p)
 
     obj.data.validate(verbose=False)
@@ -535,21 +673,21 @@ def classify_point_part(p: Vector) -> int:
     """
     # 双耳 (8: earL, 9: earR)
     for side, pid in ((1, 8), (-1, 9)):
-        ear_base = Vector((side * 0.122, 1.106, 0.670))
+        ear_base = Vector((side * 0.125, 1.08, 0.62))
         axis = Vector((side * 0.34, 1.0, 0.10)).normalized()
         rel = p - ear_base
         proj = rel.dot(axis)
-        if proj > -0.015 and p.y > 1.03 and side * p.x > 0.035 and p.z > 0.34:
+        if proj > -0.015 and p.y > 1.00 and side * p.x > 0.035 and p.z > 0.34:
             perp = (rel - axis * proj).length
             if perp < 0.135:
                 return pid
 
     # 嘴套 (1: muzzle) —— 严格限定在眼窝下方口鼻垫区域 (y <= 0.858, |x| <= 0.128)
-    mc = Vector((0.0, 0.816, 0.745))
-    mdx = (p.x - mc.x) / 0.132
-    mdy = (p.y - mc.y) / 0.062
-    mdz = (p.z - mc.z) / 0.078
-    if p.z > 0.735 and 0.742 <= p.y <= 0.862 and abs(p.x) <= 0.132 and (mdx * mdx + mdy * mdy + mdz * mdz) <= 1.08:
+    mc = Vector((0.0, 0.820, 0.760))
+    mdx = (p.x - mc.x) / 0.140
+    mdy = (p.y - mc.y) / 0.070
+    mdz = (p.z - mc.z) / 0.090
+    if p.z > 0.740 and 0.735 <= p.y <= 0.870 and abs(p.x) <= 0.140 and (mdx * mdx + mdy * mdy + mdz * mdz) <= 1.10:
         return 1
 
     # 头部 (0: head)
@@ -565,7 +703,7 @@ def classify_point_part(p: Vector) -> int:
         return 2
 
     # 尾巴 (10: tail)
-    if p.z < -0.435 and p.y > 0.43:
+    if p.z < -0.430 and p.y > 0.48:
         return 10
 
     # 四肢柱体判定：保留肚皮正中央底面 (|x| <= 0.058 且 y > 0.255) 为 body(3)，避免迈步拉扯肚皮；
@@ -574,14 +712,14 @@ def classify_point_part(p: Vector) -> int:
     if not in_belly_midline:
         # 前腿 (4: fLegL, 5: fLegR)
         flx = 0.145 if p.x >= 0.0 else -0.145
-        fl_r = math.hypot((p.x - flx) / 0.098, (p.z - 0.31) / 0.112)
-        if p.z > 0.08 and ((p.y < 0.35) or (p.y < 0.435 and fl_r <= 1.08)):
+        fl_r = math.hypot((p.x - flx) / 0.100, (p.z - 0.30) / 0.130)
+        if p.z > 0.04 and ((p.y < 0.36) or (p.y < 0.460 and fl_r <= 1.12)):
             return 4 if p.x >= 0.0 else 5
 
-        # 后腿 (6: hLegL, 7: hLegR)
+        # 后腿 (6: hLegL, 7: hLegR) —— 含飞节后折空间
         hlx = 0.155 if p.x >= 0.0 else -0.155
-        hl_r = math.hypot((p.x - hlx) / 0.106, (p.z - (-0.23)) / 0.132)
-        if p.z <= 0.08 and ((p.y < 0.35) or (p.y < 0.435 and hl_r <= 1.08)):
+        hl_r = math.hypot((p.x - hlx) / 0.115, (p.z - (-0.22)) / 0.175)
+        if p.z <= 0.04 and ((p.y < 0.36) or (p.y < 0.460 and hl_r <= 1.15)):
             return 6 if p.x >= 0.0 else 7
 
     # 躯干 (3: body)
@@ -633,7 +771,7 @@ def compute_part_uv(part_id: int, p: Vector, n: Vector) -> tuple[float, float]:
         return s, t
     if part_id in (8, 9):  # ears
         side = 1 if part_id == 8 else -1
-        ear_base = Vector((side * 0.122, 1.106, 0.670))
+        ear_base = Vector((side * 0.125, 1.08, 0.62))
         axis = Vector((side * 0.34, 1.0, 0.10)).normalized()
         f0 = Vector((0.0, 0.0, 1.0))
         front = (f0 - axis * axis.dot(f0)).normalized()
@@ -787,27 +925,28 @@ def assign_parts_and_unwrap_non_mirrored_uv(obj: bpy.types.Object) -> tuple[bpy.
 # ---------------------------------------------------------------------------
 
 def get_bone_defs() -> list[tuple[str, str | None, Vector]]:
+    """26 根同名骨骼，轴心对齐 Stage 1 趾行解剖折角（肩/肘/腕、髋/膝/飞节）。"""
     defs: list[tuple[str, str | None, Vector]] = [
         ("root", None, Vector((0.0, 0.0, 0.0))),
-        ("hips", "root", Vector((0.0, 0.50, -0.22))),
-        ("spine", "hips", Vector((0.0, 0.51, 0.05))),
-        ("chest", "spine", Vector((0.0, 0.53, 0.28))),
-        ("neck", "chest", Vector((0.0, 0.68, 0.40))),
-        ("head", "neck", Vector((0.0, 0.89, 0.52))),
-        ("earL", "head", Vector((0.122, 1.106, 0.670))),
-        ("earR", "head", Vector((-0.122, 1.106, 0.670))),
+        ("hips", "root", Vector((0.0, 0.52, -0.22))),
+        ("spine", "hips", Vector((0.0, 0.54, 0.02))),
+        ("chest", "spine", Vector((0.0, 0.56, 0.28))),
+        ("neck", "chest", Vector((0.0, 0.70, 0.42))),
+        ("head", "neck", Vector((0.0, 0.90, 0.54))),
+        ("earL", "head", Vector((0.125, 1.08, 0.62))),
+        ("earR", "head", Vector((-0.125, 1.08, 0.62))),
     ]
     for side, x in (("L", 0.145), ("R", -0.145)):
         defs.extend([
-            (f"shoulder{side}", "chest", Vector((x, 0.44, 0.30))),
-            (f"elbow{side}", f"shoulder{side}", Vector((x, 0.24, 0.31))),
-            (f"fpaw{side}", f"elbow{side}", Vector((x, 0.09, 0.32))),
+            (f"shoulder{side}", "chest", Vector((x, 0.48, 0.33))),  # 肩
+            (f"elbow{side}", f"shoulder{side}", Vector((x, 0.30, 0.27))),  # 肘微后收
+            (f"fpaw{side}", f"elbow{side}", Vector((x, 0.11, 0.31))),  # 腕/掌
         ])
     for side, x in (("L", 0.155), ("R", -0.155)):
         defs.extend([
-            (f"hip{side}", "hips", Vector((x, 0.44, -0.23))),
-            (f"knee{side}", f"hip{side}", Vector((x, 0.23, -0.23))),
-            (f"hpaw{side}", f"knee{side}", Vector((x, 0.09, -0.22))),
+            (f"hip{side}", "hips", Vector((x, 0.48, -0.22))),  # 髋
+            (f"knee{side}", f"hip{side}", Vector((x, 0.33, -0.15))),  # 膝(Stifle)前伸
+            (f"hpaw{side}", f"knee{side}", Vector((x, 0.17, -0.29))),  # 飞节(Hock)后折
         ])
     for i, t in enumerate(TAIL_BONE_T):
         parent = "hips" if i == 0 else f"tail{i - 1}"
@@ -892,44 +1031,70 @@ def compute_smooth_skin_weights(_part_id: int, p: Vector) -> list[tuple[str, flo
                 stops.append((f"tail{i}", 0.5 * (bt + nxt)))
             w = merge_weights(w, chain_weights(t_tail, stops), m_tail)
 
-    # 4. 四肢连续空间过渡（按各腿柱轴线椭圆距离平滑混合，且腹底正中 |x|≈0 保持 100% 躯干）
-    if p.y < 0.495:
+    # 4. 四肢连续空间过渡（适配 Stage 1 趾行轴线 front_axis_z / hind_axis_z）
+    if p.y < 0.520:
         side = "L" if p.x >= 0.0 else "R"
         is_front = p.z >= 0.04
+
+        def front_axis_z(y: float) -> float:
+            if y >= 0.30:
+                t = clamp((y - 0.30) / (0.52 - 0.30), 0.0, 1.0)
+                return lerp(0.27, 0.33, t)
+            if y >= 0.11:
+                t = clamp((y - 0.11) / (0.30 - 0.11), 0.0, 1.0)
+                return lerp(0.31, 0.27, t)
+            t = clamp(y / 0.11, 0.0, 1.0)
+            return lerp(0.35, 0.31, t)
+
+        def hind_axis_z(y: float) -> float:
+            if y >= 0.33:
+                t = clamp((y - 0.33) / (0.52 - 0.33), 0.0, 1.0)
+                return lerp(-0.15, -0.22, t)
+            if y >= 0.17:
+                t = clamp((y - 0.17) / (0.33 - 0.17), 0.0, 1.0)
+                return lerp(-0.29, -0.15, t)
+            t = clamp(y / 0.17, 0.0, 1.0)
+            return lerp(-0.21, -0.29, t)
+
         if is_front:
             lx = 0.145 if p.x >= 0.0 else -0.145
-            z_off = -0.012 * math.exp(-(((p.y - 0.28) / 0.10) ** 2)) + 0.028 * clamp((0.14 - p.y) / 0.08, 0.0, 1.0)
-            lz = 0.31 + z_off
-            d_leg = math.hypot((p.x - lx) / 0.102, (p.z - lz) / 0.128)
+            lz = front_axis_z(p.y)
+            d_leg = math.hypot((p.x - lx) / 0.105, (p.z - lz) / 0.140)
+            # 平台权重：肘轴心上方只吃 shoulder，杜绝反向剪切
             leg_chain = chain_weights(p.y, [
-                (f"fpaw{side}", 0.070),
-                (f"elbow{side}", 0.110),
-                (f"elbow{side}", 0.210),
-                (f"shoulder{side}", 0.265),
-                (f"shoulder{side}", 0.395),
-                ("chest", 0.485),
+                (f"fpaw{side}", 0.055),
+                (f"fpaw{side}", 0.095),
+                (f"elbow{side}", 0.130),
+                (f"elbow{side}", 0.275),
+                (f"shoulder{side}", 0.320),
+                (f"shoulder{side}", 0.455),
+                ("chest", 0.510),
             ])
         else:
             lx = 0.155 if p.x >= 0.0 else -0.155
-            z_off = (
-                0.022 * math.exp(-(((p.y - 0.38) / 0.12) ** 2))
-                - 0.024 * math.exp(-(((p.y - 0.19) / 0.08) ** 2))
-                + 0.030 * clamp((0.14 - p.y) / 0.08, 0.0, 1.0)
-            )
-            lz = -0.23 + z_off
-            d_leg = math.hypot((p.x - lx) / 0.110, (p.z - lz) / 0.148)
+            lz = hind_axis_z(p.y)
+            d_leg = math.hypot((p.x - lx) / 0.120, (p.z - lz) / 0.175)
+            # 飞节(hpaw) 在 y≈0.17；膝轴心上方只吃 hip
             leg_chain = chain_weights(p.y, [
-                (f"hpaw{side}", 0.070),
-                (f"knee{side}", 0.110),
-                (f"knee{side}", 0.200),
-                (f"hip{side}", 0.255),
-                (f"hip{side}", 0.395),
-                ("hips", 0.485),
+                (f"hpaw{side}", 0.060),
+                (f"hpaw{side}", 0.145),
+                (f"knee{side}", 0.185),
+                (f"knee{side}", 0.305),
+                (f"hip{side}", 0.350),
+                (f"hip{side}", 0.470),
+                ("hips", 0.520),
             ])
 
-        m_radial = smooth01((1.18 - d_leg) / 0.36)
-        m_low = smooth01((0.275 - p.y) / 0.045)
-        m_leg = max(m_radial, m_low) * smooth01((0.490 - p.y) / 0.035)
+        m_radial = smooth01((1.20 - d_leg) / 0.40)
+        m_low = smooth01((0.300 - p.y) / 0.050)
+        m_leg = max(m_radial, m_low) * smooth01((0.515 - p.y) / 0.040)
+        # 腹底正中硬门禁：|x|<0.075 且位于胸腹下表面时，四肢权重强制为 0
+        if abs(p.x) < 0.075 and 0.18 < p.y < 0.42 and abs(p.z) < 0.30:
+            # 仅当点更靠近腹中而非腿轴时清零
+            if d_leg > 0.55:
+                m_leg = 0.0
+            else:
+                m_leg *= smooth01((abs(p.x) - 0.055) / 0.020) * smooth01((d_leg - 0.35) / 0.25)
         if m_leg > 1e-4:
             w = merge_weights(w, leg_chain, m_leg)
 
@@ -972,11 +1137,17 @@ def build_armature_and_weights(obj: bpy.types.Object) -> tuple[bpy.types.Object,
 
     mesh = obj.data
     part_attr = mesh.attributes["_PART"]
+    limb_bones = {n for n, _, _ in bone_defs if any(k in n for k in ("shoulder", "elbow", "fpaw", "hip", "knee", "hpaw"))}
     for vi, v in enumerate(mesh.vertices):
         pid = int(round(part_attr.data[vi].value))
         p_three = b2t(v.co)
         weights = compute_smooth_skin_weights(pid, p_three)
-        total = sum(w for _, w in weights)
+        # 工程硬门禁：腹底正中线剥离四肢权重
+        if abs(p_three.x) <= 0.055 and 0.20 < p_three.y < 0.40 and abs(p_three.z) < 0.25:
+            weights = [(b, w) for b, w in weights if b not in limb_bones]
+            if not weights:
+                weights = [("spine", 1.0)]
+        total = sum(w for _, w in weights) or 1.0
         for bname, w in weights:
             if w > 1e-4:
                 vgroups[bname].add([vi], w / total, "REPLACE")
@@ -1001,16 +1172,23 @@ def shape_delta_three(key: str, p: Vector, pid: int) -> Vector:
         return Vector((d.x * 0.085 * w, -d.y * 0.02 * w, d.z * 0.03 * w))
 
     if key == "weight":
-        w_body = clamp((0.78 - p.y) / 0.14, 0.0, 1.0) * clamp((p.y - 0.18) / 0.16, 0.0, 1.0)
-        belly_drop = -0.055 * clamp((0.48 - p.y) / 0.25, 0.0, 1.0) * clamp(1.0 - abs(p.z) / 0.45, 0.0, 1.0) if p.y < 0.50 else 0.0
-        return Vector((p.x * 0.20 * w_body, (p.y - bc.y) * 0.10 * w_body + belly_drop, 0.0))
+        # 严禁影响四肢下段 y<0.34 与头部；只丰满胸腹围脖与垂腹
+        if p.y < 0.34 or p.y > 0.78:
+            return Vector((0.0, 0.0, 0.0))
+        # 排除四肢柱体
+        if abs(p.x) > 0.10 and p.y < 0.50 and (p.z > 0.12 or p.z < -0.08):
+            return Vector((0.0, 0.0, 0.0))
+        w_body = clamp((0.76 - p.y) / 0.14, 0.0, 1.0) * clamp((p.y - 0.34) / 0.12, 0.0, 1.0)
+        belly_drop = -0.055 * clamp((0.48 - p.y) / 0.20, 0.0, 1.0) * clamp(1.0 - abs(p.z) / 0.45, 0.0, 1.0) if p.y < 0.50 else 0.0
+        ruff = 0.035 * clamp((p.z - 0.18) / 0.30, 0.0, 1.0) * w_body if p.z > 0.15 else 0.0
+        return Vector((p.x * 0.18 * w_body, (p.y - bc.y) * 0.08 * w_body + belly_drop, ruff))
 
     if key == "earSize":
         if p.y < 0.98:
             return Vector((0.0, 0.0, 0.0))
         w = clamp((p.y - 1.00) / 0.08, 0.0, 1.0)
         side = 1.0 if p.x >= 0.0 else -1.0
-        ear_base = Vector((side * 0.122, 1.106, 0.670))
+        ear_base = Vector((side * 0.125, 1.08, 0.62))
         rel = p - ear_base
         return Vector((rel.x * 0.22 * w + side * 0.012 * w, rel.y * 0.36 * w, rel.z * 0.18 * w))
 
@@ -1025,9 +1203,12 @@ def shape_delta_three(key: str, p: Vector, pid: int) -> Vector:
         return rad * scale
 
     if key == "cheekFluff":
+        # 只横向发腮；鼻梁中轴 |x|<0.04 保持 Stop 台阶不被抹平
+        mid = smooth01((abs(p.x) - 0.030) / 0.025)
         w_y = math.exp(-(((p.y - 0.84) / 0.11) ** 2))
         w_z = clamp((p.z - 0.35) / 0.25, 0.0, 1.0)
-        return Vector((p.x * 0.14 * w_y * w_z, -0.008 * w_y * w_z, 0.012 * w_y * w_z))
+        w = w_y * w_z * mid
+        return Vector((p.x * 0.16 * w, -0.006 * w, 0.008 * w))
 
     if key == "muzzleSize":
         dist = (p - mc).length
@@ -1067,16 +1248,16 @@ def compute_face_anchors(obj: bpy.types.Object, arm_obj: bpy.types.Object, norma
         zs = [p.z for p in verts_three if math.hypot(p.x - tx, p.y - ty) <= rad and p.z > 0.55]
         return max(zs) if zs else 0.79
 
-    eye_z = max(sample_front_z(0.114, 0.892, 0.025), sample_front_z(-0.114, 0.892, 0.025)) + 0.003
-    mouth_z = sample_front_z(0.0, 0.826, 0.025) + 0.003
-    whisker_z = max(sample_front_z(0.178, 0.816, 0.028), sample_front_z(-0.178, 0.816, 0.028)) + 0.003
+    eye_z = max(sample_front_z(0.108, 0.895, 0.028), sample_front_z(-0.108, 0.895, 0.028)) + 0.003
+    mouth_z = sample_front_z(0.0, 0.820, 0.028) + 0.003
+    whisker_z = max(sample_front_z(0.165, 0.812, 0.030), sample_front_z(-0.165, 0.812, 0.030)) + 0.003
 
     targets = {
-        "eyeL": (Vector((0.114, 0.892, eye_z)), (0,), Vector((0.25, 0.04, 0.967)).normalized()),
-        "eyeR": (Vector((-0.114, 0.892, eye_z)), (0,), Vector((-0.25, 0.04, 0.967)).normalized()),
-        "mouth": (Vector((0.0, 0.826, mouth_z)), (1, 0), Vector((0.0, 0.02, 0.9998)).normalized()),
-        "whiskerL": (Vector((0.178, 0.816, whisker_z)), (0,), Vector((0.64, -0.04, 0.767)).normalized()),
-        "whiskerR": (Vector((-0.178, 0.816, whisker_z)), (0,), Vector((-0.64, -0.04, 0.767)).normalized()),
+        "eyeL": (Vector((0.108, 0.895, eye_z)), (0,), Vector((0.28, 0.04, 0.96)).normalized()),
+        "eyeR": (Vector((-0.108, 0.895, eye_z)), (0,), Vector((-0.28, 0.04, 0.96)).normalized()),
+        "mouth": (Vector((0.0, 0.820, mouth_z)), (1, 0), Vector((0.0, 0.02, 0.9998)).normalized()),
+        "whiskerL": (Vector((0.165, 0.812, whisker_z)), (0,), Vector((0.64, -0.04, 0.767)).normalized()),
+        "whiskerR": (Vector((-0.165, 0.812, whisker_z)), (0,), Vector((-0.64, -0.04, 0.767)).normalized()),
     }
 
     anchors = {}
