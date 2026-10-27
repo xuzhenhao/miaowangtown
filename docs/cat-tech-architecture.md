@@ -202,3 +202,34 @@ URL 参数（方便截图对比）：`pet=mimi|juzi|nainiu`、`action=idle|walk|
 | 1. 主人 3 秒认出 | **已对照 7 张真照片完成全部 5 处细节精校**。截图见 `docs/validation/`：正脸（`mimi_front_sit.png`）、左侧（`mimi_left_side.png`）、右侧（`mimi_right_side.png`）、翻肚皮（`mimi_belly.png`）、揣手手（`mimi_loaf.png`）、舔毛（`mimi_groom.png`）、伸懒腰（`mimi_stretch.png`）、全景（`town_overview.png`） |
 | 2. 新增动作不碰专属资源 | **通过**。`stretch`（伸懒腰）与 `belly`（翻肚皮）只新增 `clips/*.ts` + 注册一行，三只猫直接可用；`npm run check` 通过 |
 | 3. 换猫只需贴图 + DNA | **通过**。咪咪 / 橘座 / 奶牛 三只猫只有三份 JSON 的差异（体型、印记、眼睛、性格），共用同一网格、骨骼、7 个动作（21 种组合） |
+
+---
+
+## 10. 母版升级（Blender 无界面一体流形 GLB）与 8 张照片转 DNA 流水线
+
+### 10.1 一次性 Blender 母版流水线（`prototype/tools/blender/build_base.py`）
+
+通过 `npm run build:base`（底层执行 `blender -b -P tools/blender/build_base.py`）自动完成 9 步标准化流水线：
+
+1. **造型来源（双模式支持）**：
+   - 默认模式：由闭合解剖子体经 Blender `EXACT Boolean Union` 融合；
+   - 外部导入模式：`blender -b -P tools/blender/build_base.py -- --input raw_cat.glb` 导入 AI 图生 3D 模型并自动归一化至 `y=0` 接地、朝 `+Z`、身长约 `1.0`。
+2. **体素重建与减面平滑（`Voxel Remesh + Smooth + Decimate`）**：消除内部穿插面，融合成 **单一连通水密流形表面（Single Continuous Manifold Mesh，约 6560 三角面）**，脖子、脸颊、嘴套、四肢与躯干 100% 零接缝。
+3. **解剖部件顶点标签 `_PART`（`0..10`）**：写入 glTF 自定义属性 `_PART`（对应 `head, muzzle, neck, body, fLegL, fLegR, hLegL, hLegR, earL, earR, tail`）。
+4. **非镜像高密度 UV 展开**：绝不左右镜像，头部（`256×128`）与嘴套（`128×64`）分配 1.6x 以上纹素密度，保持焊接连续法线。
+5. **同名同层级 26 根骨骼与 `bones.json`**：导出 `prototype/public/base/bones.json` 供复核。
+6. **平滑蒙皮权重**：头颈、肩胸、臀腿、尾骨链采用 Hermite 平滑过渡，7 个动作零撕裂。
+7. **6 个标准形态键（ShapeKeys）**：`headRound, weight, earSize, tailFluff, cheekFluff, muzzleSize` 随 GLB 导出。
+8. **表面五官锚点（`faceAnchors`）**：动态采样网格前表面生成 `eyeL, eyeR, mouth, whiskerL, whiskerR` 空物体与 glTF `extras`。
+9. **导出母版 GLB**：输出 `prototype/public/base/cat_base.glb` 与 `assets/cat_base.glb`。
+
+### 10.2 运行时加载 GLB 与 UV 静止姿态位置图（Rest-Map）
+
+- `prototype/src/cat/loadBaseGlb.ts`：解析 `base/cat_base.glb`（支持稀疏 MorphTarget Accessor），按骨骼名将 `JOINTS_0` 映射到 `createSkeleton(positions)`，**只取 GLB 的关节静止位置、忽略关节初始朝向（保持单位四元数 Identity）**，使全部 7 个动作零修改直接驱动 Blender 新网格（同时保留 `?base=procedural` 作为后备）。
+- `prototype/src/cat/coatBaker.ts`（`buildRestMap`）：在 `512×512` UV 空间光栅化母版网格的所有三角形，生成每个纹素的静止 3D 坐标 `pos`、法线 `norm` 与部件编号 `partId`，并统计各部件 3D 包围盒 `partBoxes`。
+
+### 10.3 每只猫全自动：8 张照片转结构化 DNA + 正脸关键点分片仿射投影
+
+- `prototype/server/vlm-proxy.mjs`：本地 Node 代理（`npm run vlm-proxy`），转发最多 8 张猫咪照片至 OpenAI 兼容视觉大模型，强制「左右 = 猫自身的左右」并输出 JSON Schema 结构化 DNA。
+- `prototype/src/photo/semanticMarkings.ts`：根据 `RestMap.partBoxes` 与 `faceAnchors` 自动解算 22 项语义区域（如 `muzzle.right`, `nose_bridge.blaze_left`, `muzzle.left_lip`, `paw.frontRight.inner_wrist`, `belly.center_spot`, `flank.left`）的 3D 中心与半径。
+- `prototype/src/photo/faceProjection.ts`：用正脸照片 10 个关键点与 3D 脸部锚点构建 16 个分片仿射三角形（Piecewise Affine Warp），将正脸真照片直接投影到 `head` 与 `muzzle` 的正脸 UV 区域，自动白平衡校正、调色板量化吸附并经 3×3 众数滤波清理为干净像素画。

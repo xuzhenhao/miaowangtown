@@ -215,15 +215,15 @@ const MOUTH_W = 0.156;
 const MOUTH_PHI = 0.43;
 const WHISKER_W = 0.145;
 const WHISKER_H = (WHISKER_W * 8) / 12;
-const DECAL_LIFT = 0.012;
+const DECAL_LIFT = 0.022;
 
 export class FaceRig {
-  readonly eyeMat = new MeshBasicMaterial({ alphaTest: 0.5, polygonOffset: true, polygonOffsetFactor: -2 });
-  readonly mouthMat = new MeshBasicMaterial({ alphaTest: 0.5, polygonOffset: true, polygonOffsetFactor: -2 });
+  readonly eyeMat = new MeshBasicMaterial({ alphaTest: 0.5, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -4 });
+  readonly mouthMat = new MeshBasicMaterial({ alphaTest: 0.5, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -4 });
   readonly whiskerMat = new MeshBasicMaterial({
     alphaTest: 0.5,
     polygonOffset: true,
-    polygonOffsetFactor: -2,
+    polygonOffsetFactor: -6, polygonOffsetUnits: -4,
   });
   readonly eyes: [Mesh, Mesh];
   readonly mouth: Mesh;

@@ -502,7 +502,17 @@ function stepSimulation(dt: number) {
   town.sun.target.position.copy(pipeline.focus);
 }
 
+let pauseLoop = false;
+function setLock(pos: Vector3 | null, heading: number | null, pause = false) {
+  lockPos = pos;
+  lockHeading = heading;
+  pauseLoop = pause;
+}
 function frame() {
+  if (pauseLoop) {
+    requestAnimationFrame(frame);
+    return;
+  }
   const dt = Math.min(clock.getDelta(), 1 / 20);
   stepSimulation(dt);
   pipeline.render(town.scene);
@@ -514,4 +524,4 @@ function frame() {
 }
 
 initPets().then(() => requestAnimationFrame(frame));
-Object.assign(window, { actor, pipeline, town, buildBaseGlb, stepSimulation });
+Object.assign(window, { actor, pipeline, town, buildBaseGlb, stepSimulation, setLock });

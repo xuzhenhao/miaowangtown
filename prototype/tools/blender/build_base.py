@@ -258,21 +258,16 @@ def build_organic_part_objects() -> list[bpy.types.Object]:
         dx = math.sin(ph) * math.sin(th)
         dy = math.cos(ph)
         dz = math.sin(ph) * math.cos(th)
-        rx, ry, rz = 0.285, 0.275, 0.282
+        rx, ry, rz = 0.282, 0.272, 0.252
         crown_taper = 1.0 - 0.11 * clamp((dy - 0.2) / 0.8, 0.0, 1.0) if dy > 0.2 else 1.0
         chin_taper = 1.0 - 0.22 * clamp((-0.35 - dy) / 0.65, 0.0, 1.0) if dy < -0.35 else 1.0
         cheek_bell = math.exp(-(((dy + 0.14) / 0.36) ** 2))
         cheek = 0.068 * cheek_bell * (abs(math.sin(th)) ** 0.85) * math.sin(ph)
-        snout_blend = (
-            0.052 * clamp((dz - 0.22) / 0.78, 0.0, 1.0) * math.exp(-(((dy + 0.26) / 0.34) ** 2))
-            if (dz > 0.22 and -0.74 < dy < 0.10)
-            else 0.0
-        )
-        face_flatten = (1.0 - 0.06 * dz * dz) if dz > 0 else 0.96
+        face_flatten = (1.0 - 0.05 * dz * dz) if dz > 0 else 0.96
         return Vector((
             head_center.x + dx * rx * crown_taper * chin_taper * (1.0 + cheek),
             head_center.y + dy * ry,
-            head_center.z + dz * rz * face_flatten + snout_blend,
+            head_center.z + dz * rz * face_flatten,
         ))
 
     objs.append(create_closed_part_object("part_head", 48, 32, head_pos, lambda _p: head_center))
@@ -489,13 +484,17 @@ def build_manifold_mesh(input_path: str | None = None) -> bpy.types.Object:
     bpy.ops.object.modifier_apply(modifier=smooth.name)
 
     # 减面到 4k~6k 三角面（目标约 5200 三角面）
-    current_tris = sum(max(0, len(p.vertices) - 2) for p in obj.data.polygons)
-    target_tris = 3350
+    bm_tmp = bmesh.new()
+    bm_tmp.from_mesh(obj.data)
+    bmesh.ops.triangulate(bm_tmp, faces=bm_tmp.faces)
+    bm_tmp.to_mesh(obj.data)
+    bm_tmp.free()
+    current_tris = len(obj.data.polygons)
+    target_tris = 4200
     if current_tris > target_tris:
         dec = obj.modifiers.new(name="DecimateTo5k", type="DECIMATE")
         dec.decimate_type = "COLLAPSE"
-        dec.ratio = clamp(target_tris / float(current_tris), 0.12, 0.95)
-        dec.use_collapse_triangulate = True
+        dec.ratio = clamp(target_tris / float(current_tris), 0.10, 0.95)
         bpy.ops.object.modifier_apply(modifier=dec.name)
 
     bm = bmesh.new()
@@ -546,11 +545,11 @@ def classify_point_part(p: Vector) -> int:
                 return pid
 
     # 嘴套 (1: muzzle) —— 严格限定在眼窝下方口鼻垫区域 (y <= 0.858, |x| <= 0.128)
-    mc = Vector((0.0, 0.812, 0.748))
-    mdx = (p.x - mc.x) / 0.128
-    mdy = (p.y - mc.y) / 0.056
+    mc = Vector((0.0, 0.816, 0.745))
+    mdx = (p.x - mc.x) / 0.132
+    mdy = (p.y - mc.y) / 0.062
     mdz = (p.z - mc.z) / 0.078
-    if p.z > 0.715 and 0.742 <= p.y <= 0.858 and abs(p.x) <= 0.128 and (mdx * mdx + mdy * mdy + mdz * mdz) <= 1.05:
+    if p.z > 0.735 and 0.742 <= p.y <= 0.862 and abs(p.x) <= 0.132 and (mdx * mdx + mdy * mdy + mdz * mdz) <= 1.08:
         return 1
 
     # 头部 (0: head)
@@ -981,35 +980,41 @@ def add_shape_keys(obj: bpy.types.Object):
 
 def compute_face_anchors(obj: bpy.types.Object, arm_obj: bpy.types.Object, normals_three: list[Vector]) -> dict:
     """
-    在 Blender 中放置 eyeL / eyeR / mouth / whiskerL / whiskerR 五个对称表面锚点空物体，
-    并绑定最近顶点索引以供形态键（MorphTargets）变化时实时跟随位移，导出到 glTF extras 与 bones.json。
+    在 Blender 母版网格表面动态采样五官锚点的真实前表面 Z 坐标，确保五官贴片严丝合缝贴在表面绝不陷入网格内部。
     """
     mesh = obj.data
     part_attr = mesh.attributes["_PART"]
+    verts_three = [b2t(v.co) for v in mesh.vertices]
+
+    def sample_front_z(tx: float, ty: float, rad: float) -> float:
+        zs = [p.z for p in verts_three if math.hypot(p.x - tx, p.y - ty) <= rad and p.z > 0.55]
+        return max(zs) if zs else 0.79
+
+    eye_z = max(sample_front_z(0.114, 0.892, 0.025), sample_front_z(-0.114, 0.892, 0.025)) + 0.003
+    mouth_z = sample_front_z(0.0, 0.826, 0.025) + 0.003
+    whisker_z = max(sample_front_z(0.178, 0.816, 0.028), sample_front_z(-0.178, 0.816, 0.028)) + 0.003
 
     targets = {
-        "eyeL": (Vector((0.114, 0.880, 0.774)), (0,), Vector((0.30, 0.04, 0.953)).normalized()),
-        "eyeR": (Vector((-0.114, 0.880, 0.774)), (0,), Vector((-0.30, 0.04, 0.953)).normalized()),
-        "mouth": (Vector((0.0, 0.828, 0.804)), (1, 0), Vector((0.0, 0.02, 0.9998)).normalized()),
-        "whiskerL": (Vector((0.184, 0.812, 0.708)), (0,), Vector((0.64, -0.04, 0.767)).normalized()),
-        "whiskerR": (Vector((-0.184, 0.812, 0.708)), (0,), Vector((-0.64, -0.04, 0.767)).normalized()),
+        "eyeL": (Vector((0.114, 0.892, eye_z)), (0,), Vector((0.25, 0.04, 0.967)).normalized()),
+        "eyeR": (Vector((-0.114, 0.892, eye_z)), (0,), Vector((-0.25, 0.04, 0.967)).normalized()),
+        "mouth": (Vector((0.0, 0.826, mouth_z)), (1, 0), Vector((0.0, 0.02, 0.9998)).normalized()),
+        "whiskerL": (Vector((0.178, 0.816, whisker_z)), (0,), Vector((0.64, -0.04, 0.767)).normalized()),
+        "whiskerR": (Vector((-0.178, 0.816, whisker_z)), (0,), Vector((-0.64, -0.04, 0.767)).normalized()),
     }
 
     anchors = {}
     for name, (target_p, allowed_parts, ideal_n) in targets.items():
         best_vi = 0
         best_dist = 1e9
-        for vi, v in enumerate(mesh.vertices):
+        for vi, p in enumerate(verts_three):
             pid = int(round(part_attr.data[vi].value))
             if pid not in allowed_parts:
                 continue
-            p = b2t(v.co)
             d = (p - target_p).length_squared
             if d < best_dist:
                 best_dist = d
                 best_vi = vi
 
-        # 创建 Blender Empty 锚点物体
         empty = bpy.data.objects.new(f"anchor_{name}", None)
         empty.empty_display_type = "SINGLE_ARROW"
         empty.empty_display_size = 0.05

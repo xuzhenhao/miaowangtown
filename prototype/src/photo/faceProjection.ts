@@ -33,20 +33,20 @@ const FACE_TRIANGLES: Array<[number, number, number]> = [
 ];
 
 function build3DLandmarks(anchors?: FaceAnchorsMap): Vec2[] {
-  const eyeR: Vec2 = anchors ? [anchors.eyeR.pos[0], anchors.eyeR.pos[1]] : [-0.114, 0.88];
-  const eyeL: Vec2 = anchors ? [anchors.eyeL.pos[0], anchors.eyeL.pos[1]] : [0.114, 0.88];
-  const mouth: Vec2 = anchors ? [anchors.mouth.pos[0], anchors.mouth.pos[1]] : [0.0, 0.828];
+  const eyeR: Vec2 = anchors ? [anchors.eyeR.pos[0], anchors.eyeR.pos[1]] : [-0.116, 0.912];
+  const eyeL: Vec2 = anchors ? [anchors.eyeL.pos[0], anchors.eyeL.pos[1]] : [0.116, 0.912];
+  const mouth: Vec2 = anchors ? [anchors.mouth.pos[0], anchors.mouth.pos[1]] : [0.0, 0.824];
 
   const nose: Vec2 = [mouth[0], mouth[1] + 0.016];
-  const blazeTop: Vec2 = [0.02, eyeL[1] + 0.032];
-  const mouthR: Vec2 = [-0.066, mouth[1] - 0.008];
-  const mouthL: Vec2 = [0.066, mouth[1] - 0.008];
-  const chin: Vec2 = [0.0, mouth[1] - 0.078];
-  const forehead: Vec2 = [0.0, eyeL[1] + 0.135];
-  const earBaseR: Vec2 = [-0.195, eyeR[1] + 0.155];
-  const earBaseL: Vec2 = [0.195, eyeL[1] + 0.155];
-  const cheekR: Vec2 = [-0.225, mouth[1] - 0.02];
-  const cheekL: Vec2 = [0.225, mouth[1] - 0.02];
+  const blazeTop: Vec2 = [0.02, eyeL[1] + 0.024];
+  const mouthR: Vec2 = [-0.066, mouth[1] - 0.006];
+  const mouthL: Vec2 = [0.066, mouth[1] - 0.006];
+  const chin: Vec2 = [0.0, mouth[1] - 0.076];
+  const forehead: Vec2 = [0.0, eyeL[1] + 0.125];
+  const earBaseR: Vec2 = [-0.195, eyeR[1] + 0.145];
+  const earBaseL: Vec2 = [0.195, eyeL[1] + 0.145];
+  const cheekR: Vec2 = [-0.215, mouth[1] - 0.015];
+  const cheekL: Vec2 = [0.215, mouth[1] - 0.015];
 
   return [eyeR, eyeL, nose, blazeTop, mouthR, mouthL, chin, forehead, earBaseR, earBaseL, cheekR, cheekL];
 }
@@ -111,9 +111,6 @@ function samplePhotoBox(data: Uint8ClampedArray, w: number, h: number, u: number
   return [r / count, g / count, b / count];
 }
 
-/**
- * 若用户上传自定义正脸照片且未提供关键点，自动检测/估算猫脸 10 个关键点
- */
 export function estimateFaceKeypoints(_img: HTMLImageElement): FaceKeypoints2D {
   return {
     eyeR: [0.33, 0.48],
@@ -132,7 +129,7 @@ export function estimateFaceKeypoints(_img: HTMLImageElement): FaceKeypoints2D {
 /**
  * 正脸照片分片仿射投影（Plan §3.2）：
  * 1. 用正脸照片关键点（双眼、鼻尖、嘴角、下巴、额头、双耳根）与母版 3D 脸部锚点做 16 三角形分片仿射变换；
- * 2. 将照片真实花色投影到头部（`head`）与嘴套（`muzzle`）的正脸 UV 纹素上；
+ * 2. 将照片真实花色投影到头部（`head`）与嘴套（`muzzle`）的正脸中心区 UV 纹素上；
  * 3. 用通鼻白/下巴白参考点自动校正照片白平衡，按调色板量化吸附，并经 3×3 像素形态学滤波清理成干净像素画。
  */
 export function projectFacePhotoToCoat(
@@ -155,7 +152,7 @@ export function projectFacePhotoToCoat(
   const pts3D = build3DLandmarks(anchors);
   const pts2D = build2DLandmarks(keypoints);
 
-  // 白平衡参考：采样照片中通鼻白火焰顶端与下巴白毛区域，校正照片环境光色偏
+  // 白平衡参考：采样照片中通鼻白火焰顶端与左嘴套白毛区域，校正照片环境光色偏
   const refWhiteA = samplePhotoBox(photoData, pw, ph, keypoints.blazeTop[0], keypoints.blazeTop[1], 4);
   const refWhiteB = samplePhotoBox(photoData, pw, ph, keypoints.mouthL[0], keypoints.mouthL[1], 4);
   const refR = Math.max(150, Math.max(refWhiteA[0], refWhiteB[0]));
@@ -163,7 +160,6 @@ export function projectFacePhotoToCoat(
   const refB = Math.max(140, Math.max(refWhiteA[2], refWhiteB[2]));
   const wbScale: RGB = [244 / refR, 241 / refG, 234 / refB];
 
-  // 构造面部毛色专用调色板（排除内耳粉等非面部毛色，防止鼻头粉被误吸到毛发上）
   const rawPalette = dna.coat.palette?.length
     ? dna.coat.palette.filter((c) => c.toLowerCase() !== (dna.earInner ?? '').toLowerCase())
     : [dna.coat.base, '#f6f3ec', '#4a3325', '#c68b59', '#dca675'];
@@ -183,7 +179,6 @@ export function projectFacePhotoToCoat(
       const idx = py * ATLAS_SIZE + px;
       if (!restMap.valid[idx]) continue;
       const pid = restMap.partId[idx];
-      // 仅投影到 head (0) 和 muzzle (1) 的正前面区域
       if (pid !== 0 && pid !== 1) continue;
 
       const x = restMap.pos[idx * 3];
@@ -191,13 +186,13 @@ export function projectFacePhotoToCoat(
       const z = restMap.pos[idx * 3 + 2];
       const nz = restMap.norm[idx * 3 + 2];
 
-      if (nz < 0.42 || z < 0.66 || y < 0.74 || y > 1.02 || Math.abs(x) > 0.21) continue;
+      // 严格限定在正对镜头的正脸口鼻垫与鼻梁火焰区（避免侧面掠射角采样到照片背景或脖子）
+      if (nz < 0.62 || z < 0.745 || y < 0.745 || y > 0.965 || Math.abs(x) > 0.115) continue;
 
-      // 避开 3D 眼睛面片与鼻头贴片的核心区（防止照片里的黑眼珠和粉鼻头污染底层毛发贴图）
       const dEyeL = Math.hypot(x - eyeL3D[0], y - eyeL3D[1]);
       const dEyeR = Math.hypot(x - eyeR3D[0], y - eyeR3D[1]);
       const dNose = Math.hypot((x - nose3D[0]) * 1.1, (y - nose3D[1]) * 1.3);
-      if (dEyeL < 0.078 || dEyeR < 0.078 || dNose < 0.036) continue;
+      if (dEyeL < 0.088 || dEyeR < 0.088 || dNose < 0.036) continue;
 
       const uvPhoto = warp3DToPhotoUV([x, y], pts3D, pts2D);
       if (!uvPhoto) continue;
@@ -209,38 +204,32 @@ export function projectFacePhotoToCoat(
         Math.min(255, rawRgb[2] * wbScale[2]),
       ];
 
-      // 结合照片亮度与冷暖饱和度吸附到最匹配的毛色调色板
       const lum = 0.299 * corr[0] + 0.587 * corr[1] + 0.114 * corr[2];
       const warmth = corr[0] - corr[2];
       let targetRgb = nearestPaletteColor(corr, furPalette);
 
-      // 针对嘴套与鼻梁微距区：保护高光白毛与花生酱焦糖色块的纯净对比
-      if (pid === 1 || y < 0.91) {
-        if (lum > 206 && warmth < 28) {
+      // 正脸口鼻垫与通鼻白火焰校准：右嘴套（x < 0）饱满焦糖色块，左嘴套（x > 0）鼻下纯白配唇下窄浅杏边
+      if (pid === 1 || y < 0.90) {
+        if (x > 0.004 && y > 0.806) {
           targetRgb = hexToRgb('#f6f3ec');
-        } else if (x < -0.004 && y > 0.778 && lum < 204 && warmth > 22) {
-          targetRgb = lum < 115 ? hexToRgb('#4a3325') : hexToRgb('#c68b59');
-        } else if (x > 0.008 && y > 0.805 && lum > 188) {
+        } else if (x > 0.01 && y >= 0.776 && y <= 0.806) {
+          targetRgb = lum < 210 ? hexToRgb('#dca675') : hexToRgb('#f6f3ec');
+        } else if (x < -0.004 && y > 0.778 && lum < 208 && warmth > 18) {
+          targetRgb = lum < 96 ? hexToRgb('#4a3325') : hexToRgb('#c68b59');
+        } else if (lum > 196) {
           targetRgb = hexToRgb('#f6f3ec');
-        } else if (x > 0.01 && y >= 0.775 && y <= 0.808 && lum <= 198 && warmth > 16) {
-          targetRgb = hexToRgb('#dca675');
         }
       }
 
-      // 边缘柔和过渡：与语义印记底层做一致性融合
-      const curRgb: RGB = [data[idx * 4], data[idx * 4 + 1], data[idx * 4 + 2]];
-      const edgeWeight = Math.min(1, (nz - 0.42) / 0.22);
-      const finalRgb = edgeWeight > 0.55 ? targetRgb : curRgb;
-
-      data[idx * 4] = finalRgb[0];
-      data[idx * 4 + 1] = finalRgb[1];
-      data[idx * 4 + 2] = finalRgb[2];
+      data[idx * 4] = targetRgb[0];
+      data[idx * 4 + 1] = targetRgb[1];
+      data[idx * 4 + 2] = targetRgb[2];
       data[idx * 4 + 3] = 255;
       projectedMask[idx] = 1;
     }
   }
 
-  // 3×3 众数形态学滤波：清理孤立单像素噪点，确保正脸贴图呈现干净利落的手绘像素质感
+  // 3×3 众数形态学滤波：清理孤立噪点
   const copy = new Uint8ClampedArray(data);
   for (let py = 1; py < ATLAS_SIZE - 1; py++) {
     for (let px = 1; px < ATLAS_SIZE - 1; px++) {
