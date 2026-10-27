@@ -1,0 +1,28 @@
+{
+  "id": "mimi",
+  "name": "咪咪",
+  "shape": { "headRound": 0.6, "weight": 0.35, "earSize": 0.4, "tailFluff": 0.4, "cheekFluff": 0.5, "muzzleSize": 0.7 },
+  "coat": {
+    "texture": null,
+    "base": "#9a7a5c",
+    "palette": ["#9a7a5c", "#5e4634", "#f3eee4", "#c98a3e", "#b8946f", "#d9958f"],
+    "markings": [
+      { "type": "stripes", "color": "#5e4634", "axis": "z", "frequency": 5, "width": 0.28, "noise": 0.5, "parts": ["body"], "minY": 0.45 },
+      { "type": "stripes", "color": "#5e4634", "axis": "y", "frequency": 9, "width": 0.25, "noise": 0.3, "parts": ["fLegL", "fLegR", "hLegL", "hLegR"], "minY": 0.15 },
+      { "type": "stripes", "color": "#5e4634", "axis": "y", "frequency": 7, "width": 0.35, "parts": ["tail"] },
+      { "type": "stripes", "color": "#5e4634", "axis": "x", "frequency": 9, "width": 0.3, "noise": 0.2, "parts": ["head"], "minY": 1.02, "minZ": 0.55 },
+      { "type": "underside", "color": "#f3eee4", "threshold": -0.45, "noise": 0.3, "parts": ["body", "neck", "head"] },
+      { "type": "blob", "color": "#f3eee4", "center": [0, 0.62, 0.42], "radius": [0.16, 0.2, 0.15], "noise": 0.3, "parts": ["neck", "body"] },
+
+      { "type": "blob", "color": "#f3eee4", "center": [0.05, 0.8, 0.86], "radius": [0.11, 0.08, 0.1], "minX": -0.01, "parts": ["muzzle", "head"] },
+      { "type": "blob", "color": "#c98a3e", "center": [-0.07, 0.84, 0.86], "radius": [0.12, 0.1, 0.12], "maxX": 0.02, "noise": 0.15, "parts": ["muzzle", "head"] },
+      { "type": "blob", "color": "#c98a3e", "center": [-0.02, 0.93, 0.85], "radius": [0.05, 0.08, 0.06], "parts": ["muzzle", "head"] },
+      { "type": "blob", "color": "#b8946f", "center": [0.04, 0.755, 0.84], "radius": [0.06, 0.018, 0.06], "minX": 0, "parts": ["muzzle"] },
+      { "type": "blob", "color": "#f3eee4", "center": [0.18, 0.55, -0.08], "radius": [0.22, 0.4, 0.17], "noise": 0.35, "minX": -0.06, "parts": ["body"] }
+    ]
+  },
+  "earInner": "#d9958f",
+  "eyes": { "iris": "#c9b03a" },
+  "nose": "#d68e86",
+  "personality": { "idle": 0.25, "walk": 0.3, "sit": 0.15, "loaf": 0.15, "groom": 0.15 }
+}

@@ -1,0 +1,22 @@
+{
+  "id": "nainiu",
+  "name": "奶牛",
+  "shape": { "headRound": 0.3, "weight": 0.2, "earSize": 0.8, "tailFluff": 0.1, "cheekFluff": 0.2, "muzzleSize": 0.3 },
+  "coat": {
+    "texture": null,
+    "base": "#f5f2ea",
+    "palette": ["#f5f2ea", "#2b2626", "#e8a4a4"],
+    "markings": [
+      { "type": "blob", "color": "#2b2626", "center": [-0.05, 0.75, -0.1], "radius": [0.3, 0.25, 0.32], "noise": 0.35, "parts": ["body"] },
+      { "type": "blob", "color": "#2b2626", "center": [0.15, 0.6, 0.3], "radius": [0.15, 0.15, 0.12], "noise": 0.3, "parts": ["body"] },
+      { "type": "blob", "color": "#2b2626", "center": [-0.1, 1.12, 0.6], "radius": [0.3, 0.2, 0.3], "noise": 0.25, "parts": ["head", "earL", "earR"] },
+      { "type": "blob", "color": "#2b2626", "center": [-0.16, 0.98, 0.78], "radius": [0.1, 0.09, 0.1], "parts": ["head"] },
+      { "type": "part", "color": "#2b2626", "parts": ["tail", "fLegL"] },
+      { "type": "blob", "color": "#f5f2ea", "center": [0.16, 0.05, 0.33], "radius": [0.1, 0.08, 0.1], "parts": ["fLegL"] }
+    ]
+  },
+  "earInner": "#e8a4a4",
+  "eyes": { "iris": "#7fb04a" },
+  "nose": "#e8a4a4",
+  "personality": { "idle": 0.2, "walk": 0.5, "sit": 0.1, "loaf": 0.05, "groom": 0.15 }
+}
