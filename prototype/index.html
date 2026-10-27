@@ -3,46 +3,89 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>喵汪小镇 · HD-2D 猫猫技术验证</title>
+    <title>喵汪小镇 · HD-2D 猫猫母版升级与照片转 DNA 验证</title>
     <style>
       html, body { margin: 0; height: 100%; overflow: hidden; background: #211d1a; font-family: -apple-system, "PingFang SC", sans-serif; }
       #view { width: 100vw; height: 100vh; display: block; cursor: pointer; }
       #view.painting { cursor: crosshair; }
       #panel {
-        position: fixed; top: 12px; left: 12px; width: 302px; max-height: calc(100vh - 24px); overflow-y: auto;
-        background: rgba(255, 251, 242, 0.94); border-radius: 10px; padding: 12px 14px; box-shadow: 0 4px 16px rgba(20, 14, 10, 0.36);
+        position: fixed; top: 12px; left: 12px; width: 326px; max-height: calc(100vh - 24px); overflow-y: auto;
+        background: rgba(255, 251, 242, 0.95); border-radius: 10px; padding: 12px 14px; box-shadow: 0 4px 16px rgba(20, 14, 10, 0.36);
         font-size: 13px; color: #4a3a2c;
       }
       #panel.hidden { display: none; }
       #panel h1 { font-size: 15px; margin: 0 0 4px; }
-      #panel h2 { font-size: 12px; margin: 12px 0 6px; color: #8a6a4a; font-weight: 600; }
+      #panel h2 { font-size: 12px; margin: 12px 0 6px; color: #8a6a4a; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
       #panel .row { display: flex; align-items: center; gap: 6px; margin: 4px 0; flex-wrap: wrap; }
-      #panel label { display: flex; align-items: center; gap: 4px; }
+      #panel label { display: flex; align-items: center; gap: 4px; font-size: 12px; }
       #panel button {
         border: 1px solid #d8c4a6; background: #fff; border-radius: 6px; padding: 3px 8px; font-size: 12px; cursor: pointer; color: #4a3a2c;
       }
       #panel button.active { background: #f0b45a; border-color: #d99a3a; color: #fff; }
+      #panel button.primary { background: #d97a2b; border-color: #b86018; color: #fff; font-weight: 600; width: 100%; padding: 6px 10px; }
       #panel select, #panel input[type=range] { flex: 1; }
       #status { font-size: 12px; color: #7a6450; margin-top: 4px; }
+      #baseBadge { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 4px; background: #e8f4e5; color: #2b6a23; font-weight: 600; margin-top: 4px; }
       #coat { width: 256px; height: 256px; image-rendering: pixelated; border: 1px solid #d8c4a6; background: #fff; }
       #swatches { display: flex; gap: 4px; flex-wrap: wrap; }
       #swatches span { width: 18px; height: 18px; border-radius: 3px; border: 2px solid #fff; box-shadow: 0 0 0 1px #d8c4a6; cursor: pointer; }
       #swatches span.active { box-shadow: 0 0 0 2px #d99a3a; }
       .hint { font-size: 11px; color: #9a8470; line-height: 1.5; }
+      .photo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 6px 0; }
+      .photo-grid img { width: 100%; height: 52px; object-fit: cover; border-radius: 4px; border: 1px solid #d8c4a6; cursor: pointer; }
+      .photo-grid img.selected { border: 2px solid #d97a2b; }
+      .shape-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; margin: 4px 0; }
+      .shape-grid label { font-size: 11px; display: flex; flex-direction: column; align-items: stretch; gap: 2px; }
+      #semanticList { max-height: 128px; overflow-y: auto; border: 1px solid #e6d8c3; border-radius: 6px; padding: 4px 6px; background: #fffdf9; margin: 4px 0; }
+      .sem-item { display: flex; align-items: center; justify-content: space-between; font-size: 11px; padding: 2px 0; border-bottom: 1px dashed #f0e6d6; }
+      .sem-item:last-child { border-bottom: none; }
+      .sem-item input[type=color] { width: 20px; height: 18px; border: none; padding: 0; background: none; cursor: pointer; }
     </style>
   </head>
   <body>
     <canvas id="view"></canvas>
     <div id="panel">
-      <h1>喵汪小镇 · 真 HD-2D 技术验证</h1>
-      <div class="hint">全高清古镇光影 + 3D 骨骼独立像素猫（1px 描边 + 平涂单档阴影 + 像素胡须）。</div>
+      <h1>喵汪小镇 · 母版 GLB + 照片转 DNA</h1>
+      <div class="hint">Blender 无界面一体母版 GLB + UV Rest-Map 烘焙 + 8 张真照片语义提取与正脸关键点投影。</div>
+      <div id="baseBadge">加载母版中…</div>
       <div id="status"></div>
 
-      <h2>宠物（只换 DNA，不换动作）</h2>
+      <h2>宠物（同一套 Blender 母版 GLB 与动作库）</h2>
       <div class="row"><select id="pet"></select></div>
 
       <h2>动作（全猫共用）</h2>
       <div class="row" id="actions"></div>
+
+      <h2>从照片生成 DNA + 正脸投影</h2>
+      <div class="hint">内置咪咪 8 张真照片（点击缩略图可切换正脸投影源，也可上传新照片）：</div>
+      <div class="photo-grid" id="photoGrid"></div>
+      <div class="row">
+        <input id="photoUpload" type="file" accept="image/*" multiple style="font-size:11px; max-width:210px;" />
+      </div>
+      <div class="row">
+        <button id="btnExtractPhotoDna" class="primary">⚡ 从 8 张照片提取结构化 DNA + 正脸投影</button>
+      </div>
+      <div class="row">
+        <label><input id="toggleFaceProj" type="checkbox" checked /> 启用正脸真照片关键点对齐投影 (Head/Muzzle UV)</label>
+      </div>
+      <div class="hint" id="photoStatus">已就绪：正脸微距关键点分片仿射投影 + 22 项语义印记已激活。</div>
+
+      <h2>体型形态键微调（6 ShapeKeys）</h2>
+      <div class="shape-grid">
+        <label>头圆润 headRound <input id="sk_headRound" type="range" min="0" max="1" step="0.05" value="0.48" /></label>
+        <label>胖瘦 weight <input id="sk_weight" type="range" min="0" max="1" step="0.05" value="0.28" /></label>
+        <label>耳大小 earSize <input id="sk_earSize" type="range" min="0" max="1" step="0.05" value="0.58" /></label>
+        <label>尾蓬松 tailFluff <input id="sk_tailFluff" type="range" min="0" max="1" step="0.05" value="0.35" /></label>
+        <label>腮婴儿肥 cheekFluff <input id="sk_cheekFluff" type="range" min="0" max="1" step="0.05" value="0.48" /></label>
+        <label>嘴套饱满 muzzleSize <input id="sk_muzzleSize" type="range" min="0" max="1" step="0.05" value="0.55" /></label>
+      </div>
+      <div class="row">
+        <label>底色 <input id="dnaBaseColor" type="color" value="#a87d56" /></label>
+        <label>虹膜 <input id="dnaEyeColor" type="color" value="#68b85b" /></label>
+        <label>鼻头 <input id="dnaNoseColor" type="color" value="#c85a48" /></label>
+      </div>
+      <div class="hint">语义印记列表（可逐项开关/改色，自动由母版 _PART 包围盒解算）：</div>
+      <div id="semanticList"></div>
 
       <h2>画风与真 HD-2D 分层管线</h2>
       <div class="row">
@@ -66,16 +109,17 @@
         <label><input id="follow" type="checkbox" checked /> 镜头跟随</label>
       </div>
 
-      <h2>印记（模型表面贴图）</h2>
+      <h2>印记修补与导出（DNA / PNG / GLB）</h2>
       <div class="row">
         <button id="paint">在猫身上绘制</button>
         <label>笔刷 <input id="brush" type="range" min="1" max="6" step="1" value="2" /></label>
       </div>
       <div class="row" id="swatches"></div>
-      <div class="row"><input id="color" type="color" value="#f3eee4" /> <span class="hint">自定义颜色</span></div>
+      <div class="row"><input id="color" type="color" value="#f3eee4" /> <span class="hint">自定义笔刷色</span></div>
       <div class="row">
         <button id="rebake">重新烘焙</button>
-        <button id="savePng">导出印记 PNG</button>
+        <button id="saveDna">导出 DNA JSON</button>
+        <button id="savePng">导出贴图 PNG</button>
         <button id="saveGlb">导出母版 GLB</button>
       </div>
       <div id="coatWrap"></div>

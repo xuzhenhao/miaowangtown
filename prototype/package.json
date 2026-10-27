@@ -1,11 +1,13 @@
 {
   "name": "miaowang-cat-prototype",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:base": "blender -b -P tools/blender/build_base.py",
+    "vlm-proxy": "node server/vlm-proxy.mjs",
     "check": "node scripts/check-decoupling.mjs"
   },
   "dependencies": {

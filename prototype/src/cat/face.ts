@@ -1,4 +1,5 @@
 import {
+  BufferGeometry,
   CanvasTexture,
   Mesh,
   MeshBasicMaterial,
@@ -9,13 +10,16 @@ import {
   Vector3,
 } from 'three';
 import { headPos, muzzlePos, partByName, partNormal } from './parts';
-import type { ShapeParams } from './shape';
+import { SHAPE_KEYS, type ShapeParams } from './shape';
 import type { CatSkeleton } from './skeleton';
 import type { PetDNA } from './dna';
+import type { FaceAnchorsMap } from './loadBaseGlb';
 
 /**
  * 脸部 = 手绘像素贴图集 + 贴在头骨上的小面片（灵动翡翠大眼 + 粉鼻嘴 + 像素白胡须）。
  * 表情靠切换贴图格子，而不是网格形变，所以神态在像素尺度下始终清晰。
+ * 当使用 Blender `cat_base.glb` 母版时，五官面片位置从 glTF extras 导出的 `faceAnchors` 读取，
+ * 并在形态键变化时按对应顶点的 MorphTarget 位移自动修正锚点位置。
  */
 
 export const EYE_STATES = ['open', 'closed', 'happy', 'sleepy', 'surprised'] as const;
@@ -227,7 +231,11 @@ export class FaceRig {
   eyeState: EyeState = 'open';
   mouthState: MouthState = 'closed';
 
-  constructor(private sk: CatSkeleton) {
+  constructor(
+    private sk: CatSkeleton,
+    private anchors?: FaceAnchorsMap,
+    private geo?: BufferGeometry,
+  ) {
     const eyeGeo = new PlaneGeometry(EYE_SIZE, EYE_SIZE);
     const mouthGeo = new PlaneGeometry(MOUTH_W, (MOUTH_W * 10) / 13);
     const whiskerGeoL = new PlaneGeometry(WHISKER_W, WHISKER_H);
@@ -240,6 +248,21 @@ export class FaceRig {
     this.mouth = new Mesh(mouthGeo, this.mouthMat);
     this.whiskers = [new Mesh(whiskerGeoL, this.whiskerMat), new Mesh(whiskerGeoR, this.whiskerMat)];
     for (const m of [...this.eyes, this.mouth, ...this.whiskers]) sk.bones.head.add(m);
+  }
+
+  private vertexMorphDelta(vi: number, k: ShapeParams, out = new Vector3()): Vector3 {
+    out.set(0, 0, 0);
+    const morphs = this.geo?.morphAttributes.position;
+    if (!morphs) return out;
+    SHAPE_KEYS.forEach((key, ki) => {
+      const weight = k[key] ?? 0;
+      const attr = morphs[ki];
+      if (!attr || Math.abs(weight) < 1e-5 || vi >= attr.count) return;
+      out.x += attr.getX(vi) * weight;
+      out.y += attr.getY(vi) * weight;
+      out.z += attr.getZ(vi) * weight;
+    });
+    return out;
   }
 
   applyColors(dna: PetDNA) {
@@ -287,15 +310,70 @@ export class FaceRig {
     this.setMouth(this.mouthState);
   }
 
-  /** 体型变化后重新把面片贴到头/嘴套表面，并在两侧脸颊贴合像素白胡须 */
+  /**
+   * 体型变化后重新把面片贴到头/嘴套表面：
+   * - 若加载自 Blender GLB 母版，直接读取 `faceAnchors` 并叠加对应顶点的形态键（MorphTargets）位移；
+   * - 若为程序化后备模式，回退到参数曲面求值。
+   */
   applyShape(k: ShapeParams) {
     const headRest = this.sk.restWorld.head;
-    const headPart = partByName('head');
-    const muzzlePart = partByName('muzzle');
     const p = new Vector3();
     const n = new Vector3();
     const q = new Quaternion();
     const zAxis = new Vector3(0, 0, 1);
+
+    if (this.anchors) {
+      const dL = this.vertexMorphDelta(this.anchors.eyeL.vertexIndex, k, new Vector3());
+      const dR = this.vertexMorphDelta(this.anchors.eyeR.vertexIndex, k, new Vector3());
+      const eyeDx = 0.5 * (Math.abs(dL.x) + Math.abs(dR.x));
+      const eyeDy = 0.5 * (dL.y + dR.y);
+      const eyeDz = 0.5 * (dL.z + dR.z);
+
+      (
+        [
+          ['eyeL', 1, 0],
+          ['eyeR', -1, 1],
+        ] as const
+      ).forEach(([key, side, i]) => {
+        const a = this.anchors![key];
+        p.fromArray(a.pos).add(new Vector3(side * eyeDx, eyeDy, eyeDz));
+        n.fromArray(a.normal).normalize();
+        const eye = this.eyes[i];
+        eye.position.copy(p).addScaledVector(n, DECAL_LIFT).sub(headRest);
+        eye.quaternion.copy(q.setFromUnitVectors(zAxis, n));
+      });
+
+      const wDL = this.vertexMorphDelta(this.anchors.whiskerL.vertexIndex, k, new Vector3());
+      const wDR = this.vertexMorphDelta(this.anchors.whiskerR.vertexIndex, k, new Vector3());
+      const wDx = 0.5 * (Math.abs(wDL.x) + Math.abs(wDR.x));
+      const wDy = 0.5 * (wDL.y + wDR.y);
+      const wDz = 0.5 * (wDL.z + wDR.z);
+
+      (
+        [
+          ['whiskerL', 1, 0],
+          ['whiskerR', -1, 1],
+        ] as const
+      ).forEach(([key, side, i]) => {
+        const a = this.anchors![key];
+        p.fromArray(a.pos).add(new Vector3(side * wDx, wDy, wDz));
+        n.fromArray(a.normal).normalize();
+        const whisker = this.whiskers[i];
+        whisker.position.copy(p).addScaledVector(n, DECAL_LIFT * 1.1).sub(headRest);
+        whisker.quaternion.copy(q.setFromUnitVectors(zAxis, n));
+      });
+
+      const mA = this.anchors.mouth;
+      const mD = this.vertexMorphDelta(mA.vertexIndex, k, new Vector3());
+      p.fromArray(mA.pos).add(new Vector3(0, mD.y, mD.z));
+      n.fromArray(mA.normal).normalize();
+      this.mouth.position.copy(p).addScaledVector(n, DECAL_LIFT).sub(headRest);
+      this.mouth.quaternion.copy(q.setFromUnitVectors(zAxis, n));
+      return;
+    }
+
+    const headPart = partByName('head');
+    const muzzlePart = partByName('muzzle');
 
     [1, -1].forEach((side, i) => {
       const s = 0.5 + (side * EYE_THETA) / (Math.PI * 2);
@@ -306,7 +384,6 @@ export class FaceRig {
       eye.position.copy(p).addScaledVector(n, DECAL_LIFT).sub(headRest);
       eye.quaternion.copy(q.setFromUnitVectors(zAxis, n));
 
-      // 脸颊像素白胡须：贴合脸颊下侧表面并向外微探，背侧面通过 FrontSide 自动隐去不穿帮
       const ws = 0.5 + (side * 0.78) / (Math.PI * 2);
       headPos(ws, 0.62, k, p);
       partNormal(headPart, ws, 0.62, k, n);

@@ -2,24 +2,51 @@ import { Clock, Plane, Raycaster, Vector2, Vector3 } from 'three';
 import { PixelPipeline, makeToonGradient } from './render/pixelPipeline';
 import { Town } from './world/town';
 import { CatActor } from './cat/catActor';
+import { preloadBaseGlb } from './cat/loadBaseGlb';
+import { applyShape } from './cat/buildCat';
+import { SHAPE_KEYS, type ShapeKey } from './cat/shape';
 import { loadPet, loadPetIndex, type PetDNA } from './cat/dna';
-import { bakeCoat } from './cat/coatBaker';
 import { CLIPS } from './anim/clips';
 import { CoatPainter } from './tools/paint';
-import { buildBaseGlb, exportBaseGlb, exportCoatPng } from './tools/exporters';
+import { buildBaseGlb, exportBaseGlb, exportCoatPng, exportDnaJson } from './tools/exporters';
+import {
+  buildPetDnaFromExtracted,
+  estimateFaceKeypoints,
+  MIEMIE_PHOTO_EXTRACTED_DNA,
+  MIEMIE_PHOTO_LIST,
+  translateSemanticMarkings,
+  type SemanticMarking,
+} from './photo';
 
 const params = new URLSearchParams(location.search);
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+
+// 1. 预加载 Blender 导出的母版 cat_base.glb（若指定 ?base=procedural 则走程序化后备）
+if (params.get('base') !== 'procedural') {
+  try {
+    await preloadBaseGlb();
+  } catch (err) {
+    console.warn('Fallback to procedural base mesh:', err);
+  }
+}
 
 const canvas = $<HTMLCanvasElement>('view');
 const pipeline = new PixelPipeline(canvas);
 const gradient = makeToonGradient();
 const town = new Town(gradient);
 const actor = new CatActor(gradient, town);
+if (params.has('faceProj')) {
+  actor.faceProjectionEnabled = params.get('faceProj') !== '0';
+}
 town.scene.add(actor.group);
 actor.group.position.set(2.32, -0.12, 0.24);
 actor.heading = -1.12;
 const painter = new CoatPainter(actor);
+
+$('baseBadge').textContent =
+  actor.cat.source === 'glb'
+    ? '当前母版：Blender GLB 一体流形网格 + UV Rest-Map'
+    : '当前母版：代码参数化后备 (?base=procedural)';
 
 // 预设镜头配置（默认对标左图客栈门前下桥石阶机位 compare）
 const preset = params.get('preset') ?? (params.has('zoom') ? null : 'compare');
@@ -89,16 +116,70 @@ if (params.has('x')) actor.group.position.x = Number(params.get('x'));
 if (params.has('z')) actor.group.position.z = Number(params.get('z'));
 town.update(0, actor.group.position, actor.heading, actor.brain.state);
 
-// ------------------------------------------------------------------ 宠物
+// ------------------------------------------------------------------ 宠物与参数微调状态
 
 const petSelect = $<HTMLSelectElement>('pet');
 let pets: Record<string, PetDNA> = {};
+let activeSemanticMarkings: SemanticMarking[] = MIEMIE_PHOTO_EXTRACTED_DNA.semanticMarkings.map((m) => ({ ...m }));
+
+function syncSlidersFromDna(dna: PetDNA) {
+  for (const key of SHAPE_KEYS) {
+    const el = $<HTMLInputElement>(`sk_${key}`);
+    if (el) el.value = String(dna.shape[key] ?? 0);
+  }
+  $<HTMLInputElement>('dnaBaseColor').value = dna.coat.base;
+  $<HTMLInputElement>('dnaEyeColor').value = dna.eyes.iris;
+  $<HTMLInputElement>('dnaNoseColor').value = dna.nose ?? '#c85a48';
+}
+
+function renderSemanticList() {
+  const wrap = $('semanticList');
+  wrap.innerHTML = '';
+  if (actor.dna?.id !== 'mimi') {
+    wrap.innerHTML = `<div class="hint">当前宠物使用预设 DNA（共 ${actor.dna?.coat.markings?.length ?? 0} 条 3D 印记）。切换至「咪咪」或点击上方「从 8 张照片提取」可编辑 22 项语义区域印记。</div>`;
+    return;
+  }
+  activeSemanticMarkings.forEach((sm) => {
+    const row = document.createElement('div');
+    row.className = 'sem-item';
+    const left = document.createElement('label');
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = sm.enabled !== false;
+    cb.onchange = () => {
+      sm.enabled = cb.checked;
+      rebuildFromSemanticMarkings();
+    };
+    const span = document.createElement('span');
+    span.textContent = sm.label;
+    left.append(cb, span);
+
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.value = sm.color;
+    colorInput.oninput = () => {
+      sm.color = colorInput.value;
+      rebuildFromSemanticMarkings();
+    };
+    row.append(left, colorInput);
+    wrap.append(row);
+  });
+}
+
+function rebuildFromSemanticMarkings() {
+  if (!actor.dna) return;
+  actor.dna.coat.markings = translateSemanticMarkings(activeSemanticMarkings, actor.restMap, actor.cat.anchors);
+  actor.rebakeCurrentCoat();
+  renderSwatches(actor.dna);
+}
 
 async function selectPet(id: string) {
   const dna = pets[id] ?? (pets[id] = await loadPet(id));
   await actor.applyDNA(dna);
   petSelect.value = id;
+  syncSlidersFromDna(dna);
   renderSwatches(dna);
+  renderSemanticList();
 }
 
 async function initPets() {
@@ -109,8 +190,108 @@ async function initPets() {
   await selectPet(params.get('pet') ?? ids[0]);
   $('gates').innerHTML =
     `动作库 ${CLIPS.length} 个 × 宠物 ${ids.length} 只 = ${CLIPS.length * ids.length} 种组合，` +
-    `全部共用一套骨骼与动作；宠物目录只有 DNA。`;
+    `全部共用同一套 Blender 母版 GLB 骨骼与动作；宠物目录只有 DNA。`;
 }
+
+// ------------------------------------------------------------------ 照片转 DNA 面板与 6 个形态键滑杆
+
+const photoGrid = $('photoGrid');
+MIEMIE_PHOTO_LIST.forEach((item, idx) => {
+  const img = document.createElement('img');
+  img.src = `${import.meta.env.BASE_URL}photos/miemie/${item.file}`;
+  img.title = item.tag;
+  img.alt = item.tag;
+  if (idx === 0) img.classList.add('selected');
+  img.onclick = async () => {
+    photoGrid.querySelectorAll('img').forEach((x) => x.classList.toggle('selected', x === img));
+    const kp = idx === 0 ? MIEMIE_PHOTO_EXTRACTED_DNA.faceKeypoints : estimateFaceKeypoints(img);
+    await actor.loadFrontalPhoto(img.src, kp);
+    actor.rebakeCurrentCoat();
+    $('photoStatus').textContent = `已切换正脸投影参考图：${item.tag}`;
+  };
+  photoGrid.append(img);
+});
+
+$<HTMLInputElement>('photoUpload').onchange = async (e) => {
+  const files = (e.target as HTMLInputElement).files;
+  if (!files || !files.length) return;
+  const url = URL.createObjectURL(files[0]);
+  const img = new Image();
+  img.src = url;
+  await img.decode();
+  await actor.loadFrontalPhoto(url, estimateFaceKeypoints(img));
+  actor.rebakeCurrentCoat();
+  $('photoStatus').textContent = `已加载自定义猫咪照片（${files.length} 张）并完成正脸关键点投影！`;
+};
+
+const toggleFaceProj = $<HTMLInputElement>('toggleFaceProj');
+toggleFaceProj.checked = actor.faceProjectionEnabled;
+toggleFaceProj.onchange = () => {
+  actor.faceProjectionEnabled = toggleFaceProj.checked;
+  actor.rebakeCurrentCoat();
+  $('photoStatus').textContent = actor.faceProjectionEnabled
+    ? '已开启：正脸真照片分片仿射投影 + 身体语义印记融合。'
+    : '已关闭正脸照片投影：仅使用 3D 语义印记烘焙。';
+};
+
+$('btnExtractPhotoDna').onclick = async () => {
+  $('photoStatus').textContent = '正在分析 8 张照片提取结构化 DNA 并执行正脸关键点投影…';
+  try {
+    const res = await fetch('http://localhost:8787/api/extract-dna', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        petName: '咪咪',
+        photos: MIEMIE_PHOTO_LIST.map((x) => `${location.origin}${import.meta.env.BASE_URL}photos/miemie/${x.file}`),
+      }),
+    }).catch(() => null);
+    const data = res && res.ok ? await res.json() : null;
+    const extracted = data && !data.fallback && data.extracted ? data.extracted : MIEMIE_PHOTO_EXTRACTED_DNA;
+    activeSemanticMarkings = extracted.semanticMarkings.map((m: SemanticMarking) => ({ ...m, enabled: true }));
+    const dna = buildPetDnaFromExtracted(
+      { ...extracted, semanticMarkings: activeSemanticMarkings },
+      actor.restMap,
+      actor.cat.anchors,
+    );
+    pets.mimi = dna;
+    await actor.applyDNA(dna);
+    syncSlidersFromDna(dna);
+    renderSwatches(dna);
+    renderSemanticList();
+    $('photoStatus').textContent =
+      data && !data.fallback
+        ? '已通过本地 VLM 代理完成 8 张照片 DNA 提取与正脸投影！'
+        : '已从咪咪 8 张真照片提取 22 项非对称语义印记并完成正脸实拍投影！';
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+for (const key of SHAPE_KEYS) {
+  const slider = $<HTMLInputElement>(`sk_${key}`);
+  slider.oninput = () => {
+    if (!actor.dna) return;
+    actor.dna.shape[key as ShapeKey] = Number(slider.value);
+    applyShape(actor.cat.mesh, actor.dna.shape);
+    actor.face.applyShape(actor.dna.shape);
+  };
+}
+
+$<HTMLInputElement>('dnaBaseColor').oninput = (e) => {
+  if (!actor.dna) return;
+  actor.dna.coat.base = (e.target as HTMLInputElement).value;
+  actor.rebakeCurrentCoat();
+};
+$<HTMLInputElement>('dnaEyeColor').oninput = (e) => {
+  if (!actor.dna) return;
+  actor.dna.eyes.iris = (e.target as HTMLInputElement).value;
+  actor.face.applyColors(actor.dna);
+};
+$<HTMLInputElement>('dnaNoseColor').oninput = (e) => {
+  if (!actor.dna) return;
+  actor.dna.nose = (e.target as HTMLInputElement).value;
+  actor.face.applyColors(actor.dna);
+};
 
 // ------------------------------------------------------------------ 动作
 
@@ -246,11 +427,8 @@ paintBtn.onclick = () => {
 };
 $<HTMLInputElement>('brush').oninput = (e) => (painter.brush = Number((e.target as HTMLInputElement).value));
 $<HTMLInputElement>('color').oninput = (e) => (painter.color = (e.target as HTMLInputElement).value);
-$('rebake').onclick = () => {
-  if (!actor.dna) return;
-  bakeCoat(actor.dna, actor.coatCanvas);
-  actor.coatTexture.needsUpdate = true;
-};
+$('rebake').onclick = () => actor.rebakeCurrentCoat();
+$('saveDna').onclick = () => exportDnaJson(actor);
 $('savePng').onclick = () => exportCoatPng(actor);
 $('saveGlb').onclick = () => exportBaseGlb(actor);
 actor.coatCanvas.id = 'coat';

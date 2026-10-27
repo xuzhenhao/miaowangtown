@@ -10,7 +10,7 @@ import {
   type Texture,
 } from 'three';
 import { applyShape, buildCatMesh, type CatMesh } from './buildCat';
-import { bakeCoat, loadCoatImage, makeCoatTexture, snapToPalette } from './coatBaker';
+import { bakeCoat, buildRestMap, loadCoatImage, makeCoatTexture, snapToPalette, type RestMap } from './coatBaker';
 import { ATLAS_SIZE } from './parts';
 import { FaceRig, type EyeState, type MouthState } from './face';
 import type { PetDNA } from './dna';
@@ -19,12 +19,17 @@ import { buildClip, faceAt } from '../anim/clipDsl';
 import { CLIPS, clipDef } from '../anim/clips';
 import { Procedural } from '../anim/procedural';
 import { Brain, type WorldNav } from '../anim/brain';
+import {
+  MIEMIE_PHOTO_EXTRACTED_DNA,
+  projectFacePhotoToCoat,
+  type FaceKeypoints2D,
+} from '../photo';
 
 /**
  * 像素画式猫咪着色材质（Flat Albedo + 单档底部/背光硬阴影）：
  * - 复用 Three.js 原生蒙皮与形态键法线管线，覆写光照输出；
  * - 头部、脸颊与受光躯干保持 100% 纯净贴图平涂本色，彻底消灭 3D 球面多阶色带（充气玩具感）；
- * - 仅在腹底/下颌底/内侧背光处保留一档干净的像素硬阴影（亮度 0.78），翻肚皮时朝上的肚皮保持全亮。
+ * - 仅在腹底/下颌底/内侧背光处保留一档干净的像素硬阴影（亮度 0.76），翻肚皮时朝上的肚皮保持全亮。
  */
 function makePixelCatMaterial(coatTexture: Texture, gradientMap: Texture): MeshToonMaterial {
   const mat = new MeshToonMaterial({ map: coatTexture, gradientMap });
@@ -75,12 +80,14 @@ function makePixelCatMaterial(coatTexture: Texture, gradientMap: Texture): MeshT
 }
 
 /**
- * 一只猫 = 母版网格（全猫共用） + 动作库（全猫共用） + 一份 Pet DNA（每只猫一份）。
- * applyDNA 只改贴图、形态键、眼睛颜色和性格权重，从不碰动作。
+ * 一只猫 = 母版网格（全猫共用，默认加载自 Blender 导出的 `cat_base.glb`）
+ *        + 动作库（全猫共用）
+ *        + 一份 Pet DNA（每只猫一份，通过 UV 静止姿态位置图 `RestMap` 烘焙 + 可选正脸真照片投影）。
  */
 export class CatActor {
   readonly group = new Group();
   readonly cat: CatMesh;
+  readonly restMap: RestMap;
   readonly face: FaceRig;
   readonly coatCanvas = document.createElement('canvas');
   readonly coatTexture: Texture;
@@ -97,13 +104,19 @@ export class CatActor {
   lookTarget: Vector3 | null = null;
   expression: { eyes: EyeState; mouth: MouthState } = { eyes: 'open', mouth: 'closed' };
 
+  /** 正脸照片投影状态 */
+  faceProjectionEnabled = true;
+  frontalPhotoImg: HTMLImageElement | null = null;
+  faceKeypoints: FaceKeypoints2D = MIEMIE_PHOTO_EXTRACTED_DNA.faceKeypoints!;
+
   constructor(gradientMap: Texture, nav: WorldNav) {
     this.group.name = 'cat_actor_group';
     this.coatCanvas.width = this.coatCanvas.height = ATLAS_SIZE;
     this.coatTexture = makeCoatTexture(this.coatCanvas);
     this.material = makePixelCatMaterial(this.coatTexture, gradientMap);
     this.cat = buildCatMesh(this.material);
-    this.face = new FaceRig(this.cat.sk);
+    this.restMap = buildRestMap(this.cat.mesh.geometry, ATLAS_SIZE);
+    this.face = new FaceRig(this.cat.sk, this.cat.anchors, this.cat.mesh.geometry);
     this.group.add(this.cat.mesh);
     ANIM_BONES.forEach((name, i) => {
       this.animPose.set([0, 0, 0, 1], i * 7);
@@ -136,16 +149,51 @@ export class CatActor {
     this.play('idle');
   }
 
+  async loadFrontalPhoto(url: string, keypoints?: FaceKeypoints2D) {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = url;
+    await img.decode();
+    this.frontalPhotoImg = img;
+    if (keypoints) this.faceKeypoints = keypoints;
+  }
+
+  rebakeCurrentCoat() {
+    if (!this.dna) return;
+    bakeCoat(this.dna, this.coatCanvas, this.restMap);
+    if (this.faceProjectionEnabled && this.frontalPhotoImg && this.dna.id === 'mimi') {
+      projectFacePhotoToCoat(
+        this.frontalPhotoImg,
+        this.faceKeypoints,
+        this.dna,
+        this.coatCanvas,
+        this.restMap,
+        this.cat.anchors,
+      );
+    }
+    this.coatTexture.needsUpdate = true;
+  }
+
   async applyDNA(dna: PetDNA) {
     this.dna = dna;
     applyShape(this.cat.mesh, dna.shape);
     this.face.applyShape(dna.shape);
     this.face.applyColors(dna);
+    if (dna.id === 'mimi' && !this.frontalPhotoImg) {
+      try {
+        await this.loadFrontalPhoto(
+          `${import.meta.env.BASE_URL}${MIEMIE_PHOTO_EXTRACTED_DNA.frontalPhotoUrl}`,
+          MIEMIE_PHOTO_EXTRACTED_DNA.faceKeypoints,
+        );
+      } catch {
+        // 忽略静态图片加载异常，使用纯语义烘焙兜底
+      }
+    }
     if (dna.coat.texture) {
       await loadCoatImage(`${import.meta.env.BASE_URL}pets/${dna.coat.texture}`, this.coatCanvas);
       if (dna.coat.palette) snapToPalette(this.coatCanvas, dna.coat.palette);
     } else {
-      bakeCoat(dna, this.coatCanvas);
+      this.rebakeCurrentCoat();
     }
     this.coatTexture.needsUpdate = true;
     this.brain.setPersonality(dna.personality);

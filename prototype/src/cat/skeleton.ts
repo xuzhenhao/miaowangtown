@@ -93,7 +93,12 @@ export interface CatSkeleton {
   restLocal: Record<BoneName, Vector3>;
 }
 
-export function createSkeleton(): CatSkeleton {
+/**
+ * 创建母版骨骼。支持传入从 `cat_base.glb` 读取的外部关节静止世界位置 `positions`：
+ * 只取 GLB 的关节位置、忽略关节初始朝向（静止旋转恒为单位四元数 Identity），
+ * 从而让 `clipDsl.ts` 和全部动作片段零修改直接驱动 Blender 母版网格。
+ */
+export function createSkeleton(positions?: Partial<Record<BoneName, Vector3>>): CatSkeleton {
   const defs = boneDefs();
   const bones = {} as Record<BoneName, Bone>;
   const restWorld = {} as Record<BoneName, Vector3>;
@@ -103,11 +108,12 @@ export function createSkeleton(): CatSkeleton {
   for (const d of defs) {
     const b = new Bone();
     b.name = d.name;
-    const local = d.parent ? d.pos.clone().sub(restWorld[d.parent]) : d.pos.clone();
+    const worldPos = positions?.[d.name]?.clone() ?? d.pos.clone();
+    const local = d.parent ? worldPos.clone().sub(restWorld[d.parent]) : worldPos.clone();
     b.position.copy(local);
     if (d.parent) bones[d.parent].add(b);
     bones[d.name] = b;
-    restWorld[d.name] = d.pos.clone();
+    restWorld[d.name] = worldPos.clone();
     restLocal[d.name] = local.clone();
     index[d.name] = list.length;
     list.push(b);

@@ -14,6 +14,13 @@ export function exportCoatPng(actor: CatActor) {
   actor.coatCanvas.toBlob((b) => b && download(b, `${actor.dna?.id ?? 'cat'}_coat.png`), 'image/png');
 }
 
+/** 导出当前宠物 DNA JSON（严格遵守 public/pets/ 解耦门禁 Schema） */
+export function exportDnaJson(actor: CatActor) {
+  if (!actor.dna) return;
+  const json = JSON.stringify(actor.dna, null, 2);
+  download(new Blob([json], { type: 'application/json' }), `${actor.dna.id}.json`);
+}
+
 /** 母版猫（网格 + 骨骼 + 形态键 + 全部动作）-> GLB，可导入 Blender 精修后替换 */
 export function buildBaseGlb(actor: CatActor): Promise<ArrayBuffer> {
   return new GLTFExporter().parseAsync(actor.cat.mesh, { binary: true, animations: actor.clips }) as Promise<ArrayBuffer>;
