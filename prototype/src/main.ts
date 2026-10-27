@@ -309,6 +309,8 @@ for (const def of CLIPS) {
   const b = document.createElement('button');
   b.textContent = def.label;
   b.onclick = () => {
+    lockHeading = null;
+    lockPos = null;
     actor.brain.force(def.name, true);
     markAction(b);
   };
@@ -480,10 +482,11 @@ const clock = new Clock();
 const focusTarget = new Vector3();
 pipeline.focus.copy(actor.group.position).add(new Vector3(0, 0.45, 0));
 
+const explicitLock = params.get('lock') === '1' || params.has('heading');
 let lockHeading: number | null =
-  params.has('heading') ? Number(params.get('heading')) : preset === 'compare' ? -1.12 : null;
+  params.has('heading') ? Number(params.get('heading')) : explicitLock && preset === 'compare' ? -1.12 : null;
 let lockPos: Vector3 | null =
-  lockHeading !== null && (initialAction === 'walk' || preset === 'compare') ? actor.group.position.clone() : null;
+  explicitLock ? actor.group.position.clone() : null;
 
 function stepSimulation(dt: number) {
   actor.update(dt);
@@ -491,9 +494,11 @@ function stepSimulation(dt: number) {
   if (lockPos) {
     actor.group.position.x = lockPos.x;
     actor.group.position.z = lockPos.z;
-    actor.group.rotation.y = actor.heading;
   }
   town.update(dt, actor.group.position, actor.heading, actor.brain.state);
+  actor.group.rotation.order = 'YXZ';
+  actor.group.rotation.y = actor.heading;
+  actor.group.rotation.x = town.slopePitchAt(actor.group.position.x, actor.group.position.z, actor.heading);
   if (follow.checked) {
     focusTarget.copy(actor.group.position).add(new Vector3(0, 0.45, 0));
     pipeline.focus.lerp(focusTarget, 1 - Math.exp(-4 * dt));

@@ -217,7 +217,10 @@ export class CatActor {
 
     const walkDef = clipDef('walk');
     const walk = this.actions.walk;
-    if (this.current === 'walk') walk.setEffectiveTimeScale(Math.max(0.3, this.brain.speed / walkDef.speed!));
+    if (this.current === 'walk') {
+      const scale = this.brain.speed > 0.02 ? Math.max(0.78, this.brain.speed / walkDef.speed!) : 1.0;
+      walk.setEffectiveTimeScale(scale);
+    }
 
     const { bones } = this.cat.sk;
     ANIM_BONES.forEach((name, i) => {

@@ -508,13 +508,23 @@ export class Town implements WorldNav {
     this.scene.add(this.contactShadow);
   }
 
-  /** 根据世界坐标 (x, z) 计算可行走表面高度（石拱桥中心 y=0.0，向两岸台阶过渡至 y=-0.12） */
+  /** 根据世界坐标 (x, z) 计算可行走表面高度（石拱桥中心 y=0.0，向两岸台阶平滑过渡至 y=-0.12） */
   heightAt(x: number, z: number): number {
-    if (z >= -0.78 && z <= 1.48 && Math.abs(x) <= 1.85) {
-      const t = Math.min(1, Math.abs(x) / 1.85);
-      return -0.12 * t * t;
+    if (z >= -0.78 && z <= 1.48 && Math.abs(x) <= 1.95) {
+      const t = Math.min(1, Math.abs(x) / 1.95);
+      const s = t * t * (3 - 2 * t);
+      return -0.12 * s;
     }
     return -0.12;
+  }
+
+  /** 计算猫咪在当前朝向 (heading) 下的桥面/台阶坡度俯仰角（绕局部 X 轴弧度），消除上桥前爪悬空或身体僵平 */
+  slopePitchAt(x: number, z: number, heading: number): number {
+    const dx = Math.sin(heading) * 0.26;
+    const dz = Math.cos(heading) * 0.26;
+    const frontY = this.heightAt(x + dx, z + dz);
+    const backY = this.heightAt(x - dx, z - dz);
+    return -Math.atan2(frontY - backY, 0.52);
   }
 
   /** 动态更新水面波光与猫咪脚下接地软阴影 */
@@ -528,10 +538,16 @@ export class Town implements WorldNav {
     });
 
     if (catPos) {
-      const groundY = this.heightAt(catPos.x, catPos.z);
+      const dx = Math.sin(catHeading) * 0.24;
+      const dz = Math.cos(catHeading) * 0.24;
+      const frontY = this.heightAt(catPos.x + dx, catPos.z + dz);
+      const backY = this.heightAt(catPos.x - dx, catPos.z - dz);
+      const groundY = 0.5 * (frontY + backY);
       catPos.y = groundY;
-      this.contactShadow.position.set(catPos.x, groundY + 0.006, catPos.z);
+      this.contactShadow.position.set(catPos.x, groundY + 0.008, catPos.z);
+      this.contactShadow.rotation.order = 'YXZ';
       this.contactShadow.rotation.y = catHeading;
+      this.contactShadow.rotation.x = -Math.atan2(frontY - backY, 0.48);
       if (catState === 'sit') {
         this.contactShadow.scale.set(0.8, 1, 0.76);
       } else if (catState === 'belly' || catState === 'loaf') {
@@ -817,15 +833,16 @@ export class Town implements WorldNav {
     this.ceramicWineJar(3.22, wallZ + 0.28);
     this.ceramicWineJar(3.54, wallZ + 0.32);
 
-    // 二、猫身前下方的青石护栏绿植花坛（1:1 复刻左图红框下方的石栏灌木丛！）
-    this.buildForegroundStonePlanter(2.44, 1.32);
+    // 二、猫身前下方的青石护栏绿植花坛（置于 z=1.58，既保留前景层次又绝不遮挡猫咪四肢与步态）
+    this.buildForegroundStonePlanter(2.44, 1.58);
 
     // 东侧远端侧翼楼阁（丰富广角视野）
     this.add(new BoxGeometry(2.6, 2.4, 3.2), this.timberWallMat, 5.1, 1.05, 0.8);
     this.buildPitchedRoof(5.1, 2.25, 0.8, 3.0, 3.6, 0.75);
-    this.obstacles.push({ x: 2.85, z: -1.4, r: 1.5 });
-    this.obstacles.push({ x: 2.44, z: 1.32, r: 0.72 });
-    this.obstacles.push({ x: 5.1, z: 0.8, r: 1.8 });
+    this.obstacles.push({ x: 2.85, z: -1.35, r: 1.48 });
+    this.obstacles.push({ x: 3.38, z: -0.22, r: 0.45 });
+    this.obstacles.push({ x: 2.44, z: 1.58, r: 0.62 });
+    this.obstacles.push({ x: 5.1, z: 0.8, r: 1.75 });
   }
 
   /** 左图同款：木框暖黄发光灯笼 */
@@ -1046,30 +1063,52 @@ export class Town implements WorldNav {
     this.add(new CylinderGeometry(0.13, 0.13, 0.02, 12), '#a86e3e', x, y0 + 0.1, z);
   }
 
-  /** 判断坐标 p 是否在石桥桥面或两岸青石街道可行走区 */
+  /** 判断坐标 p 是否在石桥桥面或两岸青石街道可行走区（严格避开客栈门阶、酒坛、桥栏与花坛） */
   walkable(p: Vector3) {
-    if (Math.abs(p.x) > 4.4 || Math.abs(p.z) > 4.4) return false;
-    const onBridge = p.z >= -0.42 && p.z <= 1.15 && Math.abs(p.x) <= 1.85;
+    if (Math.abs(p.x) > 3.8 || Math.abs(p.z) > 3.6) return false;
+    // 客栈北侧墙面、台阶与青瓷酒坛禁入区
+    if (p.x > 1.45 && p.z < 0.08) return false;
+    // 石拱桥桥面走廊（严禁穿入南北石桥栏杆）
+    const onBridge = p.z >= 0.02 && p.z <= 0.78 && Math.abs(p.x) <= 1.88;
     const inCanal = Math.abs(p.x) < 1.72;
     if (inCanal && !onBridge) return false;
-    return this.obstacles.every((o) => Math.hypot(p.x - o.x, p.z - o.z) > o.r + 0.3);
+    return this.obstacles.every((o) => Math.hypot(p.x - o.x, p.z - o.z) > o.r + 0.26);
   }
 
   randomTarget(from: Vector3): Vector3 {
-    for (let i = 0; i < 48; i++) {
+    // 优先在石桥与客栈门前开阔青石板走廊上挑选顺畅路点
+    const waypoints = [
+      new Vector3(0.15, 0, 0.38),
+      new Vector3(-1.35, 0, 0.38),
+      new Vector3(1.55, 0, 0.38),
+      new Vector3(2.32, 0, 0.34),
+      new Vector3(-2.35, 0, 0.45),
+      new Vector3(-2.35, 0, -0.55),
+    ];
+    for (let i = 0; i < 64; i++) {
       const a = Math.random() * Math.PI * 2;
-      const d = 1.0 + Math.random() * 2.4;
+      const d = 0.95 + Math.random() * 2.1;
       const p = new Vector3(from.x + Math.sin(a) * d, 0, from.z + Math.cos(a) * d);
       if (this.walkable(p) && this.clearLine(from, p)) {
         p.y = this.heightAt(p.x, p.z);
         return p;
       }
     }
-    return new Vector3(2.32, -0.12, 0.24);
+    for (const wp of waypoints) {
+      if (Math.hypot(wp.x - from.x, wp.z - from.z) > 0.65 && this.clearLine(from, wp)) {
+        const out = wp.clone();
+        out.y = this.heightAt(out.x, out.z);
+        return out;
+      }
+    }
+    const fallback = Math.hypot(from.x - 2.32, from.z - 0.34) < 0.6
+      ? new Vector3(0.25, this.heightAt(0.25, 0.38), 0.38)
+      : new Vector3(2.32, -0.12, 0.34);
+    return fallback;
   }
 
   private clearLine(a: Vector3, b: Vector3) {
-    for (let t = 0.1; t <= 1; t += 0.1) {
+    for (let t = 0.2; t <= 1; t += 0.16) {
       if (!this.walkable(a.clone().lerp(b, t))) return false;
     }
     return true;

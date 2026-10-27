@@ -35,6 +35,7 @@ export function chainWeights(v: number, stops: Array<[string, number]>): Weights
     const [a, va] = stops[i];
     const [b, vb] = stops[i + 1];
     if (v <= vb) {
+      if (a === b) return [[a, 1]];
       const f = (v - va) / (vb - va);
       return [
         [a, 1 - f],
@@ -283,10 +284,12 @@ function makeLeg(spec: LegSpec): PartDef {
     },
     weights: (_s, _t, p) =>
       chainWeights(p.y, [
-        [spec.bones[3], 0.1],
-        [spec.bones[2], 0.22],
-        [spec.bones[1], 0.36],
-        [spec.bones[0], 0.56],
+        [spec.bones[3], 0.07],
+        [spec.bones[2], 0.11],
+        [spec.bones[2], 0.205],
+        [spec.bones[1], 0.26],
+        [spec.bones[1], 0.405],
+        [spec.bones[0], 0.49],
       ]),
   };
 }

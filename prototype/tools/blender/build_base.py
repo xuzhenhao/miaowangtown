@@ -568,13 +568,21 @@ def classify_point_part(p: Vector) -> int:
     if p.z < -0.435 and p.y > 0.43:
         return 10
 
-    # 前腿 (4: fLegL, 5: fLegR)
-    if p.z > 0.05 and p.y < 0.39:
-        return 4 if p.x >= 0.0 else 5
+    # 四肢柱体判定：保留肚皮正中央底面 (|x| <= 0.058 且 y > 0.255) 为 body(3)，避免迈步拉扯肚皮；
+    # 同时将大腿/肩臂外侧上沿延伸至 y < 0.435，让肩/胯关节完整带动整条腿摆动
+    in_belly_midline = (abs(p.x) <= 0.058 and p.y > 0.255)
+    if not in_belly_midline:
+        # 前腿 (4: fLegL, 5: fLegR)
+        flx = 0.145 if p.x >= 0.0 else -0.145
+        fl_r = math.hypot((p.x - flx) / 0.098, (p.z - 0.31) / 0.112)
+        if p.z > 0.08 and ((p.y < 0.35) or (p.y < 0.435 and fl_r <= 1.08)):
+            return 4 if p.x >= 0.0 else 5
 
-    # 后腿 (6: hLegL, 7: hLegR)
-    if p.z <= 0.05 and p.y < 0.38:
-        return 6 if p.x >= 0.0 else 7
+        # 后腿 (6: hLegL, 7: hLegR)
+        hlx = 0.155 if p.x >= 0.0 else -0.155
+        hl_r = math.hypot((p.x - hlx) / 0.106, (p.z - (-0.23)) / 0.132)
+        if p.z <= 0.08 and ((p.y < 0.35) or (p.y < 0.435 and hl_r <= 1.08)):
+            return 6 if p.x >= 0.0 else 7
 
     # 躯干 (3: body)
     return 3
@@ -814,49 +822,118 @@ def chain_weights(v: float, stops: list[tuple[str, float]]) -> list[tuple[str, f
         a, va = stops[i]
         b, vb = stops[i + 1]
         if v <= vb:
+            if a == b:
+                return [(a, 1.0)]
             f = (v - va) / max(1e-6, vb - va)
             f = f * f * (3.0 - 2.0 * f)
             return [(a, 1.0 - f), (b, f)]
     return [(stops[-1][0], 1.0)]
 
 
-def compute_smooth_skin_weights(part_id: int, p: Vector) -> list[tuple[str, float]]:
-    if part_id == 0 or part_id == 1:
-        if p.y < 0.78 and p.z < 0.56:
-            f = clamp((0.78 - p.y) / 0.12, 0.0, 0.45)
-            return [("head", 1.0 - f), ("neck", f)]
-        return [("head", 1.0)]
-    if part_id == 2:
-        t = clamp((p.y - 0.55) / 0.30, 0.0, 1.0)
-        return chain_weights(t, [("chest", 0.12), ("neck", 0.52), ("head", 0.88)])
-    if part_id == 3:
-        return chain_weights(p.z, [("hips", -0.22), ("spine", 0.05), ("chest", 0.28)])
-    if part_id in (4, 5):
-        side = "L" if part_id == 4 else "R"
-        return chain_weights(p.y, [
-            (f"fpaw{side}", 0.10),
-            (f"elbow{side}", 0.22),
-            (f"shoulder{side}", 0.36),
-            ("chest", 0.50),
+def smooth01(x: float) -> float:
+    c = clamp(x, 0.0, 1.0)
+    return c * c * (3.0 - 2.0 * c)
+
+
+def merge_weights(w1: dict[str, float], w2: list[tuple[str, float]], factor: float) -> dict[str, float]:
+    f = clamp(factor, 0.0, 1.0)
+    if f <= 1e-5:
+        return w1
+    if f >= 1.0 - 1e-5:
+        out: dict[str, float] = {}
+        for k, v in w2:
+            out[k] = out.get(k, 0.0) + v
+        return out
+    out = {k: v * (1.0 - f) for k, v in w1.items()}
+    for k, v in w2:
+        out[k] = out.get(k, 0.0) + v * f
+    return out
+
+
+def compute_smooth_skin_weights(_part_id: int, p: Vector) -> list[tuple[str, float]]:
+    """
+    纯 3D 空间坐标 p=(x,y,z) 的 C1 连续蒙皮权重场（完全不依赖 _part_id）：
+    保证任何因非镜像 UV 接缝切分而产生在相同 3D 坐标上的两个顶点拥有 100% 相同的骨骼权重，
+    从数学上彻底杜绝迈步、转头、摇尾时在部件 UV 接缝处裂开缝隙！
+    """
+    # 1. 躯干脊柱基底权重
+    w: dict[str, float] = {}
+    for k, v in chain_weights(p.z, [("hips", -0.22), ("spine", 0.05), ("chest", 0.28)]):
+        w[k] = w.get(k, 0.0) + v
+
+    # 2. 颈部 -> 头部 -> 双耳 连续空间过渡
+    nh_coord = p.y + 0.36 * (p.z - 0.24)
+    m_neck_head = smooth01((nh_coord - 0.52) / 0.10) * smooth01((p.z - 0.12) / 0.14)
+    if m_neck_head > 1e-4:
+        nh_chain = chain_weights(nh_coord, [
+            ("chest", 0.52),
+            ("neck", 0.68),
+            ("head", 0.85),
         ])
-    if part_id in (6, 7):
-        side = "L" if part_id == 6 else "R"
-        return chain_weights(p.y, [
-            (f"hpaw{side}", 0.10),
-            (f"knee{side}", 0.22),
-            (f"hip{side}", 0.36),
-            ("hips", 0.49),
-        ])
-    if part_id in (8, 9):
-        bname = "earL" if part_id == 8 else "earR"
-        t = clamp((p.y - 1.05) / 0.22, 0.0, 1.0)
-        return chain_weights(t, [("head", 0.08), (bname, 0.38)])
-    _, t = compute_part_uv(10, p, Vector((0.0, 1.0, 0.0)))
-    stops: list[tuple[str, float]] = [("hips", 0.0)]
-    for i, bt in enumerate(TAIL_BONE_T):
-        nxt = TAIL_BONE_T[i + 1] if i + 1 < len(TAIL_BONE_T) else 1.0
-        stops.append((f"tail{i}", 0.5 * (bt + nxt)))
-    return chain_weights(t, stops)
+        w = merge_weights(w, nh_chain, m_neck_head)
+
+    # 双耳（在头部上方 y > 1.03 平滑过渡到 earL / earR）
+    if p.y > 1.02 and p.z > 0.42 and abs(p.x) > 0.03:
+        ear_bone = "earL" if p.x >= 0.0 else "earR"
+        ear_cx = 0.122 if p.x >= 0.0 else -0.122
+        d_ear = math.hypot((p.x - ear_cx) / 0.14, (p.z - 0.67) / 0.14)
+        m_ear = smooth01((p.y - 1.04) / 0.12) * smooth01(1.35 - d_ear)
+        if m_ear > 1e-4:
+            w = merge_weights(w, [(ear_bone, 1.0)], m_ear)
+
+    # 3. 尾巴连续空间过渡（p.z < -0.36 且 p.y > 0.40）
+    if p.z < -0.35 and p.y > 0.39:
+        m_tail = smooth01((-0.36 - p.z) / 0.10) * smooth01((p.y - 0.40) / 0.08)
+        if m_tail > 1e-4:
+            _, t_tail = compute_part_uv(10, p, Vector((0.0, 1.0, 0.0)))
+            stops: list[tuple[str, float]] = [("hips", 0.0)]
+            for i, bt in enumerate(TAIL_BONE_T):
+                nxt = TAIL_BONE_T[i + 1] if i + 1 < len(TAIL_BONE_T) else 1.0
+                stops.append((f"tail{i}", 0.5 * (bt + nxt)))
+            w = merge_weights(w, chain_weights(t_tail, stops), m_tail)
+
+    # 4. 四肢连续空间过渡（按各腿柱轴线椭圆距离平滑混合，且腹底正中 |x|≈0 保持 100% 躯干）
+    if p.y < 0.495:
+        side = "L" if p.x >= 0.0 else "R"
+        is_front = p.z >= 0.04
+        if is_front:
+            lx = 0.145 if p.x >= 0.0 else -0.145
+            z_off = -0.012 * math.exp(-(((p.y - 0.28) / 0.10) ** 2)) + 0.028 * clamp((0.14 - p.y) / 0.08, 0.0, 1.0)
+            lz = 0.31 + z_off
+            d_leg = math.hypot((p.x - lx) / 0.102, (p.z - lz) / 0.128)
+            leg_chain = chain_weights(p.y, [
+                (f"fpaw{side}", 0.070),
+                (f"elbow{side}", 0.110),
+                (f"elbow{side}", 0.210),
+                (f"shoulder{side}", 0.265),
+                (f"shoulder{side}", 0.395),
+                ("chest", 0.485),
+            ])
+        else:
+            lx = 0.155 if p.x >= 0.0 else -0.155
+            z_off = (
+                0.022 * math.exp(-(((p.y - 0.38) / 0.12) ** 2))
+                - 0.024 * math.exp(-(((p.y - 0.19) / 0.08) ** 2))
+                + 0.030 * clamp((0.14 - p.y) / 0.08, 0.0, 1.0)
+            )
+            lz = -0.23 + z_off
+            d_leg = math.hypot((p.x - lx) / 0.110, (p.z - lz) / 0.148)
+            leg_chain = chain_weights(p.y, [
+                (f"hpaw{side}", 0.070),
+                (f"knee{side}", 0.110),
+                (f"knee{side}", 0.200),
+                (f"hip{side}", 0.255),
+                (f"hip{side}", 0.395),
+                ("hips", 0.485),
+            ])
+
+        m_radial = smooth01((1.18 - d_leg) / 0.36)
+        m_low = smooth01((0.275 - p.y) / 0.045)
+        m_leg = max(m_radial, m_low) * smooth01((0.490 - p.y) / 0.035)
+        if m_leg > 1e-4:
+            w = merge_weights(w, leg_chain, m_leg)
+
+    return [(k, val) for k, val in w.items() if val > 1e-4]
 
 
 def build_armature_and_weights(obj: bpy.types.Object) -> tuple[bpy.types.Object, dict]:

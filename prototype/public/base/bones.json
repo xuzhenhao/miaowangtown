@@ -211,7 +211,7 @@
   },
   "anchors": {
     "eyeL": {
-      "vertexIndex": 2146,
+      "vertexIndex": 2176,
       "pos": [
         0.114,
         0.892,
@@ -224,7 +224,7 @@
       ]
     },
     "eyeR": {
-      "vertexIndex": 375,
+      "vertexIndex": 373,
       "pos": [
         -0.114,
         0.892,
@@ -237,7 +237,7 @@
       ]
     },
     "mouth": {
-      "vertexIndex": 863,
+      "vertexIndex": 865,
       "pos": [
         0.0,
         0.826,
@@ -250,7 +250,7 @@
       ]
     },
     "whiskerL": {
-      "vertexIndex": 2173,
+      "vertexIndex": 2203,
       "pos": [
         0.178,
         0.816,

@@ -29,6 +29,7 @@ export class Brain {
   private target: Vector3 | null = null;
   private time = 0;
   private forced = false;
+  private hold = false;
   personality: Record<string, number> = { idle: 1 };
   speed = 0;
   turnRate = 0;
@@ -39,15 +40,17 @@ export class Brain {
     this.personality = p;
   }
 
-  /** UI 指定动作：执行一段时间后回到自动闲逛 */
+  /** UI 指定动作：hold=true 时循环动作持续保持（walk 到达一个路点后会自动续走下一个路点） */
   force(name: string, hold = false) {
     this.forced = true;
+    this.hold = hold;
     this.enter(name);
     if (hold && clipDef(name).loop && name !== 'walk') this.until = Infinity;
   }
 
   release() {
     this.forced = false;
+    this.hold = false;
     this.until = this.time;
   }
 
@@ -90,16 +93,21 @@ export class Brain {
       const to = this.target.clone().sub(this.host.position);
       to.y = 0;
       const dist = to.length();
-      if (dist < 0.12) {
-        this.until = this.time;
+      if (dist < 0.14) {
+        if (this.forced && this.hold) {
+          this.target = this.nav.randomTarget(this.host.position);
+          this.until = this.time + 25;
+        } else {
+          this.until = this.time;
+        }
       } else {
         const want = Math.atan2(to.x, to.z);
         let diff = want - this.host.heading;
         diff = Math.atan2(Math.sin(diff), Math.cos(diff));
-        const turn = Math.sign(diff) * Math.min(Math.abs(diff), 2.6 * dt);
+        const turn = Math.sign(diff) * Math.min(Math.abs(diff), 3.6 * dt);
         this.host.heading += turn;
-        this.turnRate = turn / dt;
-        const align = Math.max(0.25, Math.cos(diff));
+        this.turnRate = dt > 1e-4 ? turn / dt : 0;
+        const align = Math.max(0.55, Math.cos(diff));
         this.speed = clipDef('walk').speed! * align;
         const step = Math.min(dist, this.speed * dt);
         this.host.position.x += Math.sin(this.host.heading) * step;
@@ -108,8 +116,14 @@ export class Brain {
     }
 
     if (this.time >= this.until) {
-      this.forced = false;
-      this.enter(this.pickNext());
+      if (this.forced && this.hold && this.state === 'walk') {
+        this.target = this.nav.randomTarget(this.host.position);
+        this.until = this.time + 25;
+      } else {
+        this.forced = false;
+        this.hold = false;
+        this.enter(this.pickNext());
+      }
     }
   }
 }
