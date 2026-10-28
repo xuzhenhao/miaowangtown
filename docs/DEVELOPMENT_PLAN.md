@@ -28,11 +28,12 @@
 7. **M2 拆为 M2.1 单向打穿与 M2.2 八向合拢（内置候选模型与许可证清单，严禁程序化退回充当默认）**：
    - **M2.1（`d045` 单方向两步对齐与四条可计数门禁验证）**：
      1. **第一步（相机与站姿轮廓对齐 + 边缘安全内缩反投）**：利用 M1 的剪影叠比，将 `d045` 相机的 `ortho_scale`、平移与母版站姿对齐到锚点轮廓；反投时对轮廓边缘对不齐的边界纹素做内缩剥离（不写入 UV，由内部顺毛流外延填充，防止把背景或边缘伪影投进 UV）；
-     2. **第二步（四条可计数门禁验收）**：不要求与 2D 锚点逐像素重合，严格按以下 4 条可计数标准验收——**① 头身剪影误差 `<= 2` 个逻辑像素（测法：提取烘焙精灵与 `v4.1` 标杆两边不透明掩码 `Alpha > 0` 的头身边界像素，计算双向轮廓最近距离，最大偏离不超过 2 个逻辑像素）；② 五印记位置准确且不换侧；③ 四只白爪零灰边；④ 独立眼睛的深色上眼睑线、双层翡翠绿虹膜、竖瞳与左上角纯白主高光 4 要素齐全清晰（不以眼睛与锚点逐像素相同作为通过条件）**；同时完成色板实验并固化 `render_spec.json`。
-   - **M2.2（锁定候选开源模型与许可证清单 + 互补视角 4x 门禁与 8 方向合拢）**：
-     - **候选开源模型与许可证清单（已锁定）**：
-       - **方案 A（首选，Apache-2.0 / OpenRAIL++-M）**：`SDXL Base 1.0`（`CreativeML OpenRAIL++-M`）+ `ControlNet-Depth-SDXL` & `ControlNet-Normal-SDXL`（`Apache-2.0`，锁定 Blender 导出的 35° 正交深度与法线几何约束）+ `IP-Adapter-Plus-SDXL`（`Apache-2.0`，以 `d045` 无光影锚点图锁死毛流笔触与色温）；
-       - **方案 B（备选，Apache-2.0）**：`FLUX.1-schnell`（`Apache-2.0`）+ `FLUX.1-Depth / Canny ControlNet`（`Apache-2.0`）配合 `CatGenome` Lab 色板约束；
+     2. **第二步（四条可计数门禁验收）**：不要求与 2D 锚点逐像素重合，严格按以下 4 条可计数标准验收——**① 头身剪影误差 `<= 2` 个逻辑像素（测法：采用与 `build_route_a_v4_1.py` / `post_v4_1_pixel.py` 相同的硬阈值 `Alpha > 162` 提取两边掩码的头身边界像素（排除半透明边缘干扰），计算双向轮廓最近距离，最大偏离不超过 2 个逻辑像素）；② 五印记位置准确且不换侧；③ 四只白爪零灰边；④ 独立眼睛的深色上眼睑线、双层翡翠绿虹膜、竖瞳与左上角纯白主高光 4 要素齐全清晰（不以眼睛与锚点逐像素相同作为通过条件）**；同时完成色板实验并固化 `render_spec.json`。
+   - **M2.2（锁定可商用 Hugging Face 仓库与模型卡许可证 + 互补视角 4x 门禁与 8 方向合拢）**：
+     - **已锁定的可商用模型仓库与许可证（已移除含 `FLUX.1-dev` 非商用权重的方案 B）**：
+       - 基础模型：`stabilityai/stable-diffusion-xl-base-1.0`（许可证以该仓库模型卡为准：`CreativeML OpenRAIL++-M`，可商用）；
+       - 几何控制：`diffusers/controlnet-depth-sdxl-1.0`（模型卡许可证：`CreativeML OpenRAIL++-M`，可商用）与 `xinsir/controlnet-union-sdxl-1.0`（含 Depth/Normal 控制，模型卡许可证：`Apache-2.0`）；
+       - 外观锚点控制：`h94/IP-Adapter` 中的 `ip-adapter-plus_sdxl_vit-h.bin`（腾讯官方仓库，模型卡许可证：`Apache-2.0`）；
      - **准入硬规则**：严禁把「切线场 + 采毛簇块 + 高斯场」这类程序化方法当成默认路径；无论哪条路径产出的互补视角图，进入 `bake_uv_from_views.py` 之前都必须先通过同一套 **4x 放大毛流自然度与五印记门禁**，仅几何对齐绝不算通过。
 8. **`idle` 防闪烁门禁改为「同 UV 非透明像素对比」+ 色板结论固化至 `render_spec.json`**：
    - **防误伤呼吸移动**：Blender 同步导出每帧像素对应的 **UV 坐标缓冲（UV Pass）**，闪烁率只统计 **相邻两帧均非透明、处于躯干/头部核心毛斑区、且映射回同一 UV 邻域（$|\Delta uv| < 1/1024$）的像素颜色变化率 `< 0.5%`**，正常呼吸平移不算闪烁。
@@ -113,22 +114,23 @@ miaowangtown/
   2. **M2.1：`d045` 单方向两步对齐反投 + 四条可计数门禁 + 色板实验（固化 `render_spec.json`）**：
      - **Step 1（对齐与去边反投）**：基于 M1 剪影叠比校准 `d045` 相机的 `ortho_scale` 与站姿，将 `route_a_v4_1_unlit_albedo_anchor_hi.png` 反投至 `2048` UV，对轮廓边缘未对齐的纹素直接豁免不写入 UV（由内侧毛流平滑外延）；
      - **Step 2（四条可计数门禁校验）**：走通 Blender `Albedo + Normal` 与 `post_v4_1_pixel.py`，输出 `d045` 的 **Layer A（纯 Albedo）** 与 **Layer B（加运行时同款灯笼光 + 腹底 AO 合成图）**；严格按以下 **四条可计数标准** 验收：
-       1. **头身剪影误差 `<= 2` 个逻辑像素**：提取烘焙精灵与 `v4.1` 标杆两边不透明掩码（`Alpha > 0`）的头身边界像素，计算双向边界最近距离，最大偏离不超过 `2` 个逻辑像素；
+       1. **头身剪影误差 `<= 2` 个逻辑像素**：采用与 `build_route_a_v4_1.py` / `post_v4_1_pixel.py` 相同的硬阈值（`Alpha > 162`）提取两边掩码的头身边界像素，计算双向边界最近距离，最大偏离不超过 `2` 个逻辑像素；
        2. **五印记位置准确且零换侧**；
        3. **四只白爪零灰边**；
        4. **独立眼睛 4 要素齐全**：深色上眼睑线、双层翡翠绿虹膜、竖瞳、左上角纯白主高光清晰可读（不以眼睛或边缘与 2D 锚点逐像素完全重合作为条件）；
      - **Step 3（色板实验落点）**：对同一张 `d045` 输出 **「不量化原色版 vs 36 色 `dither=none` vs 48 色 `dither=none`」** 4x 放大对比图，实测选定不产生迷彩断层的模式并固化写入 `art/master_cat/render_spec.json`。
   3. **M2.2：基于已锁定开源模型清单生成互补视角 + 8 方向 `fur_albedo.png` 合拢**：
-     - **候选开源模型与许可证清单（已锁定）**：
-       - **方案 A（首选）**：`SDXL Base 1.0`（`CreativeML OpenRAIL++-M`）+ `ControlNet-Depth-SDXL` / `ControlNet-Normal-SDXL`（`Apache-2.0`）+ `IP-Adapter-Plus-SDXL`（`Apache-2.0`，以 `d045` 无光影锚点锁死毛流质感）；
-       - **方案 B（备选）**：`FLUX.1-schnell`（`Apache-2.0`）+ `FLUX.1-Depth / Canny ControlNet`（`Apache-2.0`）；
+     - **已锁定的可商用 Hugging Face 仓库与模型卡许可证（已移除含 `FLUX.1-dev` 非商用权重的方案 B）**：
+       - `stabilityai/stable-diffusion-xl-base-1.0`（模型卡许可证：`CreativeML OpenRAIL++-M`）；
+       - `diffusers/controlnet-depth-sdxl-1.0`（模型卡许可证：`CreativeML OpenRAIL++-M`）+ `xinsir/controlnet-union-sdxl-1.0`（Depth/Normal 控制，模型卡许可证：`Apache-2.0`）；
+       - `h94/IP-Adapter`（`ip-adapter-plus_sdxl_vit-h.bin`，腾讯官方仓库，模型卡许可证：`Apache-2.0`，以 `d045` 无光影锚点锁死毛流质感）；
      - 从变形后微 Q 母版导出其余正交方向（`d000 / d090 / d180 / d270 / d135 / d225 / d315`，固定 `pitch=35°`）的精确 `Depth + Normal + 部位语义 Mask` 控制图并固定随机种子；
      - **每一张互补视角图在进入 UV 反投前，必须先单独通过 4x 放大毛流质感与印记位置质检（严禁拿低质程序化色块或未过检的退回图充数）**；
      - 按法线夹角权重融合进 `2048×2048` 固定 UV，做顺毛流保频高斯微调（附调制前后 4x 对比图），输出完整 `fur_albedo.png`、`coverage.png` 与 **双层 8 方向静态审核板 `identity_review.png`**。
 - **M2 验收门禁**：
   - **`coverage.png` 门禁（修正后自洽定义）**：通过质检的控制视角直投区（绿，`direct_controlled`）+ 斜向过渡区（黄，`grazing_interpolated`）在高频身份区占比 `>= 92%`；任何控制视角均不可见的死角补全区（红，`unseen_inpainted`，仅限腹底与脚掌底）全 UV 占比 `<= 20%`。
   - **8 方向双层审核板（Layer A 纯反照率 + Layer B 带光合成）**：
-    - `d045` Layer B 严格满足 **M2.1 四条可计数门禁**（两边不透明掩码边界距离最大偏离 `<= 2` 逻辑像素、五印记零换侧、白爪零灰边、独立眼睛 4 要素齐全）；
+    - `d045` Layer B 严格满足 **M2.1 四条可计数门禁**（两边 `Alpha > 162` 硬阈值掩码边界距离最大偏离 `<= 2` 逻辑像素、五印记零换侧、白爪零灰边、独立眼睛 4 要素齐全）；
     - 其余 7 方向（含 `d135/d180/d225` 背面虎斑、后腿虎斑裤衩配短白袜、环纹黑尾尖专项 4x 放大）五印记严格守恒、零换侧、四腿完整、白爪零灰边、绿眼四要素可读。
   - **【用户拍板点 2】**：审阅 M2.1（`d045` + 色板实验）与 M2.2（双层 8 方向审核板 + 调制前后 4x 对比）通过后，冻结 `fur_albedo.png` 与 `render_spec.json` 进 M3。
 
