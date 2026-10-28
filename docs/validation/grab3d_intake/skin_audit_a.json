@@ -1,0 +1,61 @@
+{
+  "label": "path_a_remesh",
+  "source": "/workspace/miaowangtown/docs/validation/grab3d_intake/out_a/cat_base.glb",
+  "verts": 4336,
+  "tris": 7550,
+  "unique_positions": 3777,
+  "uv_layers": [
+    "UVMap"
+  ],
+  "materials": [],
+  "uv_seam_weight_mismatches": 0,
+  "upper_leg_shear": 0,
+  "belly_midline_leakage": 0,
+  "vertex_groups": [
+    "root",
+    "hips",
+    "spine",
+    "chest",
+    "neck",
+    "head",
+    "earL",
+    "earR",
+    "shoulderL",
+    "elbowL",
+    "fpawL",
+    "shoulderR",
+    "elbowR",
+    "fpawR",
+    "hipL",
+    "kneeL",
+    "hpawL",
+    "hipR",
+    "kneeR",
+    "hpawR",
+    "tail0",
+    "tail1",
+    "tail2",
+    "tail3",
+    "tail4",
+    "tail5"
+  ],
+  "bbox_three": {
+    "x": [
+      -0.46614137291908264,
+      0.4647199213504791
+    ],
+    "y": [
+      0.00015771863400004804,
+      1.2480427026748657
+    ],
+    "z": [
+      -0.5143492221832275,
+      0.5156765580177307
+    ],
+    "span": [
+      0.9308612942695618,
+      1.2478849840408657,
+      1.0300257802009583
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "src": "/workspace/miaowangtown/reference/open_cat_bases/grab3d_tabby_cat/cat_clean.glb",
+  "out_glb": "/workspace/miaowangtown/docs/validation/grab3d_intake/out_b/cat_base.glb",
+  "verts": 9620,
+  "tris": 10000,
+  "uv_preserved": true,
+  "materials": 1,
+  "auto_weights": true,
+  "shape_keys": true,
+  "bbox": {
+    "min": [
+      -0.46676501631736755,
+      0.0,
+      -0.5175729990005493
+    ],
+    "max": [
+      0.46676501631736755,
+      1.25,
+      0.5175729990005493
+    ],
+    "span": [
+      0.9335300326347351,
+      1.25,
+      1.0351459980010986
+    ]
+  },
+  "paws": {
+    "fpawL": null,
+    "fpawR": {
+      "pos": [
+        -0.2578674852848053,
+        0.011819127947092056,
+        0.1566338837146759
+      ],
+      "n": 67
+    },
+    "hpawL": {
+      "pos": [
+        0.26521313190460205,
+        0.00958899687975645,
+        -0.29171010851860046
+      ],
+      "n": 69
+    },
+    "hpawR": {
+      "pos": [
+        -0.027887742966413498,
+        0.016624191775918007,
+        -0.3788979649543762
+      ],
+      "n": 6
+    }
+  },
+  "bone_count": 26,
+  "assets_copied": false
+}

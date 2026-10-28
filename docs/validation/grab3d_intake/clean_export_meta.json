@@ -1,0 +1,70 @@
+{
+  "source": "/workspace/miaowangtown/reference/open_cat_bases/grab3d_tabby_cat/cat-light.glb",
+  "clean_glb": "/workspace/miaowangtown/reference/open_cat_bases/grab3d_tabby_cat/cat_clean.glb",
+  "target_tris": 10000,
+  "decimate_ratio": 0.026143449105240454,
+  "pre_decimate_tris": 382505,
+  "clean": {
+    "name": "grab3d_tabby",
+    "verts": 10052,
+    "tris_approx": 10000,
+    "has_uv": true,
+    "uv_layers": [
+      "UVMap"
+    ],
+    "materials": [
+      {
+        "name": "Material_0",
+        "images": [
+          {
+            "name": "Image_0",
+            "size": [
+              1024,
+              1024
+            ],
+            "colorspace": "sRGB"
+          },
+          {
+            "name": "Image_1",
+            "size": [
+              1024,
+              1024
+            ],
+            "colorspace": "Non-Color"
+          }
+        ]
+      }
+    ],
+    "bbox_min": [
+      -0.18657,
+      -0.20653,
+      0.0
+    ],
+    "bbox_max": [
+      0.18688,
+      0.20758,
+      0.50005
+    ],
+    "bbox_size": [
+      0.37345,
+      0.4141,
+      0.50005
+    ],
+    "min_z": 0.0,
+    "ground_eps": 0.0101,
+    "ground_vert_count": 152,
+    "ground_clusters_guess": {
+      "FL": 0,
+      "FR": 67,
+      "HL": 73,
+      "HR": 12
+    },
+    "ground_mean_xy": [
+      0.00403,
+      0.04087
+    ]
+  },
+  "materials_preserved": true,
+  "uv_preserved_intent": true,
+  "notes": "Collapse decimate; no Voxel Remesh; feet z=0 in Blender before yup export"
+}

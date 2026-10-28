@@ -1,0 +1,6 @@
+Grab3D Tabby Cat — https://grab3d.com/models/animals/cat/
+License: CC0 1.0 Universal (public domain dedication)
+https://creativecommons.org/publicdomain/zero/1.0/
+No attribution required. Commercial use, modification, redistribution OK.
+Downloaded 2026-10-28 for miaowangtown engineering validation.
+Note: static mid-stride pose, no rig. Light GLB ~382k tris / 1K textures.

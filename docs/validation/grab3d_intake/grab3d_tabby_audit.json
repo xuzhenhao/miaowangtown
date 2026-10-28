@@ -1,0 +1,75 @@
+{
+  "source": "/workspace/miaowangtown/reference/open_cat_bases/grab3d_tabby_cat/cat-light.glb",
+  "license": "CC0 1.0",
+  "page": "https://grab3d.com/models/animals/cat/",
+  "raw": {
+    "name": "grab3d_tabby",
+    "verts": 212806,
+    "tris_approx": 382505,
+    "has_uv": true,
+    "uv_layers": [
+      "UVMap"
+    ],
+    "materials": [
+      {
+        "name": "Material_0",
+        "images": [
+          {
+            "name": "Image_0",
+            "size": [
+              1024,
+              1024
+            ],
+            "colorspace": "sRGB"
+          },
+          {
+            "name": "Image_1",
+            "size": [
+              1024,
+              1024
+            ],
+            "colorspace": "Non-Color"
+          }
+        ]
+      }
+    ],
+    "bbox_min": [
+      -0.18675,
+      -0.2073,
+      0.0
+    ],
+    "bbox_max": [
+      0.18673,
+      0.20728,
+      0.50002
+    ],
+    "bbox_size": [
+      0.37348,
+      0.41459,
+      0.50002
+    ],
+    "min_z": 0.0,
+    "ground_eps": 0.0101,
+    "ground_vert_count": 3119,
+    "ground_clusters_guess": {
+      "FL": 0,
+      "FR": 1514,
+      "HL": 1278,
+      "HR": 327
+    },
+    "ground_mean_xy": [
+      -0.01352,
+      0.03249
+    ]
+  },
+  "asymmetry": {
+    "median": 0.08432,
+    "p90": 0.2089,
+    "max": 0.23335,
+    "samples": 800,
+    "note": "Blender space; high p90 suggests mid-stride / asymmetric Rest"
+  },
+  "armatures": [],
+  "pose_guess": "static mid-stride (documented by Grab3D); confirm via ground clusters + asymmetry",
+  "facing_note": "bbox size XYZ=[0.37348, 0.41459, 0.50002]; after glTF import Z=up. Grab3D cats typically face +Z in glTF (= -Y Blender)."
+}
