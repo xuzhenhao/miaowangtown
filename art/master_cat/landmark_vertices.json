@@ -1,0 +1,251 @@
+{
+  "mesh_version": 1,
+  "points": {
+    "root": [
+      1085,
+      20,
+      1873,
+      771
+    ],
+    "hips": [
+      2288
+    ],
+    "hips_center": [
+      2288
+    ],
+    "head": [
+      575
+    ],
+    "head_top": [
+      520
+    ],
+    "jaw": [
+      2278
+    ],
+    "tongue_01": [
+      2251
+    ],
+    "tongue_tip": [
+      2294
+    ],
+    "ear_L_01": [
+      1646
+    ],
+    "ear_L_02": [
+      1539
+    ],
+    "ear_R_01": [
+      520
+    ],
+    "ear_R_02": [
+      413
+    ],
+    "upperarm_L": [
+      1302
+    ],
+    "upperarm_R": [
+      168
+    ],
+    "forearm_L": [
+      1208
+    ],
+    "forearm_R": [
+      74
+    ],
+    "hand_L": [
+      1184
+    ],
+    "hand_R": [
+      50
+    ],
+    "paw_F_L": [
+      1085
+    ],
+    "paw_F_R": [
+      20
+    ],
+    "thigh_L": [
+      2104
+    ],
+    "thigh_R": [
+      1010
+    ],
+    "shin_L": [
+      1915
+    ],
+    "shin_R": [
+      813
+    ],
+    "foot_L": [
+      1908
+    ],
+    "foot_R": [
+      806
+    ],
+    "paw_B_L": [
+      1873
+    ],
+    "paw_B_R": [
+      771
+    ],
+    "tail_06": [
+      1152
+    ],
+    "foot_FL": [
+      1085
+    ],
+    "foot_FR": [
+      20
+    ],
+    "foot_BL": [
+      1873
+    ],
+    "foot_BR": [
+      771
+    ],
+    "spine_01": [
+      1071
+    ],
+    "spine_02": [
+      619
+    ],
+    "spine_03": [
+      614
+    ],
+    "spine_04": [
+      2253
+    ],
+    "neck_01": [
+      2231
+    ],
+    "neck_02": [
+      577
+    ],
+    "head_center": [
+      575
+    ],
+    "crown": [
+      520
+    ],
+    "chin": [
+      2230
+    ],
+    "muzzle_tip": [
+      2238
+    ],
+    "eye_L": [
+      1627
+    ],
+    "eye_R": [
+      501
+    ],
+    "ear_L_base": [
+      1646
+    ],
+    "ear_L_mid": [
+      1539
+    ],
+    "ear_L_tip": [
+      1540
+    ],
+    "ear_R_base": [
+      520
+    ],
+    "ear_R_mid": [
+      413
+    ],
+    "ear_R_tip": [
+      414
+    ],
+    "clavicle_L": [
+      1286
+    ],
+    "clavicle_R": [
+      152
+    ],
+    "shoulder_FL": [
+      1302
+    ],
+    "shoulder_FR": [
+      168
+    ],
+    "elbow_FL": [
+      1208
+    ],
+    "elbow_FR": [
+      74
+    ],
+    "wrist_FL": [
+      1184
+    ],
+    "wrist_FR": [
+      50
+    ],
+    "paw_FL": [
+      1085
+    ],
+    "paw_FR": [
+      20
+    ],
+    "thigh_BL": [
+      2104
+    ],
+    "thigh_BR": [
+      1010
+    ],
+    "knee_BL": [
+      1915
+    ],
+    "knee_BR": [
+      813
+    ],
+    "ankle_BL": [
+      1908
+    ],
+    "ankle_BR": [
+      806
+    ],
+    "paw_BL": [
+      1873
+    ],
+    "paw_BR": [
+      771
+    ],
+    "tail_root": [
+      1087
+    ],
+    "tail_01": [
+      2254
+    ],
+    "tail_02": [
+      2269
+    ],
+    "tail_03": [
+      1130
+    ],
+    "tail_04": [
+      1152
+    ],
+    "tail_05": [
+      1152
+    ],
+    "tail_tip": [
+      1152
+    ],
+    "hot_head": [
+      520
+    ],
+    "hot_back": [
+      619
+    ],
+    "hot_belly": [
+      2302
+    ],
+    "hot_groom": [
+      1184
+    ],
+    "hot_pet": [
+      520
+    ]
+  }
+}

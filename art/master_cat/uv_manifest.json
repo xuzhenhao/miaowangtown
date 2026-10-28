@@ -1,0 +1,268 @@
+{
+  "uv_version": 1,
+  "size_work": 2048,
+  "size_game": 1024,
+  "origin": "bottom_left",
+  "padding_work_px": 16,
+  "padding_game_px": 8,
+  "asymmetric_non_mirrored": true,
+  "regions": {
+    "A1_head_front": {
+      "grid": [
+        0,
+        3
+      ],
+      "semantic": "head_front",
+      "u_range": [
+        0.0,
+        0.25
+      ],
+      "v_range": [
+        0.75,
+        1.0
+      ],
+      "triangle_count": 304
+    },
+    "A2_head_back": {
+      "grid": [
+        1,
+        3
+      ],
+      "semantic": "head_back",
+      "u_range": [
+        0.25,
+        0.5
+      ],
+      "v_range": [
+        0.75,
+        1.0
+      ],
+      "triangle_count": 396
+    },
+    "A3_muzzle_chin": {
+      "grid": [
+        2,
+        3
+      ],
+      "semantic": "head_muzzle",
+      "u_range": [
+        0.5,
+        0.75
+      ],
+      "v_range": [
+        0.75,
+        1.0
+      ],
+      "triangle_count": 130
+    },
+    "A4_ears_LR": {
+      "grid": [
+        3,
+        3
+      ],
+      "semantic": "ears_LR",
+      "u_range": [
+        0.75,
+        1.0
+      ],
+      "v_range": [
+        0.75,
+        1.0
+      ],
+      "triangle_count": 138
+    },
+    "B1_torso_L": {
+      "grid": [
+        0,
+        2
+      ],
+      "semantic": "torso_L",
+      "u_range": [
+        0.0,
+        0.25
+      ],
+      "v_range": [
+        0.5,
+        0.75
+      ],
+      "triangle_count": 476
+    },
+    "B2_torso_R": {
+      "grid": [
+        1,
+        2
+      ],
+      "semantic": "torso_R",
+      "u_range": [
+        0.25,
+        0.5
+      ],
+      "v_range": [
+        0.5,
+        0.75
+      ],
+      "triangle_count": 476
+    },
+    "B3_torso_back": {
+      "grid": [
+        2,
+        2
+      ],
+      "semantic": "torso_back",
+      "u_range": [
+        0.5,
+        0.75
+      ],
+      "v_range": [
+        0.5,
+        0.75
+      ],
+      "triangle_count": 64
+    },
+    "B4_torso_belly": {
+      "grid": [
+        3,
+        2
+      ],
+      "semantic": "torso_belly",
+      "u_range": [
+        0.75,
+        1.0
+      ],
+      "v_range": [
+        0.5,
+        0.75
+      ],
+      "triangle_count": 340
+    },
+    "C1_leg_FL": {
+      "grid": [
+        0,
+        1
+      ],
+      "semantic": "leg_FL",
+      "u_range": [
+        0.0,
+        0.25
+      ],
+      "v_range": [
+        0.25,
+        0.5
+      ],
+      "triangle_count": 416
+    },
+    "C2_leg_FR": {
+      "grid": [
+        1,
+        1
+      ],
+      "semantic": "leg_FR",
+      "u_range": [
+        0.25,
+        0.5
+      ],
+      "v_range": [
+        0.25,
+        0.5
+      ],
+      "triangle_count": 412
+    },
+    "C3_leg_BL": {
+      "grid": [
+        2,
+        1
+      ],
+      "semantic": "leg_BL",
+      "u_range": [
+        0.5,
+        0.75
+      ],
+      "v_range": [
+        0.25,
+        0.5
+      ],
+      "triangle_count": 584
+    },
+    "C4_leg_BR": {
+      "grid": [
+        3,
+        1
+      ],
+      "semantic": "leg_BR",
+      "u_range": [
+        0.75,
+        1.0
+      ],
+      "v_range": [
+        0.25,
+        0.5
+      ],
+      "triangle_count": 578
+    },
+    "D1_tail": {
+      "grid": [
+        0,
+        0
+      ],
+      "semantic": "tail",
+      "u_range": [
+        0.0,
+        0.25
+      ],
+      "v_range": [
+        0.0,
+        0.25
+      ],
+      "triangle_count": 320
+    },
+    "D2_eyes_LR": {
+      "grid": [
+        1,
+        0
+      ],
+      "semantic": "eyes_LR",
+      "u_range": [
+        0.25,
+        0.5
+      ],
+      "v_range": [
+        0.0,
+        0.25
+      ],
+      "triangle_count": 0
+    },
+    "D3_nose_pads_tongue": {
+      "grid": [
+        2,
+        0
+      ],
+      "semantic": "nose_pads_tongue",
+      "u_range": [
+        0.5,
+        0.75
+      ],
+      "v_range": [
+        0.0,
+        0.25
+      ],
+      "triangle_count": 0
+    },
+    "D4_reserved": {
+      "grid": [
+        3,
+        0
+      ],
+      "semantic": "reserved",
+      "u_range": [
+        0.75,
+        1.0
+      ],
+      "v_range": [
+        0.0,
+        0.25
+      ],
+      "triangle_count": 0
+    }
+  },
+  "uv_hash": "sha256:8258f44b273b23a48785da75afbd99a1b78d2afab4a66ec56e8774879729493c"
+}

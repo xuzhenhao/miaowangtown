@@ -1,0 +1,551 @@
+{
+  "schema_version": 1,
+  "master_mesh_version": 1,
+  "uv_version": 1,
+  "rig_version": 1,
+  "animation_version": 1,
+  "render_spec_version": 1,
+  "identity_version": 1,
+  "asset_version": 1,
+  "coordinate_system": {
+    "unit": "meter",
+    "up": "+Z",
+    "ground_z": 0.0,
+    "forward": "+Y",
+    "right": "+X",
+    "anatomical_left_suffix": "_L",
+    "anatomical_left_x_sign": "negative (X < 0)",
+    "anatomical_right_suffix": "_R",
+    "anatomical_right_x_sign": "positive (X > 0)",
+    "root_origin": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "camera_directions": {
+    "pitch_deg": 35.0,
+    "projection": "orthographic",
+    "cell_size": [
+      192,
+      192
+    ],
+    "supersample": 4,
+    "render_size_hi": [
+      768,
+      768
+    ],
+    "directions": {
+      "d000": {
+        "name": "front",
+        "root_yaw_deg": 0.0
+      },
+      "d045": {
+        "name": "front_right_3q",
+        "root_yaw_deg": -45.0
+      },
+      "d090": {
+        "name": "right",
+        "root_yaw_deg": -90.0
+      },
+      "d135": {
+        "name": "rear_right",
+        "root_yaw_deg": -135.0
+      },
+      "d180": {
+        "name": "rear",
+        "root_yaw_deg": 180.0
+      },
+      "d225": {
+        "name": "rear_left",
+        "root_yaw_deg": 135.0
+      },
+      "d270": {
+        "name": "left",
+        "root_yaw_deg": 90.0
+      },
+      "d315": {
+        "name": "front_left_3q",
+        "root_yaw_deg": 45.0
+      }
+    }
+  },
+  "objects": {
+    "body": "CAT_BODY",
+    "eye_L": "CAT_EYE_L",
+    "eye_R": "CAT_EYE_R",
+    "tongue": "CAT_TONGUE",
+    "armature": "CAT_ARMATURE",
+    "hot_anchors": [
+      "hot_head",
+      "hot_back",
+      "hot_belly",
+      "hot_groom",
+      "hot_pet"
+    ],
+    "foot_anchors": [
+      "foot_FL",
+      "foot_FR",
+      "foot_BL",
+      "foot_BR"
+    ]
+  },
+  "coordinates": {
+    "unit": "meter",
+    "up_axis": "+Z",
+    "ground_z": 0.0,
+    "forward_axis": "+Y",
+    "right_axis": "+X",
+    "anatomical_left": {
+      "axis": "-X",
+      "sign": "<0",
+      "suffix": "_L"
+    },
+    "anatomical_right": {
+      "axis": "+X",
+      "sign": ">0",
+      "suffix": "_R"
+    },
+    "root_origin": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "bones": [
+    {
+      "name": "root",
+      "parent": null,
+      "side": "C",
+      "deform": false
+    },
+    {
+      "name": "hips",
+      "parent": "root",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "spine_01",
+      "parent": "hips",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "spine_02",
+      "parent": "spine_01",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "spine_03",
+      "parent": "spine_02",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "spine_04",
+      "parent": "spine_03",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "neck_01",
+      "parent": "spine_04",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "neck_02",
+      "parent": "neck_01",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "head",
+      "parent": "neck_02",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "jaw",
+      "parent": "head",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "tongue_01",
+      "parent": "jaw",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "tongue_tip",
+      "parent": "tongue_01",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "eye_L",
+      "parent": "head",
+      "side": "L",
+      "deform": true
+    },
+    {
+      "name": "eye_R",
+      "parent": "head",
+      "side": "R",
+      "deform": true
+    },
+    {
+      "name": "ear_L_01",
+      "parent": "head",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "ear_L_02",
+      "parent": "ear_L_01",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "ear_R_01",
+      "parent": "head",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "ear_R_02",
+      "parent": "ear_R_01",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "clavicle_L",
+      "parent": "spine_04",
+      "side": "L",
+      "deform": true
+    },
+    {
+      "name": "upperarm_L",
+      "parent": "clavicle_L",
+      "side": "L",
+      "deform": true
+    },
+    {
+      "name": "forearm_L",
+      "parent": "upperarm_L",
+      "side": "L",
+      "deform": true
+    },
+    {
+      "name": "paw_F_L",
+      "parent": "forearm_L",
+      "side": "L",
+      "deform": true
+    },
+    {
+      "name": "clavicle_R",
+      "parent": "spine_04",
+      "side": "R",
+      "deform": true
+    },
+    {
+      "name": "upperarm_R",
+      "parent": "clavicle_R",
+      "side": "R",
+      "deform": true
+    },
+    {
+      "name": "forearm_R",
+      "parent": "upperarm_R",
+      "side": "R",
+      "deform": true
+    },
+    {
+      "name": "paw_F_R",
+      "parent": "forearm_R",
+      "side": "R",
+      "deform": true
+    },
+    {
+      "name": "thigh_L",
+      "parent": "hips",
+      "side": "L",
+      "deform": true
+    },
+    {
+      "name": "shin_L",
+      "parent": "thigh_L",
+      "side": "L",
+      "deform": true
+    },
+    {
+      "name": "foot_L",
+      "parent": "shin_L",
+      "side": "L",
+      "deform": true
+    },
+    {
+      "name": "paw_B_L",
+      "parent": "foot_L",
+      "side": "L",
+      "deform": true
+    },
+    {
+      "name": "thigh_R",
+      "parent": "hips",
+      "side": "R",
+      "deform": true
+    },
+    {
+      "name": "shin_R",
+      "parent": "thigh_R",
+      "side": "R",
+      "deform": true
+    },
+    {
+      "name": "foot_R",
+      "parent": "shin_R",
+      "side": "R",
+      "deform": true
+    },
+    {
+      "name": "paw_B_R",
+      "parent": "foot_R",
+      "side": "R",
+      "deform": true
+    },
+    {
+      "name": "tail_01",
+      "parent": "hips",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "tail_02",
+      "parent": "tail_01",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "tail_03",
+      "parent": "tail_02",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "tail_04",
+      "parent": "tail_03",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "tail_05",
+      "parent": "tail_04",
+      "side": "C",
+      "deform": true
+    },
+    {
+      "name": "tail_06",
+      "parent": "tail_05",
+      "side": "C",
+      "deform": true
+    }
+  ],
+  "bones_40": [
+    {
+      "name": "root",
+      "parent": null
+    },
+    {
+      "name": "hips",
+      "parent": "root"
+    },
+    {
+      "name": "spine_01",
+      "parent": "hips"
+    },
+    {
+      "name": "spine_02",
+      "parent": "spine_01"
+    },
+    {
+      "name": "spine_03",
+      "parent": "spine_02"
+    },
+    {
+      "name": "spine_04",
+      "parent": "spine_03"
+    },
+    {
+      "name": "neck_01",
+      "parent": "spine_04"
+    },
+    {
+      "name": "neck_02",
+      "parent": "neck_01"
+    },
+    {
+      "name": "head",
+      "parent": "neck_02"
+    },
+    {
+      "name": "jaw",
+      "parent": "head"
+    },
+    {
+      "name": "tongue_01",
+      "parent": "jaw"
+    },
+    {
+      "name": "tongue_tip",
+      "parent": "tongue_01"
+    },
+    {
+      "name": "eye_L",
+      "parent": "head"
+    },
+    {
+      "name": "eye_R",
+      "parent": "head"
+    },
+    {
+      "name": "ear_L_01",
+      "parent": "head"
+    },
+    {
+      "name": "ear_L_02",
+      "parent": "ear_L_01"
+    },
+    {
+      "name": "ear_R_01",
+      "parent": "head"
+    },
+    {
+      "name": "ear_R_02",
+      "parent": "ear_R_01"
+    },
+    {
+      "name": "clavicle_L",
+      "parent": "spine_04"
+    },
+    {
+      "name": "upperarm_L",
+      "parent": "clavicle_L"
+    },
+    {
+      "name": "forearm_L",
+      "parent": "upperarm_L"
+    },
+    {
+      "name": "paw_F_L",
+      "parent": "forearm_L"
+    },
+    {
+      "name": "clavicle_R",
+      "parent": "spine_04"
+    },
+    {
+      "name": "upperarm_R",
+      "parent": "clavicle_R"
+    },
+    {
+      "name": "forearm_R",
+      "parent": "upperarm_R"
+    },
+    {
+      "name": "paw_F_R",
+      "parent": "forearm_R"
+    },
+    {
+      "name": "thigh_L",
+      "parent": "hips"
+    },
+    {
+      "name": "shin_L",
+      "parent": "thigh_L"
+    },
+    {
+      "name": "foot_L",
+      "parent": "shin_L"
+    },
+    {
+      "name": "paw_B_L",
+      "parent": "foot_L"
+    },
+    {
+      "name": "thigh_R",
+      "parent": "hips"
+    },
+    {
+      "name": "shin_R",
+      "parent": "thigh_R"
+    },
+    {
+      "name": "foot_R",
+      "parent": "shin_R"
+    },
+    {
+      "name": "paw_B_R",
+      "parent": "foot_R"
+    },
+    {
+      "name": "tail_01",
+      "parent": "hips"
+    },
+    {
+      "name": "tail_02",
+      "parent": "tail_01"
+    },
+    {
+      "name": "tail_03",
+      "parent": "tail_02"
+    },
+    {
+      "name": "tail_04",
+      "parent": "tail_03"
+    },
+    {
+      "name": "tail_05",
+      "parent": "tail_04"
+    },
+    {
+      "name": "tail_06",
+      "parent": "tail_05"
+    }
+  ],
+  "shape_keys": {
+    "identity": [
+      "id_body_fat",
+      "id_belly",
+      "id_leg_len",
+      "id_neck_len",
+      "id_face_round",
+      "id_muzzle_len",
+      "id_ear_size",
+      "id_ear_fold"
+    ],
+    "style": [
+      "sty_head_enlarge",
+      "sty_leg_shorten",
+      "sty_eye_enlarge",
+      "sty_face_chibi_cheek",
+      "sty_paw_round"
+    ],
+    "face": [
+      "blink_L",
+      "blink_R",
+      "squint_L",
+      "squint_R",
+      "mouth_open"
+    ]
+  },
+  "proportions_basis": {
+    "total_height_m": 0.4471,
+    "chin_height_m": 0.26,
+    "head_height_ratio": 0.4185
+  },
+  "uv_hash": "sha256:8258f44b273b23a48785da75afbd99a1b78d2afab4a66ec56e8774879729493c"
+}

@@ -1,0 +1,167 @@
+{
+  "milestone": "M1",
+  "overall_status": "PASS",
+  "passed_checks": "12/12",
+  "uv_hash": "sha256:8258f44b273b23a48785da75afbd99a1b78d2afab4a66ec56e8774879729493c",
+  "checks": {
+    "01_manifold_and_watertight": {
+      "pass": true,
+      "meshes": {
+        "CAT_BODY": {
+          "exists": true,
+          "vertices": 2321,
+          "triangles": 4634,
+          "non_manifold_edges": 0,
+          "boundary_edges": 0,
+          "zero_area_faces": 0
+        },
+        "CAT_EYE_L": {
+          "exists": true,
+          "vertices": 42,
+          "triangles": 80,
+          "non_manifold_edges": 0,
+          "boundary_edges": 0,
+          "zero_area_faces": 0
+        },
+        "CAT_EYE_R": {
+          "exists": true,
+          "vertices": 42,
+          "triangles": 80,
+          "non_manifold_edges": 0,
+          "boundary_edges": 0,
+          "zero_area_faces": 0
+        },
+        "CAT_TONGUE": {
+          "exists": true,
+          "vertices": 42,
+          "triangles": 80,
+          "non_manifold_edges": 0,
+          "boundary_edges": 0,
+          "zero_area_faces": 0
+        }
+      }
+    },
+    "02_outward_normals": {
+      "pass": true,
+      "details": {
+        "CAT_BODY": {
+          "signed_volume_m3": 0.0047075,
+          "flipped_faces": 0
+        },
+        "CAT_EYE_L": {
+          "signed_volume_m3": 3.09e-05,
+          "flipped_faces": 0
+        },
+        "CAT_EYE_R": {
+          "signed_volume_m3": 3.09e-05,
+          "flipped_faces": 0
+        },
+        "CAT_TONGUE": {
+          "signed_volume_m3": 5.8e-06,
+          "flipped_faces": 0
+        }
+      }
+    },
+    "03_vertex_weights_normalized_and_le4": {
+      "pass": true,
+      "details": {
+        "CAT_BODY": {
+          "max_influences_per_vertex": 4,
+          "unweighted_vertices": 0,
+          "unnormalized_vertices": 0,
+          "lr_cross_skin_errors": 0
+        },
+        "CAT_EYE_L": {
+          "max_influences_per_vertex": 1,
+          "unweighted_vertices": 0,
+          "unnormalized_vertices": 0,
+          "lr_cross_skin_errors": 0
+        },
+        "CAT_EYE_R": {
+          "max_influences_per_vertex": 1,
+          "unweighted_vertices": 0,
+          "unnormalized_vertices": 0,
+          "lr_cross_skin_errors": 0
+        },
+        "CAT_TONGUE": {
+          "max_influences_per_vertex": 2,
+          "unweighted_vertices": 0,
+          "unnormalized_vertices": 0,
+          "lr_cross_skin_errors": 0
+        }
+      }
+    },
+    "04_shape_keys_valid_and_separated": {
+      "pass": true,
+      "identity_keys_count": 8,
+      "style_keys_count": 5,
+      "face_keys_count": 5,
+      "missing_keys": [],
+      "nan_keys": [],
+      "range_errors": [],
+      "zero_delta_keys": []
+    },
+    "05_uv_bounds_and_non_mirrored_4x4": {
+      "pass": true,
+      "uv_min": [
+        0.010742,
+        0.010742
+      ],
+      "uv_max": [
+        0.989258,
+        0.989258
+      ],
+      "occupied_quadrants": 16,
+      "degenerate_uv_triangles": 0,
+      "lr_islands_independent": true
+    },
+    "06_uv_hash_matches_manifest": {
+      "pass": true,
+      "measured_uv_hash": "sha256:8258f44b273b23a48785da75afbd99a1b78d2afab4a66ec56e8774879729493c",
+      "manifest_uv_hash": "sha256:8258f44b273b23a48785da75afbd99a1b78d2afab4a66ec56e8774879729493c"
+    },
+    "07_40_bones_hierarchy": {
+      "pass": true,
+      "bone_count": 40,
+      "mismatches": []
+    },
+    "08_anatomical_lr_bones_and_root_origin": {
+      "pass": true,
+      "root_at_origin": true,
+      "lr_bone_errors": []
+    },
+    "09_landmark_vertices_valid_and_symmetric": {
+      "pass": true,
+      "landmark_groups_count": 81,
+      "invalid_indices": [],
+      "max_lr_symmetry_error_m": 0.0
+    },
+    "10_hot_and_foot_anchors_bound": {
+      "pass": true,
+      "missing_anchors": [],
+      "binding_errors": [],
+      "rest_foot_z_error_mm": {
+        "foot_FL": 1e-05,
+        "foot_FR": 1e-05,
+        "foot_BL": 0.0,
+        "foot_BR": 0.0
+      }
+    },
+    "11_adapt_rest_after_shapekeys_ground_and_ratio": {
+      "pass": true,
+      "max_foot_z_error_mm": 1e-05,
+      "foot_z_errors_mm": {
+        "foot_FL": 1e-05,
+        "foot_FR": 1e-05,
+        "foot_BL": 0.0,
+        "foot_BR": 0.0
+      },
+      "deformed_head_height_ratio": 0.4168
+    },
+    "12_clean_master_no_identity_textures": {
+      "pass": true,
+      "embedded_images": [],
+      "embedded_actions": []
+    }
+  }
+}
