@@ -163,5 +163,20 @@
       "embedded_images": [],
       "embedded_actions": []
     }
+  },
+  "pixel_silhouette_gate_d045": {
+    "pass": true,
+    "logical_grid": [
+      114,
+      104
+    ],
+    "alpha_threshold": 162,
+    "head_body_roi_max_distance_px": 2.0,
+    "head_body_roi_p95_distance_px": 1.414,
+    "head_body_roi_mean_distance_px": 0.41,
+    "full_silhouette_p95_distance_px": 1.414,
+    "full_silhouette_mean_distance_px": 0.556,
+    "mask_iou": 0.9614,
+    "eye_4_elements_readable": true
   }
 }
