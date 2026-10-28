@@ -1,0 +1,71 @@
+{
+  "label": "path_b_light",
+  "source": "/workspace/miaowangtown/docs/validation/innerscene_intake/out_b/cat_base.glb",
+  "verts": 5153,
+  "tris": 10000,
+  "unique_positions": 5152,
+  "uv_layers": [
+    "UVMap"
+  ],
+  "materials": [
+    "(0.22, 0.235, 0.25)",
+    "(0.32, 0.42, 0.08)",
+    "white",
+    "(0.38, 0.19, 0.18)",
+    "black",
+    "(0.56, 0.55, 0.51)",
+    "(0.39, 0.17, 0.16)",
+    "(0.7, 0.68, 0.6)"
+  ],
+  "uv_seam_weight_mismatches": 0,
+  "upper_leg_shear": 30,
+  "belly_midline_leakage": 72,
+  "vertex_groups": [
+    "root",
+    "hips",
+    "spine",
+    "chest",
+    "neck",
+    "head",
+    "earL",
+    "earR",
+    "shoulderL",
+    "elbowL",
+    "fpawL",
+    "shoulderR",
+    "elbowR",
+    "fpawR",
+    "hipL",
+    "kneeL",
+    "hpawL",
+    "hipR",
+    "kneeR",
+    "hpawR",
+    "tail0",
+    "tail1",
+    "tail2",
+    "tail3",
+    "tail4",
+    "tail5",
+    "neutral_bone"
+  ],
+  "bbox_three": {
+    "x": [
+      -0.25971633195877075,
+      0.25971633195877075
+    ],
+    "y": [
+      0.0,
+      1.25
+    ],
+    "z": [
+      -0.6653133630752563,
+      0.6653133630752563
+    ],
+    "span": [
+      0.5194326639175415,
+      1.25,
+      1.3306267261505127
+    ]
+  }
+}
