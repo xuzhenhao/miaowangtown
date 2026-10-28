@@ -1,63 +1,60 @@
-# 《喵汪小镇》猫咪数字分身开发计划（v1.1 严密修订版 · 防走偏施工路线图）
+# 《喵汪小镇》猫咪数字分身开发计划（v1.2 终审定稿版 · 防走偏施工路线图）
 
-> **版本**：v1.1（2026-10-28，已合入开工前架构 Review 全部必改项与各阶段缺口补丁）  
+> **版本**：v1.2（2026-10-28，已合入第一轮 5 项必改 + 第二轮 4 项 M2 阻断修复与 4 项防返工补丁）  
 > **基准规范**：
-> 1. `docs/FUSED_CAT_DIGITAL_TWIN_AND_V4_1_PIPELINE_SPEC.md`（融合技术架构规范）
+> 1. `docs/FUSED_CAT_DIGITAL_TWIN_AND_V4_1_PIPELINE_SPEC.md`（融合技术架构规范；**注：该规范 3.3 节旧写法 `sty_head_enlarge = 0.42` 已作废，一律以本计划 v1.2「原生微 Q 静止建模 + `sty_*` 滑杆 `0..1` + 变形后实测头高占比 `40%～43%`」为准**）
 > 2. `docs/PHOTO_TO_HD2D_PIXEL_CAT_PLAYBOOK.md`（`Route A v4.1` 实战避坑手册）
 > 3. `docs/reference/CAT_DIGITAL_TWIN_ENGINEERING_SPEC.md`（母版/CatGenome/固定UV/共享骨骼规范）
 
 ---
 
-## 零、 开工前修正的 5 大核心共识（防冻错 M1、防卡死 M2、防发脏 M4）
+## 零、 开工前锁死的 9 条核心修正（彻底扫清 M1 冻错、M2 卡死、M3 误判、M4 光照发脏）
 
-1. **真照片绝不直接反投 UV（严格区分「证据源」与「投影源」）**：
-   - 咩咩的 16 张生活照姿态各异（揣手、躺卧、歪头），相机内外参未知且与母版站姿不重合，直接反投必歪。
-   - **硬分工**：生活照只用于 **提取 Lab 实测色板** 与 **提供五印记语义证据**；真正进入 `bake_uv_from_views.py` 法线加权反投公式的，**只能是「从变形后母版导出的已知相机参数 Depth/Normal 控制图」所受控生成的同姿态正交毛流图**。其中 `d045`（右前 3/4 视角）主锚点直接复用已验收的 `Route A v4.1` 高清无阴影毛流底图，绝不用单张生活照代替。
-2. **第一只猫（咩咩）的基因与五印记人工冻结，不绑死自动感知**：
-   - 咩咩的五处非对称印记在手册中已完全明确。M2 第一步直接 **人工编写并冻结 `markings.json`**（严格按猫自身解剖学左右：焦糖花生斑在 `_R / X>0`，左肋白云在 `_L / X<0`），再用生活照在 CIE Lab 空间（去高低光 5%）实测量色写入 `genome.json`。
-   - SAM2 自动分割、关键点检测、VLM 辅助提取留到第二只猫扩展时再接入，确保 M2 零识别误差干扰、100% 聚焦毛流与多视角质量。
-3. **脚本禁令精准化（区分「硬边几何涂鸦」与「v4.1 保频高斯调制」）**：
-   - **严禁**：用 Python/Canvas 绘制硬边椭圆、几何圆点、多边形色块、死板八字胡去冒充花纹；
-   - **允许且鼓励**：`Route A v4.1` 验证成功的 **大半径无边界高斯权重场 × 原生毛流明度比（Frequency-Preserving Fur Modulation）**，但每次调制必须输出 **「调制前 vs 调制后 4x 放大对比图」** 备审。
-4. **视觉门禁分级可判定化（不拿背面/迈步帧去跟单张带光英雄图硬比插画感）**：
-   - **`d045` 的 `idle` 基准帧**：与 `Route A v4.1` 标杆在相同光照合成下同框直比，不得退步；
-   - **其余 7 个方向（含背面、正侧）**：考核可判定硬指标——五印记是否跨视角守恒且零换侧、四腿是否完整不断裂、白爪是否零灰边、大眼在逻辑网格上是否清晰可读、背面/尾环是否自然连贯；
-   - **M3 动作中间帧**：考核四足步态节奏、脚底零滑步、舌尖真接触、躯干非动作区零闪烁。
-5. **光照只加一次（Albedo 反照率与运行时灯笼光严格剥离）**：
-   - `Route A v4.1` 静态标杆把右上暖灯笼光与腹底 AO 直接烘进了单张成图；而在融合管线中，`fur_albedo.png` 与 `atlas_<action>_albedo.png` **必须是零方向光死阴影的纯净反照率（仅含毛色本色与极弱结构接触底色）**，小镇暖灯笼光与暮色环境光在运行时由 `atlas_<action>_normal.png` 实时受光计算。
-   - 因此，**M2 的 8 方向审核板必须同时输出两层**：
-     1. **Layer A（纯反照率像素板 Albedo Pass）**：检验本色与五印记干净度；
-     2. **Layer B（叠加上与 M4 运行时完全同一套 2D 法线灯光 + 腹底 AO 的合成板 Lit Composite Pass）**：用这张合成板与 `Route A v4.1` 标杆同框对比，从根源杜绝「M2 烘一次光 + M4 再乘一次光导致画面发脏变黑」。
-
----
-
-## 一、 六条修正后的防走偏铁律
-
-1. **分级视觉锚点铁律**：`d045` 静态合成帧对标 `Route A v4.1` 不退步（微 Q 头高占全身 ~42%、大杏仁翡翠绿眼配高光、`114×104` 逻辑网格级清晰度、`2×2` 整数画布像素块）；其余 7 方向考核五印记守恒、零换侧、零灰边、不糊眼。
-2. **严禁硬边色块 + 规范保频调制铁律**：严禁脚本画椭圆/圆点/多边形色块；允许 `v4.1` 式大半径高斯场顺毛流明度调制，且必须附带调制前后 4x 放大对比图。
-3. **色板实验前置铁律（M2 实测对比后再定是否量化）**：不在计划里盲目锁死 36～48 色；在 M2 对同一张 `d045` 同时输出 **「不量化原色版（True-Color Area Downsample）」** 与 **「36/48 色 `dither=none` 统一色板版」** 的 4x 放大对比。只有当色板版在 4x 放大下依然保持柔顺毛流、无色阶断层且无迷彩块时才启用色板量化；若出现色阶断层，则直接采用「锁定渲染器与采样滤波的不量化原色 Albedo + 法线」保证帧间稳定。
-4. **UV 冻结（含弯腿压力测试）与非对称铁律**：母版 `2048×2048` 固定 `4×4` 象限 UV 必须在 M1 通过 **站立 + 弯腿压力姿势（坐姿/迈步大跨度）** 检验大腿内侧、腋下、腹部接缝无拉伸暴露后，再生成 `uv_hash` 锁死；此后只修贴图不改 UV。8 方向全部真三维旋转烘焙，严禁左右水平翻转。
-5. **微 Q 原生建模 + 变形必重配骨骼铁律**：母版的基础静止拓扑直接围绕小镇微 Q 比例建立（拒绝从写实长身猫靠 Shape Key 强行拉到 42% 大头导致网格崩坏）；每次叠加个体 `id_*` 与微调 `sty_*` 后，必须运行 `adapt_rest.py` 重算 40 骨关节并重置 Rest Pose。
-6. **先自审后汇报铁律**：每阶段先跑自动化门禁 + 制作人 4x/8x 放大特写自审并输出结论，通过后再交用户拍板。
+1. **真照片绝不直接反投 UV，且 `d045` 锚点锁定「叠光前」的无光影纯净毛流底图**：
+   - 咩咩 16 张生活照只提供 **Lab 实测色板** 与 **五印记语义证据**；真正进入 `bake_uv_from_views.py` 的，只能是从变形后母版导出的已知相机 `Depth/Normal` 控制图所对应的同姿态正交毛流视图。
+   - **关键修正（消除二次叠光冲突）**：`docs/validation/route_a_v4_1_ultimate/route_a_v4_1_sprite.png` 已包含第 160 行之后的灯笼暖光与腹底 AO，不能直接当反照率锚点！我们已从 `build_route_a_v4_1.py` 第 160 行叠光之前导出并归档了 **纯净无光影高分毛流锚点 `docs/validation/route_a_v4_1_ultimate/route_a_v4_1_unlit_albedo_anchor_hi.png`**，M2 的 `d045` 反照率投影严格以这张无光影底图为准。
+2. **第一只猫（咩咩）基因与五印记人工冻结**：
+   - M2 第一步直接人工编写冻结 `markings.json`（按猫自身解剖学左右：焦糖花生斑在 `_R / X>0`，左肋白云在 `_L / X<0`），再用生活照在 Lab 空间（去高低光 5%）实测量色写入 `genome.json`。SAM2/关键点/VLM 留到 M5 第二只猫再接。
+3. **脚本禁令精准化（禁硬边涂鸦，允 `v4.1` 保频高斯调制）**：
+   - 严禁画硬边椭圆、圆点、多边形色块、死板八字胡；允许 `v4.1` 式大半径高斯场 × 原生毛流明度比调制，且每次调制必须输出 **「调制前 vs 调制后 4x 放大对比图」**。
+4. **视觉门禁分级可判定化**：
+   - `d045` 的 `idle` 合成帧与 `Route A v4.1` 标杆同框直比不退步；其余 7 方向考核五印记跨视角守恒、零换侧、四腿完整、白爪零灰边、逻辑网格内绿眼清晰可读。
+5. **光照只加一次（M2 双层审核板：纯 Albedo 板 + 运行时同款灯光合成板）**：
+   - `fur_albedo.png` 与 `atlas_<action>_albedo.png` 保持零方向光死阴影的纯净反照率（2048 真彩色）；M2 审核板同时输出 **Layer A（纯反照率像素板）** 与 **Layer B（加运行时同款右上暖灯笼光 + 腹底 AO 的合成板）**，拿 Layer B 与 `v4.1` 标杆对比。
+6. **修正 `coverage.png` 图例与 20% 门禁定义冲突**：
+   - 背部 UV 面积远超 20%，若把受控生成的背面 `d180` 算成红色，20% 门禁永远不可能通过。
+   - **统一修正定义**：凡是通过 4x 毛流质检的已知相机控制视角（无论来自 `d045` 主锚点还是通过质检的 `d000/d090/d180/d270` 互补受控视角），按法线夹角正面直投（$\mathbf{N}\cdot\mathbf{V}_i \ge 0.5$）记为 **绿色（`direct_controlled`）**，斜向过渡（$0.2 \le \mathbf{N}\cdot\mathbf{V}_i < 0.5$）记为 **黄色（`grazing_interpolated`）**；**红色（`unseen_inpainted`）仅代表没有任何控制视角能直接看到的死角纹素（如下腹底面、腋窝深处、脚掌底面）**。由此保留「高频身份区绿+黄覆盖率 `>= 92%`」与「红色盲区全 UV 占比 `<= 20%`」两条硬门禁，逻辑完全自洽。
+7. **互补视角生成路径透明化（未锁定多视角模型前不拿程序化退回充当默认，M2 分 M2.1 单向打穿与 M2.2 八向合拢）**：
+   - 严禁把「切线场 + 采毛簇块 + 高斯场」这类程序化合成当成默认路径蒙混过关；**任何路径产出的视角图，都必须先过同一套「4x 放大毛流自然度与五印记门禁」才能进 UV 反投，仅几何对齐绝不算通过**。
+   - 为避免在未实测锁定多视角受控生成模型前盲目铺开 8 方向，M2 拆为两步：
+     - **M2.1（`d045` 单方向闭环验证）**：先用已归档的 `route_a_v4_1_unlit_albedo_anchor_hi.png` 走通「微 Q 母版反投 `fur_albedo.png` → Blender 渲染 Albedo+Normal → `post_v4_1` 像素化 + Layer B 受光合成」，验证从 3D 母版烘出来的 `d045` 像素猫与 `v4.1` 标杆 1:1 对齐无退步，同时完成色板实验并固化 `render_spec.json`。
+     - **M2.2（互补视角受控生成选型锁死与 8 方向合拢）**：固定控制图输入（Blender 导出的正交 `Depth + Normal + 部位语义 Mask`）与固定随机种子，实测对比多视角受控生成方案，先出 4 主方向（`d000 / d090 / d180 / d270`）4x 放大毛流样张交审，通过后再合拢完整 8 方向 `fur_albedo.png` 与双层审核板。
+8. **`idle` 防闪烁门禁改为「同 UV 非透明像素对比」+ 色板结论固化至 `render_spec.json`**：
+   - **防误伤呼吸移动**：`idle` 呼吸时猫体轮廓会有 1～2px 的正常起伏，固定屏幕 ROI 帧差会把轮廓位移误判为闪烁。修正为：Blender 同步导出每帧像素对应的 **UV 坐标缓冲（UV Pass）**，闪烁率只统计 **相邻两帧均非透明、处于躯干/头部核心毛斑区、且映射回同一 UV 邻域（$|\Delta uv| < 1/1024$）的像素颜色变化率 `< 0.5%`**，正常呼吸平移不算闪烁。
+   - **色板结论唯一落点**：`fur_albedo.png` 永远保持 `2048×2048` 真彩色（True-Color sRGB）；M2.1 完成「不量化 vs 36 色 vs 48 色（`dither=none`）」4x 放大对比后，将最终定案的 `quantize_mode`（`none / lut36 / lut48`）及鎖定色板哈希正式写入 `art/master_cat/render_spec.json`，M3 的 `post_v4_1_pixel.py` 只读该配置，严禁临时手改。
+9. **明确 M4 小镇底板与相机方案 + M5 Godot 路线留白**：
+   - 现有 `prototype/src/world/town.ts` 3D 场景机位是 `pitch=30°, yaw=-14°`，与我们锁死烘焙的 `pitch=35°` 及已验收的 `reference/town_ref/clean_town_bg.png` 底板不一致。
+   - **M4 明确采用「`clean_town_bg.png` 高清古镇底板 + 匹配的石桥/台阶可行走导航网格與遮挡深度 + 锁死 `pitch=35°` 相机空间的 2D 法线受光 `CatSpriteActor`」方案**：确保 M4 运行时画面与 `Route A v4.1` 验收通过的古镇实景视觉 100% 同源、零视角错位。
+   - **M5 Godot 集成路线不预设锁死**：M4 先在 Web 端验证 2D Camera-Space Normal 受光公式；到 M5 接入 Godot 时，再根据客户端实际场景形态在「2D `CanvasTexture + Light2D`」与「工程规范第 13 节 3D 场景正交相机 `Sprite3D Billboard + Spatial Normal Shader`」之间做专项技术选型，不在当前阶段提前混为一谈。
 
 ---
 
-## 二、 标准工程目录结构
+## 一、 标准工程目录结构
 
 ```text
 miaowangtown/
 ├── docs/                                  # 核心规范与标杆验证
-│   ├── DEVELOPMENT_PLAN.md                # 本开发计划 (v1.1)
+│   ├── DEVELOPMENT_PLAN.md                # 本开发计划 (v1.2)
 │   ├── FUSED_CAT_DIGITAL_TWIN_AND_V4_1_PIPELINE_SPEC.md
 │   ├── PHOTO_TO_HD2D_PIXEL_CAT_PLAYBOOK.md
 │   ├── reference/CAT_DIGITAL_TWIN_ENGINEERING_SPEC.md
-│   └── validation/route_a_v4_1_ultimate/  # v4.1 静态黄金标杆
+│   └── validation/route_a_v4_1_ultimate/  # v4.1 静态标杆（含叠光前无光影底图 route_a_v4_1_unlit_albedo_anchor_hi.png）
 ├── reference/                             # 只读原始输入与参考图
 │   ├── miemie_photos/                     # 咩咩 16 张真实生活照（仅提色板与印记证据）
-│   ├── town_ref/                          # 小镇参考原图 + 无猫干净底板
+│   ├── town_ref/                          # target_redbox_ref.png + clean_town_bg.png 无猫干净底板
 │   └── open_cat_bases/                    # 拓扑参考网格
 ├── art/                                   # 【M1/M3 产出】冻结母版与手 K 共享动作源
-│   ├── master_cat/                        # master_cat.blend, uv_manifest.json, landmark_vertices.json
+│   ├── master_cat/                        # master_cat.blend, master_spec.json, render_spec.json, uv_manifest.json, landmark_vertices.json
 │   └── animations/                        # 基于 40 骨母版手 K 的 7 套标准动作源
 ├── pipeline/                              # 【M1-M3 产出】离线构建与烘焙管线
 │   ├── master/                            # build_master.py, validate_master.py
@@ -68,105 +65,95 @@ miaowangtown/
 │   └── miemie/
 │       ├── identity_v1/                   # genome.json, markings.json, fur_albedo.png, coverage.png, identity_review.png
 │       └── asset_v1/                      # 8方向 Albedo/Normal 图集 + anim.json
-└── prototype/                             # 【M4 产出】Web 端离线图集 + 2D 法线受光精灵预览器
+└── prototype/                             # 【M4 产出】基于 clean_town_bg 与 2D 法线受光的离线精灵预览器
 ```
 
 ---
 
-## 三、 五阶段里程碑与逐级验收门禁（M1 → M5）
+## 二、 五阶段里程碑与逐级验收门禁（M1 → M5）
 
-### 阶段 M1：原生微 Q 工业母版、固定非对称 UV（含弯腿压力测试）与 40 骨底座
-- **核心修正与具体任务**：
-  1. **原生微 Q 建模（不从写实猫强拉）**：直接在 Blender 中按微 Q 黄金静止姿态建立 `art/master_cat/master_cat.blend`（默认状态下头高即约占全身高 ~42%），包含独立对象：`CAT_BODY`（3,500～6,000 面流形网格，肩/肘/腕/髋/膝/踝 2～3 环关节环）、`CAT_EYE_L`、`CAT_EYE_R`、`CAT_TONGUE`、`CAT_ARMATURE`（40 骨）及 `hot_head/back/belly/groom/pet`、`foot_FL/FR/BL/BR` 空物体锚点。
-  2. **分离形态键（滑杆值 `[0..1]` 对应物理偏移量，而非测量比例值）**：
-     - `id_*`（个体差异）：`id_body_fat`、`id_belly`、`id_leg_len`、`id_neck_len`、`id_face_round`、`id_muzzle_len`、`id_ear_size`、`id_ear_fold`；
-     - `sty_*`（风格微调）：`sty_head_enlarge`、`sty_leg_shorten`、`sty_eye_enlarge`、`sty_face_chibi_cheek`、`sty_paw_round`（滑杆 `0.0..1.0` 代表在微 Q 母版基础上的风格强度开度，变形后实测头高占比落在 `40%～43%`）。
-  3. **眼睛独立材质隔离**：`CAT_EYE_L` / `CAT_EYE_R` 使用独立 `MAT_EYE_L/R` 与专用眼部 UV，**严禁参与 `CAT_BODY` 的毛流反投**，眼部色彩（深棕眼睑线、双层翡翠绿虹膜、竖瞳、高光）100% 由 `CatGenome` 参数化生成。
-  4. **固定 `4×4` 象限非对称 UV + 弯腿压力姿势检视**：
-     - `CAT_BODY` 100% 非镜像展开，在冻结 `uv_hash` 前，除 8 方向站立外，**额外摆出「蹲坐（sit）」与「大跨度迈步（walk mid-stride）」两个弯腿压力姿势**，检查大腿内侧、腋下、下腹 UV 接缝是否隐藏得当、有无拉扯畸变。
-  5. **`landmark_vertices.json` 与 `adapt_rest.py`**：实现形态键变形后自动重算 40 根骨骼 `head/tail` 并重置 Rest Pose。
-- **M1 验收门禁（10 项工程门 + 像素尺寸视觉门）**：
-  - **`validate_master.py` 严格对齐工程文档 14.1 节全部 10 项**：
-    1. 网格流形、无破洞、无非流形边；
-    2. 法线方向一致向外（无翻转面）；
-    3. 顶点权重已归一化，且**每个顶点最多受 4 根骨骼影响**；
-    4. 所有 `id_*` 与 `sty_*` Shape Keys 顶点索引稳定、无 NaN/自交；
-    5. `CAT_BODY` 的 UV 全部在 `[0, 1]` 内，无非预期重叠，**左右部位 UV 完全独立不共用**；
-    6. `uv_hash` 与 `uv_manifest.json` 完全一致；
+### 阶段 M1：原生微 Q 工业母版、固定非对称 UV（含静态弯腿压力测试）与 40 骨底座
+- **具体任务**：
+  1. **原生微 Q 静止建模**：直接在 Blender 中按微 Q 黄金静止姿态建立 `art/master_cat/master_cat.blend`（Basis 默认状态下实测头高即占全身高 `40%～43%`），包含独立对象：`CAT_BODY`（3,500～6,000 面流形网格，关节处 2～3 环拓扑）、`CAT_EYE_L`、`CAT_EYE_R`、`CAT_TONGUE`、`CAT_ARMATURE`（40 骨）及 `hot_head/back/belly/groom/pet`、`foot_FL/FR/BL/BR` 空物体锚点。
+  2. **分离形态键（滑杆 `0.0..1.0` 代表微调开度）**：
+     - `id_*`：`id_body_fat`、`id_belly`、`id_leg_len`、`id_neck_len`、`id_face_round`、`id_muzzle_len`、`id_ear_size`、`id_ear_fold`；
+     - `sty_*`：`sty_head_enlarge`、`sty_leg_shorten`、`sty_eye_enlarge`、`sty_face_chibi_cheek`、`sty_paw_round`。
+  3. **眼部独立材质隔离**：`CAT_EYE_L/R` 拥有独立 `MAT_EYE_L/R` 与专用 UV，**绝不参与 `CAT_BODY` 毛流反投**，眼色 100% 来自 `CatGenome`。
+  4. **固定 `4×4` 象限非对称 UV + 静态弯腿压力摆姿检视（不依赖 M3 动作库）**：
+     - 100% 非镜像展开 `CAT_BODY`；在 M1 编写测试摆姿脚本，对 40 骨直接旋转摆出 **「静态蹲坐测试姿（Static Sit Pose）」与「静态大跨步测试姿（Static Wide-Stride Pose）」**（仅用于 M1 压测 UV 接缝与蒙皮权重，不依赖 M3 的手 K 动画序列），检查大腿内侧、腋下、腹底 UV 接缝是否隐藏良好、有无拉伸畸变。
+  5. **`landmark_vertices.json` 与 `adapt_rest.py`**：形态键求值后自动对齐 40 根骨骼 `head/tail` 并重置 Rest Pose。
+- **M1 验收门禁（12 项完整 `validate_master.py` + `114×104` 像素剪影叠比视觉门）**：
+  - **`validate_master.py` 完整覆盖工程规范 14.1 节全部 M1 相关项 + 拓扑贴地项（共 12 项，将「动作可播放」留至 M3 校验）**：
+    1. `CAT_BODY / CAT_EYE_L / CAT_EYE_R / CAT_TONGUE` 流形无破洞、0 非流形边；
+    2. 法线方向一致朝外（无翻转面）；
+    3. 顶点权重全部归一化，且 **单顶点受影响骨骼数 `<= 4`**；
+    4. 所有 `id_*` 与 `sty_*` Shape Keys 顶点索引稳定、无 NaN 或自交；
+    5. `CAT_BODY` 的 UV 全部在 `[0, 1]` 内，无非预期重叠，**左右部位 UV 岛 100% 独立不共用**；
+    6. 实测 `uv_hash` 与 `uv_manifest.json` 完全一致；
     7. 40 根骨骼命名、父子层级与 `master_spec.json` 一致；
-    8. **左右骨骼（`_L / _R`）严格按猫解剖学左右分布，未互换**；
-    9. 形态键 + `adapt_rest.py` 后，四足接地参考点 `foot_FL/FR/BL/BR` 在 `Z=0` 平面误差 `< 0.5mm`；
-    10. **源母版文件不含任何具体猫咪的身份贴图或脏数据**。
-  - **像素尺寸级视觉门（防脸部纹素不足）**：
-    - 不仅导出 8 方向白模 + UV 棋盘格 + 弯腿压力姿势检视板；
-    - **必须在 M1 就用临时测试贴图跑一遍 `post_v4_1_pixel.py` 降采样到 `114×104` 逻辑网格，直接叠到 `Route A v4.1` 的 `114×104` 剪影上对比**：确认头高占比、四肢粗细、耳朵间距以及大杏仁眼在 `114×104` 逻辑格内占用的像素颗数与 `v4.1` 完全匹配、清晰可读。
-  - **【用户拍板点 1】**：审阅 M1 检视板（含 `114×104` 像素剪影叠比与弯腿 UV 压力测试）通过后，锁死 `uv_hash`，进入 M2。
+    8. **左右骨骼（`_L / _R`）严格按猫解剖学左右（`_L` 在 `X<0`，`_R` 在 `X>0`）分布，未互换**；
+    9. **`landmark_vertices.json` 中所有顶点索引在网格范围内有效且变形后坐标对称**；
+    10. **`hot_head / hot_back / hot_belly / hot_groom / hot_pet` 与 `foot_FL / foot_FR / foot_BL / foot_BR` 空物体锚点全部存在且绑定关系正确**；
+    11. 形态键 + `adapt_rest.py` 后，四足参考点 `foot_FL/FR/BL/BR` 在 `Z=0` 地面误差 `< 0.5mm`；
+    12. **源母版文件不含任何具体猫咪的身份贴图或脏数据**。
+  - **像素尺寸级视觉门**：
+    - 导出 **8 方向白模 + UV 棋盘格 + 两个静态弯腿压力摆姿检视板**；
+    - **用临时测试贴图跑 `post_v4_1_pixel.py` 降采样至 `114×104` 逻辑网格，直接叠到 `Route A v4.1` 的 `114×104` 剪影上对比**：验证头身比、四肢粗细以及大杏仁眼在 `114×104` 逻辑格内的像素颗粒可读性。
+  - **【用户拍板点 1】**：审阅 M1 检视板（含 `114×104` 像素剪影叠比与静态弯腿 UV 压测）通过后，冻结 `master_cat` 与 `uv_hash`，进入 M2。
 
 ---
 
-### 阶段 M2：咩咩人工冻结印记、已知相机毛流反投、色板实验与双层 8 方向审核板
-- **核心修正与具体任务**：
-  1. **人工冻结 `markings.json` + Lab 实测提取 `genome.json`**：
-     - 手工精确编写咩咩的 5 处非对称印记 JSON（解剖学 `_R` 右嘴套焦糖花生斑、`_L` 左脸奶油白、胸前白围脖连 `_L` 左肋白云、左腹缘暖橘过渡、前高后低四白袜、背部鲭鱼纹与环纹黑尾尖），再从 16 张生活照提取去高低光 5% 的 Lab/sRGB 真实色板。
-  2. **已知相机控制图导出与多视角毛流生成（明确技术栈与兜底退回机制）**：
-     - 从变形后的咩咩微 Q 母版导出 8 个正交方向（`d000..d315`，固定俯角 `pitch = 35°`）的精确 `Depth + Normal + UV Region Mask` 控制图；
-     - **多视角生成方案与退回兜底（Fallback）**：
-       - `d045` 主视图直接对齐锁定已验收的 `Route A v4.1` 去光影纯净毛流图；
-       - 其余互补视角（正前 `d000`、左前 `d315`、正左 `d270`、正右 `d090`、正背 `d180` 等）采用 **基于微 Q 母版 Depth/Normal 控制图 + `d045` 外观锚点与 `CatGenome` 色板约束的多视角一致性生成 + UV 空间高频毛簇纹理合成（Patch-Based / Gabor Fur-Flow Synthesis guided by `markings.json`）**；
-       - **退回机制**：若任一生成视角出现透视偏移或花纹越界，立即由 `uv_manifest.json` 的象限掩码拦截，退回使用「母版 3D 表面切线毛流场（Tangent Fur Field）+ `d045` 真实毛簇采样块（Fur Patch Texture Synthesis）+ `markings.json` 软高斯场」在 `2048` UV 空间直接合成该象限，确保 100% 几何对齐、绝不产生畸变鬼影。
-  3. **法线加权反投 `fur_albedo.png`（眼部隔离）+ 覆盖率门禁 `coverage.png`**：
-     - 仅对 `CAT_BODY` 执行已知相机的法线夹角加权反投，输出纯净无死阴影的 `fur_albedo.png`（2048 工作 / 1024 交付）；
-     - 每次使用 `v4.1` 保频高斯调制微调五印记时，同步输出 **调制前 vs 调制后 4x 放大对比图**；
-     - 生成 `coverage.png`（绿=高置信度正面直投、黄=斜向插值、红=背面/脚底纯生成补全），并执行 **未观测/纯补全区比例上限门禁**（见下方门禁）。
-  4. **前置开展「原色 vs 36/48 色板」4x 放大对比实验**：
-     - 对 `d045` 同时输出 **不量化原色版** 与 **36/48 色 `dither=none` 版** 的 4x 放大图，对比毛流柔顺度，实测定案是否启用色板量化。
+### 阶段 M2：咩咩人工冻结基因、分步毛流反投（M2.1 单向打穿 → M2.2 八向合拢）与双层审核板
+- **具体任务**：
+  1. **人工冻结 `markings.json` + Lab 实测量色 `genome.json`**（解剖学 `_R` 右嘴套焦糖花生斑、`_L` 左脸白、白围脖连 `_L` 左肋白云、左腹缘暖橘、前高后低四白袜、背部虎斑与环纹黑尾尖）。
+  2. **M2.1：`d045` 单方向闭环打穿 + 色板量化对比实验（固化 `render_spec.json`）**：
+     - 将已归档的叠光前无光影锚点 `route_a_v4_1_unlit_albedo_anchor_hi.png` 反投到变形后的咩咩微 Q 母版 `2048` UV 上，走通 Blender `Albedo + Normal` 双通道渲染与 `post_v4_1_pixel.py`；
+     - 输出 `d045` 的 **Layer A（纯 Albedo 像素图）** 与 **Layer B（加运行时同款灯笼光 + 腹底 AO 合成图）**，与 `Route A v4.1` 标杆 4x 同框对比，确认 3D 管线烘出的 `d045` 与标杆无损对齐；
+     - 同步对 `d045` 输出 **「不量化原色版 vs 36 色 `dither=none` vs 48 色 `dither=none`」** 4x 放大对比图，实测选定不产生迷彩断层的模式并固化写入 `art/master_cat/render_spec.json`（`fur_albedo.png` 保持 2048 真彩色不变）。
+  3. **M2.2：互补视角受控生成与 8 方向 `fur_albedo.png` 合拢**：
+     - 从变形后微 Q 母版导出其余正交方向（`d000 / d090 / d180 / d270 / d135 / d225 / d315`，固定 `pitch=35°`）的精确 `Depth + Normal + 部位语义 Mask` 控制图；
+     - 结合 `d045` 无光影锚点、`CatGenome` 色板与 `markings.json` 约束生成互补视角无光影毛流图；**每一张互补视角图在进入 UV 反投前，必须先单独通过 4x 放大毛流质感与印记位置质检（严禁拿低质程序化色块或未过检的退回图充数）**；
+     - 按法线夹角权重融合进 `2048×2048` 固定 UV，做顺毛流保频高斯微调（附调制前后 4x 对比图），输出完整 `fur_albedo.png`、`coverage.png` 与 **双层 8 方向静态审核板 `identity_review.png`**。
 - **M2 验收门禁**：
-  - **覆盖率与背面/尾部专项门禁**：
-    - `coverage.png` 中正面/左右侧高频身份区（`head_*`、`torso_front`、`torso_L`、`torso_R`、`leg_FL/FR`）的有效主视角覆盖率必须 `>= 92%`；纯补全区（`generated`）在全猫 UV 占比不得超过 `20%`（仅限腹底不可见区与脚掌底面）；
-    - **背面（`d135 / d180 / d225`）与尾巴专项 4x 放大检视**：背部鲭鱼虎斑脊线连续、后腿「深棕虎斑裤衩配踝部短白袜」分界清晰、尾巴深浅棕环纹与黑尾尖无断裂。
-  - **双层 8 方向审核板 `identity_review.png`**：
-    - **上排（Layer A：纯反照率 Albedo 8 方向像素板）**：验证本色干净、无死黑阴影；
-    - **下排（Layer B：叠加运行时同款右上暖灯笼光 + 腹底 AO 的 8 方向合成板）**：其中 `d045` 与 `Route A v4.1` 标杆同框直比不退步；其余 7 方向五印记零换侧、白爪零灰边、绿眼通透。
-  - **【用户拍板点 2】**：审阅双层 8 方向审核板 + 调制前后 4x 对比 + 色板实验对比，通过后冻结 `fur_albedo.png` 进 M3。
+  - **`coverage.png` 门禁（修正后自洽定义）**：通过质检的控制视角直投区（绿，`direct_controlled`）+ 斜向过渡区（黄，`grazing_interpolated`）在高频身份区占比 `>= 92%`；任何控制视角均不可见的死角补全区（红，`unseen_inpainted`，仅限腹底与脚掌底）全 UV 占比 `<= 20%`。
+  - **8 方向双层审核板（Layer A 纯反照率 + Layer B 带光合成）**：`d045` Layer B 与 `v4.1` 标杆同框不退步；其余 7 方向（含 `d135/d180/d225` 背面虎斑、后腿虎斑裤衩配短白袜、环纹黑尾尖专项 4x 放大）五印记严格守恒、零换侧、白爪零灰边、绿眼通透。
+  - **【用户拍板点 2】**：审阅 M2.1（`d045` + 色板实验）与 M2.2（双层 8 方向审核板 + 调制前后 4x 对比）通过后，冻结 `fur_albedo.png` 与 `render_spec.json` 进 M3。
 
 ---
 
-### 阶段 M3：母版手 K 动作、变形后重定向、离线接触修正与双通道图集烘焙
-- **核心修正与具体任务**：
-  1. **在 40 骨微 Q 母版上直接手 K 动作 + 变形后重定向（`retarget_motion.py`）+ 接触修正（`contacts.py`）**：
-     - 既然 40 根自定义四足骨骼无法直接套外部现成动画库，7 个核心动作全部在 Blender 中基于 `master_cat.blend` 静止姿态直接手 K 关键帧曲线（源帧率 `30 fps`）；
-     - 完整动作管线顺序：**母版手 K 源动作 → 套用单猫 `id_*/sty_*` 变形并运行 `adapt_rest.py` → 运行 `retarget_motion.py` 按新旧骨骼长度缩放根骨与四肢位移曲线、写出 `world_speed_mps` → 运行 `contacts.py` 对 `walk` 的 planted 相位施加脚底 IK 锁死 `Z=0`、对 `groom` 将 `tongue_tip` 约束到前腕 `hot_groom` → 烘焙骨骼 Action**。
-  2. **写死烘焙规格（严禁运行时或逐帧漂移）**：
-     - **固定相机俯角**：`pitch_deg = 35.0°`（正交相机，`ortho_scale` 锁定使猫在 `192×192` 安全单元格内的净体高恰好对应 `Route A v4.1` 的 `~114×104` 逻辑网格）；
-     - **固定安全单元格与锚点**：`cell_w = 192, cell_h = 192`（逻辑像素），`supersample = 4`（Blender 渲染 `768×768` 后 `Area/Box` 降采样回 `192×192`），**唯一对齐锚点 `pivot` 固定为每帧 `root` 地面投影（如 `[96, 164]`），严禁逐帧按包围盒自动裁剪居中**；
-     - **烘焙输出帧率**：`idle: 8 fps (12帧)`、`walk: 12 fps (12帧)`、`sit_down/up: 10 fps (8帧)`、`sit_idle: 8 fps (10帧)`、`groom: 10 fps (14帧)`、`pet_react: 10 fps (10帧)`。
+### 阶段 M3：40 骨母版手 K 动作、变形重定向、离线接触修正与双通道图集烘焙
+- **具体任务**：
+  1. **手 K 源动作 → `adapt_rest.py` → `retarget_motion.py` → `contacts.py`**：
+     - 在 `master_cat.blend` 40 骨上直接手 K 7 套标准动作（源 `30 fps`），并把工程规范 14.1 节的「全部动作在母版与变形实例上可正常播放无翻转」纳入 M3 自动化校验；
+     - 变形并 `adapt_rest.py` 后，运行 `retarget_motion.py` 按新旧骨长缩放位移曲线、计算 `world_speed_mps`；
+     - 运行 `contacts.py`：对 `walk` 的 planted 相位施加脚底 IK 锁死 `Z=0`；对 `groom` 将 `tongue_tip` 约束到前腕 `hot_groom`。
+  2. **锁定烘焙规格（只读 `render_spec.json`）**：
+     - 固定正交俯角 `pitch_deg = 35.0°`，安全单元格 `cell_w = 192, cell_h = 192`（4× 超采样渲染 `768×768` 后 `Area/Box` 降采样回 `192×192`，使猫体净尺寸对齐 `v4.1` 的 `~114×104` 逻辑网格），唯一对齐锚点 `pivot` 固定为 `root` 地面投影，**严禁逐帧自动裁剪居中**；
+     - `post_v4_1_pixel.py` 只读 `render_spec.json` 中在 M2 锁定的色板/采样参数，同步导出 Albedo Pass、Camera-Space Normal Pass、UV Pass（供防闪烁校验）及 `anim.json`。
   3. **分两批交付**：
-     - **M3.1**：`idle`、`walk`、`sit_down`、`sit_idle`、`stand_up`；
-     - **M3.2**：`groom`（坐姿抬前爪真舌头舔毛）、`pet_react`（被摸头眯眼蹭手）。
+     - **M3.1**：`idle (8fps, 12帧)`、`walk (12fps, 12帧)`、`sit_down (10fps, 8帧)`、`sit_idle (8fps, 10帧)`、`stand_up (10fps, 8帧)`；
+     - **M3.2**：`groom (10fps, 14帧)`、`pet_react (10fps, 10帧)`。
 - **M3 验收门禁**：
-  - **躯干稳定区防闪烁硬门禁**：在 `idle` 与 `sit_idle` 中，排除主动摆动的耳尖与尾尖，专门对 **躯干与头部核心毛斑稳定区 ROI** 计算相邻帧像素颜色变化率，必须 `< 0.5%`（毛发斑纹严禁闪烁跳变）；
-  - **步态与接触门禁**：`walk` 符合猫斜对角四足步态，支撑脚在地面投影滑移 `< 1.5 px`，无第 5 残爪，无碎腿；`groom` 接触帧舌尖与前腕距离 `< 2 px`。
-  - **【用户拍板点 3】**：先交 M3.1 序列帧检视板与 4x 放大动图验收走路与待机，通过后再交 M3.2 验收舔毛与摸头。
+  - **同 UV 非透明像素防闪烁门禁（不误伤呼吸）**：在 `idle` 与 `sit_idle` 中，仅统计 **相邻两帧均非透明、位于躯干/头部核心毛斑区、且 UV Pass 映射回同一 UV 邻域（$|\Delta uv| < 1/1024$）的像素**，其颜色跳变率必须 `< 0.5%`；
+  - **步态与接触门禁**：`walk` 支撑脚地面滑移 `< 1.5 px`、无第 5 残爪、无碎腿；`groom` 接触帧舌尖距前腕 `< 2 px`。
+  - **【用户拍板点 3】**：先验收 M3.1（待机/走路/蹲坐），通过后再合入 M3.2（舔毛/摸头）。
 
 ---
 
-### 阶段 M4：Web 端离线图集 + 2D 相机空间法线受光精灵预览器（`prototype/`）
-- **核心修正与具体任务**：
-  1. **全新离线精灵播放器（彻底替换旧 Three.js 实时 3D 像素化管线）**：
-     - 废弃 `PixelPipeline` 中对 3D 猫实时降采样/描边的旧通道；
-     - 古镇场景相机 **严格锁定为与 Blender 烘焙完全一致的正交俯角 `pitch_deg = 35.0°`（运行时锁死相机俯角与偏航角，仅允许平移与整数倍缩放，因为 `atlas_<action>_normal.png` 是 Camera-Space 法线，转相机会导致法线受光方向错乱）**。
+### 阶段 M4：Web 端古镇底板 + 2D 相机空间法线受光精灵预览器（`prototype/`）
+- **具体任务**：
+  1. **统一古镇底板与 `pitch=35°` 相机空间（消除旧 3D 场景 `30°/-14°` 角度冲突）**：
+     - 废弃旧的实时 3D 猫像素化管线；M4 预览器直接以已验收的无猫高清古镇底板 `reference/town_ref/clean_town_bg.png` 为场景舞台（搭配精确标定的石桥/青石阶可行走导航多边形、桥面高度曲线与前景遮挡掩码），舞台光照与相机空间 **严格锁死对应烘焙时的 `pitch_deg = 35.0°`**，运行时绝不旋转相机俯角或偏航角。
   2. **2D 法线实时受光 + 单一接地软阴影（光照只加一次）**：
-     - `CatSpriteActor` 加载纯净 `Albedo` 图集与 `Normal` 图集，在 2D Sprite Shader 中读取古镇右上暖黄灯笼光与环境光计算漫反射与柔光过渡（与 M2 审核板 Layer B 完全同源）；
-     - 脚下仅绘制由 `anim.json` 中 `foot_FL/FR/BL/BR` 与 `root` 坐标驱动的接地椭圆软阴影，彻底杜绝双重阴影。
-  3. **明确 M4 交互边界（不塞入重型系统）**：
-     - M4 仅实现单只咩咩在古镇石桥与客栈门前的核心交互闭环：**点击可行走地面按 `world_speed_mps` 8 方向无滑步走过去、停下自动转 `sit_down -> sit_idle / groom`、鼠标点击 `hot_head / hot_back` 触发 `pet_react` 摸头反馈**；
-     - 视角检视采用 **同一锁定机位（`pitch=35°`）下的远景/中景/1x 原生/4x 整数放大取景框切图**，绝不旋转相机角度破坏法线光照。
-- **【用户拍板点 4】**：推送 GitHub Pages，用户在浏览器实机点击溜猫、摸头、看舔毛验收。
+     - `CatSpriteActor` 加载 `atlas_<action>_albedo.png` 与 `atlas_<action>_normal.png`，按 **`2×2` 整数画布像素块** 渲染，并用与 M2 Layer B 完全同一套 2D Normal Shader 接入古镇右上暖黄灯笼光与腹底 AO；
+     - 脚下仅绘制由 `anim.json` 中 `foot_FL/FR/BL/BR` 与 `root` 驱动的接地椭圆软阴影。
+  3. **M4 核心交互范围**：点击地面按 `world_speed_mps` 8 方向无滑步走过去、停下转蹲坐/舔毛、点击 `hot_head / hot_back` 触发 `pet_react` 摸头反馈。
+- **【用户拍板点 4】**：输出同机位全局/中景/4x 整数放大实景图并推送 GitHub Pages，用户在浏览器实机交互验收。
 
 ---
 
-### 阶段 M5（后续扩展里程碑）：Godot 客户端接入、多猫自动化感知与效用 AI
-- **定位**：在 M1～M4 把「咩咩数字分身资产包（`atlas_*_albedo.png` + `atlas_*_normal.png` + `anim.json`）」打磨到极致并获用户终验后，再开启：
-  1. **M5.1 Godot 客户端接入**：直接读取 M3 产出的通用图集与 `anim.json`，挂载 Godot `CanvasTexture (diffuse + normal_map)` 与 `Light2D`；
-  2. **M5.2 第二只猫与自动化感知接入**：引入 SAM2 + 关键点自动辅助生成新猫 `genome.json / markings.json`；
-  3. **M5.3 效用 AI（Utility AI）自主生活行为树**：饥饿、困倦、好奇、亲人等自主状态机驱动。
+### 阶段 M5（后续独立里程碑）：Godot 客户端技术选型与接入、多猫感知、效用 AI
+- 在 M1～M4 完成咩咩数字分身资产包终验后开启：
+  1. **M5.1 Godot 客户端渲染接入与选型**：基于 M3 产出的标准图集与 `anim.json`，根据 Godot 客户端实际架构，在「纯 2D `CanvasTexture + Light2D`」与「工程规范第 13 节 3D 场景正交相机 `Sprite3D Billboard + Spatial Normal Shader`」中选定一套落地；
+  2. **M5.2 第二只猫与 SAM2/关键点辅助感知**；
+  3. **M5.3 效用 AI（Utility AI）自主行为树**。

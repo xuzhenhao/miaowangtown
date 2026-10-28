@@ -120,11 +120,9 @@ foot_FL / foot_FR / foot_BL / foot_BR                   四足地面接触参考
 
 1. **Identity 形态键（`id_*`，由猫自身特征决定）**：
    - `id_body_fat`、`id_belly`、`id_leg_len`、`id_neck_len`、`id_face_round`、`id_muzzle_len`、`id_ear_size`、`id_ear_fold`。
-2. **Style 形态键（`sty_*`，锁定为 `Route A v4.1` 验证通过的微 Q 黄金比例）**：
-   - `sty_head_enlarge = 0.42`（放大头身比至头高占全身 ~42%，保住像素化后的五官可读性）
-   - `sty_eye_enlarge = 0.45`（大杏仁眼窝，容纳高光与通透翡翠绿虹膜）
-   - `sty_face_chibi_cheek = 0.35`（饱满圆润脸颊）
-   - `sty_leg_shorten = 0.25`、`sty_paw_round = 0.30`（圆润白袜猫爪）
+2. **原生微 Q 静止拓扑 + Style 形态键（`sty_*` 滑杆值 `0.0..1.0` 代表物理变形开度，旧版将测量比值 0.42 当作滑杆值的写法作废，以 `DEVELOPMENT_PLAN.md v1.2` 为准）**：
+   - 母版 `master_cat.blend` 直接按微 Q 黄金静止姿态原生建模（Basis 默认状态下实测头高即占全身高 `40%～43%`，拒绝从写实猫用 Shape Key 硬拉）；
+   - `sty_head_enlarge`、`sty_eye_enlarge`、`sty_face_chibi_cheek`、`sty_leg_shorten`、`sty_paw_round` 的滑杆范围均为 `[0.0, 1.0]`（微调幅度），变形并跑完 `adapt_rest.py` 后，实测头身比须落在 `40%～43%`。
 3. **`adapt_rest.py`（形态键求值后重配骨骼 Rest Pose）**：
    - 读取 `landmark_vertices.json` 中肩、肘、腕、爪、髋、膝、踝、头、下巴、尾根的变形后 3D 坐标，在 Edit Mode 下自动对齐 40 根骨骼的 `head/tail` 并重置 Rest Pose，确保四足严丝合缝落在 `Z=0` 地面，从根源杜绝「改完微 Q 比例后走路碎腿、坐姿悬空」。
 

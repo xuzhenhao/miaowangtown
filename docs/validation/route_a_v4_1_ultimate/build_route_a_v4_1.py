@@ -156,6 +156,11 @@ def build_route_a_v4_1_sprite() -> Image.Image:
     target_hind_tan = np.array([154.0, 104.0, 60.0], dtype=np.float32)[None, None, :] * fur_detail_ratio
     rgb_work = rgb_work * (1.0 - w_hind_upper[:, :, None] * 0.52) + target_hind_tan * (w_hind_upper[:, :, None] * 0.52)
 
+    # Export pre-lighting (unlit) pure albedo anchor BEFORE Upgrade 3 (for M2 d045 albedo projection)
+    rgb_unlit_u8 = np.clip(rgb_work, 0, 255).astype(np.uint8)
+    rgba_unlit_hi = np.dstack([rgb_unlit_u8, (alpha_orig.astype(np.uint8) * 255)])
+    Image.fromarray(rgba_unlit_hi, mode="RGBA").save(OUT_DIR / "route_a_v4_1_unlit_albedo_anchor_hi.png")
+
     # =========================================================================
     # Upgrade 3: HD-2D Town Environment Lighting Integration (Top-Right Warm Lantern Key + Underbelly AO)
     # =========================================================================
@@ -334,7 +339,11 @@ def composite_v4_1_into_town(sprite_2x: Image.Image) -> Image.Image:
 
 def build_v4_vs_v4_1_comparison(v4_1_full: Image.Image):
     sys.path.insert(0, str(V1_DIR))
-    from composite_comparison import load_font
+    from PIL import ImageFont
+    def load_font(sz):
+        for fp in ['/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf']:
+            if Path(fp).exists(): return ImageFont.truetype(fp, sz)
+        return ImageFont.load_default()
 
     ref_full = Image.open(V1_DIR / "target_redbox_ref.png").convert("RGB")
     v4_full = Image.open(V4_DIR / "route_a_v4_in_town.png").convert("RGB")
@@ -411,7 +420,8 @@ def build_v4_vs_v4_1_comparison(v4_1_full: Image.Image):
 def main():
     sprite_2x = build_route_a_v4_1_sprite()
     v4_1_full = composite_v4_1_into_town(sprite_2x)
-    build_v4_vs_v4_1_comparison(v4_1_full)
+    if (V4_DIR / 'route_a_v4_in_town.png').exists():
+        build_v4_vs_v4_1_comparison(v4_1_full)
 
 
 if __name__ == "__main__":
