@@ -1,0 +1,18 @@
+{
+  "out_glb": "/workspace/miaowangtown/reference/open_cat_bases/blenderkit_domestic_cat_rigged/domestic_cat_clean.glb",
+  "before_verts": 10952,
+  "before_tris": 21856,
+  "after_verts": 5023,
+  "after_tris": 10000,
+  "target_tris": 10000,
+  "removed": [
+    "HAIR particle systems x5",
+    "Subdivision",
+    "Armature modifier (pose baked)",
+    "original Armature object (not in clean GLB)"
+  ],
+  "joined": [
+    "Eye1"
+  ],
+  "note": "原 32 骨 IK 命名与 miaowangtown 26 骨不同；clean GLB 仅网格+漫反射，由 build_base --input 重建 26 骨"
+}

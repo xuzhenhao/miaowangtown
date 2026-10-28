@@ -1,0 +1,791 @@
+{
+  "source": {
+    "blend": "/workspace/miaowangtown/reference/open_cat_bases/blenderkit_domestic_cat_rigged/domestic_cat_rigged.blend",
+    "license_note": "BlenderKit Royalty Free (not CC0); author Paweł Wałasiewicz",
+    "blender_version_file": [
+      3,
+      6,
+      11
+    ],
+    "blender_runtime": "4.3.2"
+  },
+  "object_counts": {
+    "MESH": 2,
+    "ARMATURE": 1,
+    "OTHER": 1
+  },
+  "meshes": [
+    {
+      "name": "Eye1",
+      "verts": 1928,
+      "tris_approx": 3840,
+      "faces": 2048,
+      "has_uv": true,
+      "uv_layers": [
+        "UVMap",
+        "automap"
+      ],
+      "shape_keys": [],
+      "modifiers": [
+        {
+          "name": "Armature",
+          "type": "ARMATURE",
+          "show_viewport": true
+        },
+        {
+          "name": "Auto Smooth",
+          "type": "NODES",
+          "show_viewport": true
+        }
+      ],
+      "particle_systems": [],
+      "materials": [
+        {
+          "name": "Material.002",
+          "images": [
+            {
+              "node": "Image Texture",
+              "image": "EyeV2_C",
+              "filepath": "",
+              "size": [
+                2048,
+                2048
+              ],
+              "packed": true
+            }
+          ]
+        },
+        {
+          "name": "Material.001",
+          "images": []
+        }
+      ],
+      "location": [
+        0.05451902747154236,
+        -0.33681440353393555,
+        0.24764953553676605
+      ],
+      "dimensions": [
+        0.046340249478816986,
+        0.017434759065508842,
+        0.01844622753560543
+      ],
+      "scale": [
+        0.008466231636703014,
+        0.008466229774057865,
+        0.008466231636703014
+      ],
+      "rotation_euler": [
+        1.5869780778884888,
+        -0.0027415892109274864,
+        0.000550971133634448
+      ],
+      "world_bbox": {
+        "min": [
+          -0.023091720417141914,
+          -0.25089532136917114,
+          0.1912498027086258
+        ],
+        "max": [
+          0.02330695651471615,
+          -0.2321438491344452,
+          0.20910774171352386
+        ],
+        "feet_near_z0": false
+      },
+      "parent": "Armature.001",
+      "parent_type": "OBJECT"
+    },
+    {
+      "name": "sculpt.001",
+      "verts": 9024,
+      "tris_approx": 18016,
+      "faces": 9008,
+      "has_uv": true,
+      "uv_layers": [
+        "UVMap"
+      ],
+      "shape_keys": [],
+      "modifiers": [
+        {
+          "name": "Armature",
+          "type": "ARMATURE",
+          "show_viewport": true
+        },
+        {
+          "name": "Subdivision",
+          "type": "SUBSURF",
+          "show_viewport": true
+        },
+        {
+          "name": "ParticleSystem",
+          "type": "PARTICLE_SYSTEM",
+          "show_viewport": true
+        },
+        {
+          "name": "ParticleSystem.001",
+          "type": "PARTICLE_SYSTEM",
+          "show_viewport": true
+        },
+        {
+          "name": "ParticleSystem.002",
+          "type": "PARTICLE_SYSTEM",
+          "show_viewport": true
+        },
+        {
+          "name": "ParticleSystem 0",
+          "type": "PARTICLE_SYSTEM",
+          "show_viewport": true
+        },
+        {
+          "name": "ParticleSystem 0.001",
+          "type": "PARTICLE_SYSTEM",
+          "show_viewport": false
+        }
+      ],
+      "particle_systems": [
+        {
+          "name": "BODY",
+          "type": "HAIR",
+          "render_type": "PATH",
+          "count": 5000,
+          "hair_length": 0.009999999776482582
+        },
+        {
+          "name": "HEAD/PAWS",
+          "type": "HAIR",
+          "render_type": "PATH",
+          "count": 5000,
+          "hair_length": 0.0024999999441206455
+        },
+        {
+          "name": "whiskers",
+          "type": "HAIR",
+          "render_type": "PATH",
+          "count": 20,
+          "hair_length": 0.02500000037252903
+        },
+        {
+          "name": "FACE",
+          "type": "HAIR",
+          "render_type": "PATH",
+          "count": 5000,
+          "hair_length": 0.0024999999441206455
+        },
+        {
+          "name": "UNDERFUR",
+          "type": "HAIR",
+          "render_type": "PATH",
+          "count": 5000,
+          "hair_length": 0.004999999888241291
+        }
+      ],
+      "materials": [
+        {
+          "name": "CAT_SINGLE_COLOR2.001",
+          "images": [
+            {
+              "node": "Image Texture",
+              "image": "WHITE_MASK.001",
+              "filepath": "C:/Users/pawel/blenderkit_data/models/domestic_cat__ri_731d9ed6-cbe6-4ab5-b9cc-105f021457ba/textures_4k/WHITE_MASK.jpg",
+              "size": [
+                1024,
+                1024
+              ],
+              "packed": true
+            },
+            {
+              "node": "Image Texture.001",
+              "image": "CAT_TEX_C.002",
+              "filepath": "C:/Users/pawel/blenderkit_data/models/domestic_cat__ri_731d9ed6-cbe6-4ab5-b9cc-105f021457ba/textures_4k/CAT_TEX_C.001.jpg",
+              "size": [
+                4096,
+                4096
+              ],
+              "packed": true
+            }
+          ]
+        }
+      ],
+      "location": [
+        0.0021514950785785913,
+        0.15262052416801453,
+        0.0
+      ],
+      "dimensions": [
+        0.10214996337890625,
+        0.535500705242157,
+        0.25446465611457825
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation_euler": [
+        0.0,
+        -0.0,
+        2.384185791015625e-07
+      ],
+      "world_bbox": {
+        "min": [
+          -0.0497056245803833,
+          -0.2614511251449585,
+          -0.00010392783588031307
+        ],
+        "max": [
+          0.05244433879852295,
+          0.2740496098995209,
+          0.25436073541641235
+        ],
+        "feet_near_z0": true
+      },
+      "parent": "Armature.001",
+      "parent_type": "OBJECT"
+    }
+  ],
+  "armatures": [
+    {
+      "name": "Armature.001",
+      "bone_count": 32,
+      "bone_names_first40": [
+        "leg3_control_R",
+        "feet_R",
+        "leg3_control_L",
+        "feet_L",
+        "paw_control_R",
+        "paw3_R",
+        "paw_control_L",
+        "paw3_L",
+        "CONTROLLER",
+        "pelvis",
+        "Bone.001",
+        "Bone.002",
+        "Bone.004",
+        "tail1",
+        "tail2",
+        "tail3",
+        "tail4",
+        "tail5",
+        "leg1_R",
+        "leg2_R",
+        "leg3_R",
+        "paw1_R",
+        "paw2_R",
+        "leg1_L",
+        "leg2_L",
+        "leg3_L",
+        "paw1_L",
+        "paw2_L",
+        "leg2_pole2_R",
+        "leg2_pole2_L",
+        "paw_pole_R",
+        "paw_pole_L"
+      ],
+      "bone_names_all": [
+        "leg3_control_R",
+        "feet_R",
+        "leg3_control_L",
+        "feet_L",
+        "paw_control_R",
+        "paw3_R",
+        "paw_control_L",
+        "paw3_L",
+        "CONTROLLER",
+        "pelvis",
+        "Bone.001",
+        "Bone.002",
+        "Bone.004",
+        "tail1",
+        "tail2",
+        "tail3",
+        "tail4",
+        "tail5",
+        "leg1_R",
+        "leg2_R",
+        "leg3_R",
+        "paw1_R",
+        "paw2_R",
+        "leg1_L",
+        "leg2_L",
+        "leg3_L",
+        "paw1_L",
+        "paw2_L",
+        "leg2_pole2_R",
+        "leg2_pole2_L",
+        "paw_pole_R",
+        "paw_pole_L"
+      ],
+      "pose_bones_first40": [
+        {
+          "name": "leg3_control_R",
+          "head": [
+            -0.0305,
+            0.1015,
+            0.0133
+          ],
+          "tail": [
+            -0.0305,
+            0.1622,
+            0.0136
+          ]
+        },
+        {
+          "name": "feet_R",
+          "head": [
+            -0.0305,
+            0.1015,
+            0.0133
+          ],
+          "tail": [
+            -0.0305,
+            0.0754,
+            0.0082
+          ]
+        },
+        {
+          "name": "leg3_control_L",
+          "head": [
+            0.0306,
+            -0.0014,
+            0.0138
+          ],
+          "tail": [
+            0.0306,
+            0.0594,
+            0.0142
+          ]
+        },
+        {
+          "name": "feet_L",
+          "head": [
+            0.0306,
+            -0.0014,
+            0.0138
+          ],
+          "tail": [
+            0.0306,
+            -0.0276,
+            0.0087
+          ]
+        },
+        {
+          "name": "paw_control_R",
+          "head": [
+            -0.0289,
+            -0.2192,
+            0.0498
+          ],
+          "tail": [
+            -0.0289,
+            -0.1841,
+            0.094
+          ]
+        },
+        {
+          "name": "paw3_R",
+          "head": [
+            -0.0289,
+            -0.2192,
+            0.0498
+          ],
+          "tail": [
+            -0.0289,
+            -0.2283,
+            0.0187
+          ]
+        },
+        {
+          "name": "paw_control_L",
+          "head": [
+            0.0305,
+            -0.1376,
+            0.017
+          ],
+          "tail": [
+            0.0305,
+            -0.0814,
+            0.0119
+          ]
+        },
+        {
+          "name": "paw3_L",
+          "head": [
+            0.0305,
+            -0.1376,
+            0.017
+          ],
+          "tail": [
+            0.0305,
+            -0.1686,
+            0.0076
+          ]
+        },
+        {
+          "name": "CONTROLLER",
+          "head": [
+            -0.0004,
+            -0.0525,
+            0.2198
+          ],
+          "tail": [
+            -0.0004,
+            -0.0505,
+            0.2975
+          ]
+        },
+        {
+          "name": "pelvis",
+          "head": [
+            -0.0004,
+            0.056,
+            0.1772
+          ],
+          "tail": [
+            -0.0004,
+            -0.0636,
+            0.1883
+          ]
+        },
+        {
+          "name": "Bone.001",
+          "head": [
+            -0.0004,
+            -0.0636,
+            0.1883
+          ],
+          "tail": [
+            -0.0004,
+            -0.1383,
+            0.1893
+          ]
+        },
+        {
+          "name": "Bone.002",
+          "head": [
+            -0.0004,
+            -0.1383,
+            0.1893
+          ],
+          "tail": [
+            -0.0004,
+            -0.1871,
+            0.1895
+          ]
+        },
+        {
+          "name": "Bone.004",
+          "head": [
+            -0.0004,
+            -0.1871,
+            0.1895
+          ],
+          "tail": [
+            -0.0004,
+            -0.2281,
+            0.2188
+          ]
+        },
+        {
+          "name": "tail1",
+          "head": [
+            -0.0013,
+            0.0803,
+            0.1693
+          ],
+          "tail": [
+            -0.0013,
+            0.1279,
+            0.156
+          ]
+        },
+        {
+          "name": "tail2",
+          "head": [
+            -0.0013,
+            0.1279,
+            0.156
+          ],
+          "tail": [
+            -0.0013,
+            0.1652,
+            0.1478
+          ]
+        },
+        {
+          "name": "tail3",
+          "head": [
+            -0.0013,
+            0.1652,
+            0.1478
+          ],
+          "tail": [
+            -0.0013,
+            0.1983,
+            0.1494
+          ]
+        },
+        {
+          "name": "tail4",
+          "head": [
+            -0.0013,
+            0.1983,
+            0.1494
+          ],
+          "tail": [
+            -0.0013,
+            0.2313,
+            0.1557
+          ]
+        },
+        {
+          "name": "tail5",
+          "head": [
+            -0.0013,
+            0.2313,
+            0.1557
+          ],
+          "tail": [
+            -0.0013,
+            0.2626,
+            0.1635
+          ]
+        },
+        {
+          "name": "leg1_R",
+          "head": [
+            -0.0262,
+            0.0448,
+            0.1537
+          ],
+          "tail": [
+            -0.0261,
+            0.0402,
+            0.0974
+          ]
+        },
+        {
+          "name": "leg2_R",
+          "head": [
+            -0.0261,
+            0.0402,
+            0.0974
+          ],
+          "tail": [
+            -0.0343,
+            0.0908,
+            0.0628
+          ]
+        },
+        {
+          "name": "leg3_R",
+          "head": [
+            -0.0343,
+            0.0908,
+            0.0628
+          ],
+          "tail": [
+            -0.0305,
+            0.1015,
+            0.0133
+          ]
+        },
+        {
+          "name": "paw1_R",
+          "head": [
+            -0.0305,
+            -0.1652,
+            0.1597
+          ],
+          "tail": [
+            -0.0355,
+            -0.1562,
+            0.0728
+          ]
+        },
+        {
+          "name": "paw2_R",
+          "head": [
+            -0.0355,
+            -0.1562,
+            0.0728
+          ],
+          "tail": [
+            -0.0289,
+            -0.2192,
+            0.0498
+          ]
+        },
+        {
+          "name": "leg1_L",
+          "head": [
+            0.0211,
+            0.0448,
+            0.1537
+          ],
+          "tail": [
+            0.0285,
+            0.0028,
+            0.1162
+          ]
+        },
+        {
+          "name": "leg2_L",
+          "head": [
+            0.0285,
+            0.0028,
+            0.1162
+          ],
+          "tail": [
+            0.0349,
+            0.0231,
+            0.0581
+          ]
+        },
+        {
+          "name": "leg3_L",
+          "head": [
+            0.0349,
+            0.0231,
+            0.0581
+          ],
+          "tail": [
+            0.0306,
+            -0.0014,
+            0.0138
+          ]
+        },
+        {
+          "name": "paw1_L",
+          "head": [
+            0.0273,
+            -0.1652,
+            0.1597
+          ],
+          "tail": [
+            0.0283,
+            -0.1233,
+            0.0841
+          ]
+        },
+        {
+          "name": "paw2_L",
+          "head": [
+            0.0283,
+            -0.1233,
+            0.0841
+          ],
+          "tail": [
+            0.0305,
+            -0.1376,
+            0.017
+          ]
+        },
+        {
+          "name": "leg2_pole2_R",
+          "head": [
+            -0.0458,
+            0.1395,
+            0.059
+          ],
+          "tail": [
+            -0.0458,
+            0.1715,
+            0.0585
+          ]
+        },
+        {
+          "name": "leg2_pole2_L",
+          "head": [
+            0.0426,
+            0.139,
+            0.0594
+          ],
+          "tail": [
+            0.0426,
+            0.1706,
+            0.0581
+          ]
+        },
+        {
+          "name": "paw_pole_R",
+          "head": [
+            -0.0578,
+            -0.0667,
+            0.0548
+          ],
+          "tail": [
+            -0.0578,
+            -0.036,
+            0.054
+          ]
+        },
+        {
+          "name": "paw_pole_L",
+          "head": [
+            0.0613,
+            -0.0668,
+            0.0525
+          ],
+          "tail": [
+            0.0613,
+            -0.036,
+            0.0517
+          ]
+        }
+      ],
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "dimensions": [
+        0.11913485825061798,
+        0.49092432856559753,
+        0.2899167239665985
+      ]
+    }
+  ],
+  "others": [
+    {
+      "name": "Domestic cat (rigged)",
+      "type": "EMPTY"
+    }
+  ],
+  "pose_assessment": [
+    {
+      "combined_bbox_min": [
+        -0.0497056245803833,
+        -0.2614511251449585,
+        -0.00010392783588031307
+      ],
+      "combined_bbox_max": [
+        0.05244433879852295,
+        0.2740496098995209,
+        0.25436073541641235
+      ],
+      "aspect": {
+        "width_x": 0.1021,
+        "depth_y": 0.5355,
+        "height_z": 0.2545
+      },
+      "feet_near_ground_z0": true,
+      "likely_quadruped_standing": true,
+      "note": "Blender Z-up；脚贴地看 min_z≈0；站立时 height_z 应明显大于躺姿"
+    },
+    {
+      "visual_intake_note": "对照渲染显示默认姿态为略带迈步的四足站立（一前爪略前伸），非对称中性 Rest；脚总体贴地，四肢网格分离（单网格拓扑分离腿部）。非 A/T pose。"
+    }
+  ],
+  "has_hair_particles": true,
+  "hair_particle_system_count": 5,
+  "textures_pack": {
+    "original_name": "textures_1k.zip",
+    "renamed_to": "textures_1k_resolution.blend",
+    "note": "文件头为 zstd 压缩的 Blender .blend（含 BLEN），不是 ZIP；已改名为 .blend",
+    "path": "/workspace/miaowangtown/reference/open_cat_bases/blenderkit_domestic_cat_rigged/textures_1k_resolution.blend",
+    "exists": true,
+    "is_blend": true,
+    "size_bytes": 20614957
+  }
+}

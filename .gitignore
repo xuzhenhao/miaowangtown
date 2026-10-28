@@ -5,3 +5,6 @@ dist/
 .DS_Store
 *.log
 .vite/
+# BlenderKit originals: RF license — keep local only; do not redistribute .blend
+reference/open_cat_bases/blenderkit_domestic_cat_rigged/*.blend
+reference/open_cat_bases/**/*.blend

@@ -1,0 +1,9 @@
+Source: BlenderKit / Blendkit — Domestic cat (rigged)
+Author: Paweł Wałasiewicz
+Asset ID: 731d9ed6-cbe6-4ab5-b9cc-105f021457ba
+License: Royalty Free (BlenderKit free asset)
+URL: https://www.blendkit.com/asset-gallery-detail/6b3bbcc7-db99-4424-9436-8e6678ee9354/
+Note: Not CC0. Royalty-free for use in commercial projects per BlenderKit free asset terms; verify redistribution of source .blend before public redistribution of unmodified asset.
+Downloaded for engineering evaluation in miaowangtown (2026-10-28).
+
+Note (2026-10-28): textures_1k.zip was a mislabeled zstd-compressed .blend; renamed to textures_1k_resolution.blend for engineering use.
