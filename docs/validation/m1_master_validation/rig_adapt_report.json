@@ -7,172 +7,173 @@
       "tail_shift_m": 0.0
     },
     "hips": {
-      "head_shift_m": 0.003,
-      "tail_shift_m": 0.002997
+      "head_shift_m": 0.001234,
+      "tail_shift_m": 0.002341
     },
     "spine_01": {
-      "head_shift_m": 0.002997,
-      "tail_shift_m": 0.003
+      "head_shift_m": 0.002341,
+      "tail_shift_m": 0.002294
     },
     "spine_02": {
-      "head_shift_m": 0.003,
-      "tail_shift_m": 0.003
+      "head_shift_m": 0.002294,
+      "tail_shift_m": 0.000547
     },
     "spine_03": {
-      "head_shift_m": 0.003,
-      "tail_shift_m": 0.003
+      "head_shift_m": 0.000547,
+      "tail_shift_m": 0.00032
     },
     "spine_04": {
-      "head_shift_m": 0.003,
-      "tail_shift_m": 0.004283
+      "head_shift_m": 0.00032,
+      "tail_shift_m": 0.00065
     },
     "neck_01": {
-      "head_shift_m": 0.004283,
-      "tail_shift_m": 0.006836
+      "head_shift_m": 0.00065,
+      "tail_shift_m": 0.000986
     },
     "neck_02": {
-      "head_shift_m": 0.006836,
-      "tail_shift_m": 0.009284
+      "head_shift_m": 0.000986,
+      "tail_shift_m": 0.001139
     },
     "head": {
-      "head_shift_m": 0.009284,
-      "tail_shift_m": 0.010127
+      "head_shift_m": 0.001139,
+      "tail_shift_m": 0.001944
     },
     "jaw": {
-      "head_shift_m": 0.02289,
-      "tail_shift_m": 0.006911
+      "head_shift_m": 0.00057,
+      "tail_shift_m": 0.0
     },
     "tongue_01": {
-      "head_shift_m": 0.069106,
-      "tail_shift_m": 0.071106
+      "head_shift_m": 0.0,
+      "tail_shift_m": 0.0
     },
     "tongue_tip": {
-      "head_shift_m": 0.071106,
-      "tail_shift_m": 0.071106
+      "head_shift_m": 0.0,
+      "tail_shift_m": 0.0
     },
     "eye_L": {
-      "head_shift_m": 0.020475,
-      "tail_shift_m": 0.020475
+      "head_shift_m": 0.001857,
+      "tail_shift_m": 0.001857
     },
     "eye_R": {
-      "head_shift_m": 0.020475,
-      "tail_shift_m": 0.020475
+      "head_shift_m": 0.001857,
+      "tail_shift_m": 0.001857
     },
     "ear_L_01": {
-      "head_shift_m": 0.010127,
-      "tail_shift_m": 0.011573
+      "head_shift_m": 0.002031,
+      "tail_shift_m": 0.002883
     },
     "ear_L_02": {
-      "head_shift_m": 0.011573,
-      "tail_shift_m": 0.010466
+      "head_shift_m": 0.002883,
+      "tail_shift_m": 0.002923
     },
     "ear_R_01": {
-      "head_shift_m": 0.010127,
-      "tail_shift_m": 0.011573
+      "head_shift_m": 0.002031,
+      "tail_shift_m": 0.002883
     },
     "ear_R_02": {
-      "head_shift_m": 0.011573,
-      "tail_shift_m": 0.010466
+      "head_shift_m": 0.002883,
+      "tail_shift_m": 0.002923
     },
     "clavicle_L": {
-      "head_shift_m": 0.006218,
-      "tail_shift_m": 0.005638
+      "head_shift_m": 0.001807,
+      "tail_shift_m": 0.002586
     },
     "upperarm_L": {
-      "head_shift_m": 0.005638,
-      "tail_shift_m": 0.001465
+      "head_shift_m": 0.002586,
+      "tail_shift_m": 0.001126
     },
     "forearm_L": {
-      "head_shift_m": 0.001465,
-      "tail_shift_m": 0.000911
+      "head_shift_m": 0.001126,
+      "tail_shift_m": 0.000551
     },
     "paw_F_L": {
-      "head_shift_m": 0.000911,
-      "tail_shift_m": 0.003065
+      "head_shift_m": 0.000551,
+      "tail_shift_m": 0.0
     },
     "clavicle_R": {
-      "head_shift_m": 0.006218,
-      "tail_shift_m": 0.005638
+      "head_shift_m": 0.001807,
+      "tail_shift_m": 0.002586
     },
     "upperarm_R": {
-      "head_shift_m": 0.005638,
-      "tail_shift_m": 0.001465
+      "head_shift_m": 0.002586,
+      "tail_shift_m": 0.001126
     },
     "forearm_R": {
-      "head_shift_m": 0.001465,
-      "tail_shift_m": 0.000911
+      "head_shift_m": 0.001126,
+      "tail_shift_m": 0.000551
     },
     "paw_F_R": {
-      "head_shift_m": 0.000911,
-      "tail_shift_m": 0.003065
+      "head_shift_m": 0.000551,
+      "tail_shift_m": 0.0
     },
     "thigh_L": {
-      "head_shift_m": 0.006549,
-      "tail_shift_m": 0.001987
+      "head_shift_m": 0.004124,
+      "tail_shift_m": 0.000958
     },
     "shin_L": {
-      "head_shift_m": 0.001987,
-      "tail_shift_m": 0.000393
+      "head_shift_m": 0.000958,
+      "tail_shift_m": 0.000518
     },
     "foot_L": {
-      "head_shift_m": 0.000393,
-      "tail_shift_m": 0.003217
+      "head_shift_m": 0.000518,
+      "tail_shift_m": 3.6e-05
     },
     "paw_B_L": {
-      "head_shift_m": 0.003217,
-      "tail_shift_m": 0.003217
+      "head_shift_m": 3.6e-05,
+      "tail_shift_m": 3.6e-05
     },
     "thigh_R": {
-      "head_shift_m": 0.006549,
-      "tail_shift_m": 0.001987
+      "head_shift_m": 0.004124,
+      "tail_shift_m": 0.000958
     },
     "shin_R": {
-      "head_shift_m": 0.001987,
-      "tail_shift_m": 0.000393
+      "head_shift_m": 0.000958,
+      "tail_shift_m": 0.000518
     },
     "foot_R": {
-      "head_shift_m": 0.000393,
-      "tail_shift_m": 0.003217
+      "head_shift_m": 0.000518,
+      "tail_shift_m": 3.6e-05
     },
     "paw_B_R": {
-      "head_shift_m": 0.003217,
-      "tail_shift_m": 0.003217
+      "head_shift_m": 3.6e-05,
+      "tail_shift_m": 3.6e-05
     },
     "tail_01": {
-      "head_shift_m": 0.003118,
-      "tail_shift_m": 0.002342
+      "head_shift_m": 0.000975,
+      "tail_shift_m": 0.001349
     },
     "tail_02": {
-      "head_shift_m": 0.002342,
-      "tail_shift_m": 0.002928
+      "head_shift_m": 0.001349,
+      "tail_shift_m": 0.00127
     },
     "tail_03": {
-      "head_shift_m": 0.002928,
-      "tail_shift_m": 0.002513
+      "head_shift_m": 0.00127,
+      "tail_shift_m": 0.001051
     },
     "tail_04": {
-      "head_shift_m": 0.002513,
-      "tail_shift_m": 0.000197
+      "head_shift_m": 0.001051,
+      "tail_shift_m": 0.00084
     },
     "tail_05": {
-      "head_shift_m": 0.000197,
-      "tail_shift_m": 0.015001
+      "head_shift_m": 0.00084,
+      "tail_shift_m": 0.00063
     },
     "tail_06": {
-      "head_shift_m": 0.000197,
-      "tail_shift_m": 0.015001
+      "head_shift_m": 0.00063,
+      "tail_shift_m": 0.000491
     }
   },
+  "tongue_01_shift_mm": 0.0,
   "foot_z_errors_mm": {
-    "foot_FL": 1e-05,
-    "foot_FR": 1e-05,
+    "foot_FL": 0.0,
+    "foot_FR": 0.0,
     "foot_BL": 0.0,
     "foot_BR": 0.0
   },
-  "max_foot_z_error_mm": 1e-05,
+  "max_foot_z_error_mm": 0.0,
   "deformed_proportions": {
-    "total_height_m": 0.4569,
-    "chin_height_m": 0.2664,
-    "head_height_ratio": 0.4168
+    "total_height_m": 0.4499,
+    "chin_height_m": 0.26,
+    "head_height_ratio": 0.4221
   }
 }

@@ -21,7 +21,12 @@
         0.75,
         1.0
       ],
-      "triangle_count": 304
+      "color_rgb": [
+        235,
+        110,
+        95
+      ],
+      "triangle_count": 272
     },
     "A2_head_back": {
       "grid": [
@@ -37,7 +42,12 @@
         0.75,
         1.0
       ],
-      "triangle_count": 396
+      "color_rgb": [
+        240,
+        155,
+        85
+      ],
+      "triangle_count": 394
     },
     "A3_muzzle_chin": {
       "grid": [
@@ -52,6 +62,11 @@
       "v_range": [
         0.75,
         1.0
+      ],
+      "color_rgb": [
+        245,
+        195,
+        85
       ],
       "triangle_count": 130
     },
@@ -69,7 +84,12 @@
         0.75,
         1.0
       ],
-      "triangle_count": 138
+      "color_rgb": [
+        195,
+        215,
+        95
+      ],
+      "triangle_count": 142
     },
     "B1_torso_L": {
       "grid": [
@@ -85,7 +105,12 @@
         0.5,
         0.75
       ],
-      "triangle_count": 476
+      "color_rgb": [
+        95,
+        195,
+        145
+      ],
+      "triangle_count": 455
     },
     "B2_torso_R": {
       "grid": [
@@ -101,7 +126,12 @@
         0.5,
         0.75
       ],
-      "triangle_count": 476
+      "color_rgb": [
+        85,
+        185,
+        215
+      ],
+      "triangle_count": 455
     },
     "B3_torso_back": {
       "grid": [
@@ -117,7 +147,12 @@
         0.5,
         0.75
       ],
-      "triangle_count": 64
+      "color_rgb": [
+        105,
+        145,
+        235
+      ],
+      "triangle_count": 40
     },
     "B4_torso_belly": {
       "grid": [
@@ -133,7 +168,12 @@
         0.5,
         0.75
       ],
-      "triangle_count": 340
+      "color_rgb": [
+        155,
+        125,
+        235
+      ],
+      "triangle_count": 382
     },
     "C1_leg_FL": {
       "grid": [
@@ -149,7 +189,12 @@
         0.25,
         0.5
       ],
-      "triangle_count": 416
+      "color_rgb": [
+        215,
+        115,
+        205
+      ],
+      "triangle_count": 350
     },
     "C2_leg_FR": {
       "grid": [
@@ -165,7 +210,12 @@
         0.25,
         0.5
       ],
-      "triangle_count": 412
+      "color_rgb": [
+        235,
+        115,
+        155
+      ],
+      "triangle_count": 346
     },
     "C3_leg_BL": {
       "grid": [
@@ -181,7 +231,12 @@
         0.25,
         0.5
       ],
-      "triangle_count": 584
+      "color_rgb": [
+        185,
+        145,
+        115
+      ],
+      "triangle_count": 526
     },
     "C4_leg_BR": {
       "grid": [
@@ -197,7 +252,12 @@
         0.25,
         0.5
       ],
-      "triangle_count": 578
+      "color_rgb": [
+        145,
+        175,
+        135
+      ],
+      "triangle_count": 520
     },
     "D1_tail": {
       "grid": [
@@ -212,6 +272,11 @@
       "v_range": [
         0.0,
         0.25
+      ],
+      "color_rgb": [
+        115,
+        175,
+        195
       ],
       "triangle_count": 320
     },
@@ -229,7 +294,12 @@
         0.0,
         0.25
       ],
-      "triangle_count": 0
+      "color_rgb": [
+        85,
+        210,
+        135
+      ],
+      "triangle_count": 12
     },
     "D3_nose_pads_tongue": {
       "grid": [
@@ -245,7 +315,12 @@
         0.0,
         0.25
       ],
-      "triangle_count": 0
+      "color_rgb": [
+        230,
+        140,
+        150
+      ],
+      "triangle_count": 260
     },
     "D4_reserved": {
       "grid": [
@@ -261,8 +336,13 @@
         0.0,
         0.25
       ],
-      "triangle_count": 0
+      "color_rgb": [
+        130,
+        135,
+        145
+      ],
+      "triangle_count": 30
     }
   },
-  "uv_hash": "sha256:8258f44b273b23a48785da75afbd99a1b78d2afab4a66ec56e8774879729493c"
+  "uv_hash": "sha256:71e162bec7adafa5fe9df6ecff2d28d75d699e908da4c30d49d69ed138da2617"
 }

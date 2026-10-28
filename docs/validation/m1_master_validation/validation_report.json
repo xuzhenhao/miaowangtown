@@ -1,8 +1,12 @@
 {
   "milestone": "M1",
   "overall_status": "PASS",
-  "passed_checks": "12/12",
-  "uv_hash": "sha256:8258f44b273b23a48785da75afbd99a1b78d2afab4a66ec56e8774879729493c",
+  "passed_checks": "13/13",
+  "uv_hash": "sha256:71e162bec7adafa5fe9df6ecff2d28d75d699e908da4c30d49d69ed138da2617",
+  "full_silhouette_max_distance_px": 2.0,
+  "head_body_max_distance_px": 2.0,
+  "mask_iou": 0.9523,
+  "eye_4_elements_readable": true,
   "checks": {
     "01_manifold_and_watertight": {
       "pass": true,
@@ -17,24 +21,24 @@
         },
         "CAT_EYE_L": {
           "exists": true,
-          "vertices": 42,
-          "triangles": 80,
+          "vertices": 72,
+          "triangles": 140,
           "non_manifold_edges": 0,
           "boundary_edges": 0,
           "zero_area_faces": 0
         },
         "CAT_EYE_R": {
           "exists": true,
-          "vertices": 42,
-          "triangles": 80,
+          "vertices": 72,
+          "triangles": 140,
           "non_manifold_edges": 0,
           "boundary_edges": 0,
           "zero_area_faces": 0
         },
         "CAT_TONGUE": {
           "exists": true,
-          "vertices": 42,
-          "triangles": 80,
+          "vertices": 72,
+          "triangles": 140,
           "non_manifold_edges": 0,
           "boundary_edges": 0,
           "zero_area_faces": 0
@@ -45,19 +49,19 @@
       "pass": true,
       "details": {
         "CAT_BODY": {
-          "signed_volume_m3": 0.0047075,
+          "signed_volume_m3": 0.0047347,
           "flipped_faces": 0
         },
         "CAT_EYE_L": {
-          "signed_volume_m3": 3.09e-05,
+          "signed_volume_m3": 9.5e-06,
           "flipped_faces": 0
         },
         "CAT_EYE_R": {
-          "signed_volume_m3": 3.09e-05,
+          "signed_volume_m3": 9.5e-06,
           "flipped_faces": 0
         },
         "CAT_TONGUE": {
-          "signed_volume_m3": 5.8e-06,
+          "signed_volume_m3": 1.6e-06,
           "flipped_faces": 0
         }
       }
@@ -104,12 +108,12 @@
     "05_uv_bounds_and_non_mirrored_4x4": {
       "pass": true,
       "uv_min": [
-        0.010742,
-        0.010742
+        0.012244,
+        0.01252
       ],
       "uv_max": [
-        0.989258,
-        0.989258
+        0.98781,
+        0.987632
       ],
       "occupied_quadrants": 16,
       "degenerate_uv_triangles": 0,
@@ -117,8 +121,8 @@
     },
     "06_uv_hash_matches_manifest": {
       "pass": true,
-      "measured_uv_hash": "sha256:8258f44b273b23a48785da75afbd99a1b78d2afab4a66ec56e8774879729493c",
-      "manifest_uv_hash": "sha256:8258f44b273b23a48785da75afbd99a1b78d2afab4a66ec56e8774879729493c"
+      "measured_uv_hash": "sha256:71e162bec7adafa5fe9df6ecff2d28d75d699e908da4c30d49d69ed138da2617",
+      "manifest_uv_hash": "sha256:71e162bec7adafa5fe9df6ecff2d28d75d699e908da4c30d49d69ed138da2617"
     },
     "07_40_bones_hierarchy": {
       "pass": true,
@@ -132,7 +136,7 @@
     },
     "09_landmark_vertices_valid_and_symmetric": {
       "pass": true,
-      "landmark_groups_count": 81,
+      "landmark_groups_count": 82,
       "invalid_indices": [],
       "max_lr_symmetry_error_m": 0.0
     },
@@ -141,42 +145,51 @@
       "missing_anchors": [],
       "binding_errors": [],
       "rest_foot_z_error_mm": {
-        "foot_FL": 1e-05,
-        "foot_FR": 1e-05,
+        "foot_FL": 0.0,
+        "foot_FR": 0.0,
         "foot_BL": 0.0,
         "foot_BR": 0.0
       }
     },
     "11_adapt_rest_after_shapekeys_ground_and_ratio": {
       "pass": true,
-      "max_foot_z_error_mm": 1e-05,
+      "rest_tongue_01_shift_mm": 0.0,
+      "deformed_tongue_01_shift_mm": 0.0,
+      "max_foot_z_error_mm": 0.0,
       "foot_z_errors_mm": {
-        "foot_FL": 1e-05,
-        "foot_FR": 1e-05,
+        "foot_FL": 0.0,
+        "foot_FR": 0.0,
         "foot_BL": 0.0,
         "foot_BR": 0.0
       },
-      "deformed_head_height_ratio": 0.4168
+      "deformed_head_height_ratio": 0.4221,
+      "tongue_shift_hard_limit_mm": 1.0
     },
     "12_clean_master_no_identity_textures": {
       "pass": true,
       "embedded_images": [],
       "embedded_actions": []
+    },
+    "13_d045_full_silhouette_and_eye_4_elements": {
+      "pass": true,
+      "logical_grid": [
+        114,
+        104
+      ],
+      "alpha_threshold": 162,
+      "full_silhouette_max_distance_px": 2.0,
+      "inner_full_silhouette_max_distance_px": 2.0,
+      "full_silhouette_p95_distance_px": 1.2278,
+      "full_silhouette_mean_distance_px": 0.5473,
+      "full_silhouette_outliers_gt_2px": 0,
+      "head_body_max_distance_px": 2.0,
+      "mask_iou": 0.9523,
+      "eyelid_dark_px_count": 11,
+      "outer_emerald_px_count": 15,
+      "inner_bright_emerald_px_count": 37,
+      "vertical_pupil_px_count": 6,
+      "white_catchlight_px_count": 7,
+      "eye_4_elements_readable": true
     }
-  },
-  "pixel_silhouette_gate_d045": {
-    "pass": true,
-    "logical_grid": [
-      114,
-      104
-    ],
-    "alpha_threshold": 162,
-    "head_body_roi_max_distance_px": 2.0,
-    "head_body_roi_p95_distance_px": 1.414,
-    "head_body_roi_mean_distance_px": 0.41,
-    "full_silhouette_p95_distance_px": 1.414,
-    "full_silhouette_mean_distance_px": 0.556,
-    "mask_iou": 0.9614,
-    "eye_4_elements_readable": true
   }
 }

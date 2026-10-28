@@ -17,15 +17,19 @@
       575
     ],
     "head_top": [
-      520
+      520,
+      1646
     ],
     "jaw": [
       2278
     ],
     "tongue_01": [
+      2230,
       2251
     ],
     "tongue_tip": [
+      2230,
+      2251,
       2294
     ],
     "ear_L_01": [
@@ -89,7 +93,7 @@
       771
     ],
     "tail_06": [
-      1152
+      1153
     ],
     "foot_FL": [
       1085
@@ -125,7 +129,8 @@
       575
     ],
     "crown": [
-      520
+      520,
+      1646
     ],
     "chin": [
       2230
@@ -212,28 +217,31 @@
       771
     ],
     "tail_root": [
-      1087
+      1097
     ],
     "tail_01": [
-      2254
+      1115
     ],
     "tail_02": [
-      2269
+      2315
     ],
     "tail_03": [
-      1130
+      1131,
+      2202
     ],
     "tail_04": [
-      1152
+      1149,
+      2219
     ],
     "tail_05": [
-      1152
+      2225
     ],
     "tail_tip": [
-      1152
+      1153
     ],
     "hot_head": [
-      520
+      520,
+      1646
     ],
     "hot_back": [
       619
@@ -245,7 +253,13 @@
       1184
     ],
     "hot_pet": [
-      520
+      520,
+      1646
+    ],
+    "mouth_floor": [
+      2230,
+      2251
     ]
-  }
+  },
+  "tongue_bed_note": "mouth_floor, tongue_01, and tongue_tip share the same oral lower-jaw tongue-bed vertices so CAT_TONGUE mesh and tongue_01/tongue_tip bones stay co-located (<1mm)."
 }

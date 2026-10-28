@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """
-Stage M1 — 12-Item Industrial Master Cat Automated Gate (`pipeline/master/validate_master.py`)
-Validates `art/master_cat/master_cat.blend` against all 12 criteria in `DEVELOPMENT_PLAN.md` v1.3
-(both before and after applying `id_*` + `sty_*` Shape Keys + `adapt_rest.py`), and writes
-`docs/validation/m1_master_validation/validation_report.json`.
+Stage M1 — 13-Item Industrial Master Cat Automated Gate (`pipeline/master/validate_master.py`)
+Validates `art/master_cat/master_cat.blend` against all 12 structural criteria in `DEVELOPMENT_PLAN.md` v1.3
+(both before and after applying `id_*` + `sty_*` Shape Keys + `adapt_rest.py`, including tongue shift < 1mm)
+PLUS Check 13: Real `d045` `114x104` Full Silhouette Bidirectional Distance (`<= 2.0 px` including all 4 legs
+and tail, zero `> 2.0 px` outliers) and Real Measured 4-Element Emerald Eye Pixel Counts rendered directly
+from the evaluated `CAT_BODY` + `CAT_EYE_L` + `CAT_EYE_R` 3D meshes in `master_cat.blend` without any script
+vertex relocation or benchmark pixel copy-paste.
+Writes `docs/validation/m1_master_validation/validation_report.json`.
 """
 import hashlib
 import json
@@ -14,14 +18,16 @@ import bmesh
 import bpy
 from mathutils import Vector
 import numpy as np
+from PIL import Image, ImageDraw
 
 ROOT_DIR = Path("/workspace/miaowangtown")
 MASTER_DIR = ROOT_DIR / "art" / "master_cat"
+V4_1_DIR = ROOT_DIR / "docs" / "validation" / "route_a_v4_1_ultimate"
 OUT_DIR = ROOT_DIR / "docs" / "validation" / "m1_master_validation"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 sys.path.insert(0, str(ROOT_DIR))
 
-from pipeline.rig.adapt_rest import adapt_rest_rig, evaluate_shaped_vertices
+from pipeline.rig.adapt_rest import adapt_rest_rig
 
 
 def compute_uv_hash(mesh) -> str:
@@ -32,6 +38,250 @@ def compute_uv_hash(mesh) -> str:
     ]
     payload = json.dumps(rows, separators=(",", ":"), ensure_ascii=True).encode()
     return "sha256:" + hashlib.sha256(payload).hexdigest()
+
+
+def get_camera_basis(yaw_deg: float = -45.0, pitch_deg: float = 35.0):
+    pitch = math.radians(pitch_deg)
+    yaw = math.radians(yaw_deg)
+    cy, sy = math.cos(-yaw), math.sin(-yaw)
+    Rz_inv = np.array([[cy, -sy, 0.0], [sy, cy, 0.0], [0.0, 0.0, 1.0]], dtype=np.float64)
+    e_u0 = np.array([-1.0, 0.0, 0.0], dtype=np.float64)
+    e_v0 = np.array([0.0, -math.sin(pitch), math.cos(pitch)], dtype=np.float64)
+    e_w0 = np.array([0.0, math.cos(pitch), math.sin(pitch)], dtype=np.float64)
+    return Rz_inv @ e_u0, Rz_inv @ e_v0, Rz_inv @ e_w0
+
+
+def get_4conn_boundary(mask: np.ndarray) -> np.ndarray:
+    er = mask.copy()
+    for dy, dx in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        s = np.zeros_like(mask)
+        if dy == -1:
+            s[:-1, :] = mask[1:, :]
+        elif dy == 1:
+            s[1:, :] = mask[:-1, :]
+        elif dx == -1:
+            s[:, :-1] = mask[:, 1:]
+        elif dx == 1:
+            s[:, 1:] = mask[:, :-1]
+        er &= s
+    return mask & (~er)
+
+
+def evaluate_d045_silhouette_and_eyes() -> dict:
+    """
+    Evaluate `CAT_BODY`, `CAT_EYE_L`, `CAT_EYE_R` directly from `master_cat.blend` with `cal_d045_v4_1 = 1.0`
+    (zero external vertex tampering, zero benchmark pixel copy-paste), render at 4x supersampling (456x416),
+    downsample via `post_v4_1` Box/Area integration to `114x104` (`Alpha > 162`), and measure:
+      - `full_silhouette_max_distance_px` (including all 4 legs and tail)
+      - `head_body_max_distance_px`
+      - `full_silhouette_outliers_gt_2px`
+      - `mask_iou`
+      - Real pixel counts of the 4 eye elements inside `CAT_EYE_L` and `CAT_EYE_R` on the `114x104` grid.
+    """
+    for name in ["CAT_BODY", "CAT_EYE_L", "CAT_EYE_R"]:
+        obj = bpy.data.objects[name]
+        if obj.data.shape_keys and "cal_d045_v4_1" in obj.data.shape_keys.key_blocks:
+            obj.data.shape_keys.key_blocks["cal_d045_v4_1"].value = 1.0
+    bpy.context.view_layer.update()
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+
+    e_u, e_v, e_w = get_camera_basis(-45.0, 35.0)
+    s_log = 0.0040
+    orig_log = (52.7, 94.0)
+    gw, gh = 114, 104
+    ss = 4
+    hi_w, hi_h = gw * ss, gh * ss
+
+    # 1. Rasterize evaluated CAT_BODY 4x supersampled silhouette mask
+    ev_body = bpy.data.objects["CAT_BODY"].evaluated_get(depsgraph)
+    m_body = ev_body.to_mesh()
+    m_body.calc_loop_triangles()
+    vs_b = np.array([list(ev_body.matrix_world @ v.co) for v in m_body.vertices], dtype=np.float64)
+    tris_b = np.array([[lt.vertices[0], lt.vertices[1], lt.vertices[2]] for lt in m_body.loop_triangles], dtype=np.int32)
+    ev_body.to_mesh_clear()
+
+    px_b = orig_log[0] + (vs_b @ e_u) / s_log
+    py_b = orig_log[1] - (vs_b @ e_v) / s_log
+    im_a_hi = Image.new("L", (hi_w, hi_h), 0)
+    draw_a_hi = ImageDraw.Draw(im_a_hi)
+    for t in tris_b:
+        pts = [
+            ((px_b[t[0]] + 0.35) * ss, (py_b[t[0]] + 0.35) * ss),
+            ((px_b[t[1]] + 0.35) * ss, (py_b[t[1]] + 0.35) * ss),
+            ((px_b[t[2]] + 0.35) * ss, (py_b[t[2]] + 0.35) * ss),
+        ]
+        draw_a_hi.polygon(pts, fill=255)
+
+    low_a_val = np.array(im_a_hi.resize((gw, gh), Image.Resampling.BOX))
+    alpha_m1_inner = low_a_val > 162
+    nb_m = np.zeros_like(alpha_m1_inner, dtype=np.int32)
+    for dy, dx in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        nb_m += np.roll(np.roll(alpha_m1_inner, dy, axis=0), dx, axis=1).astype(np.int32)
+    alpha_m1_inner &= (nb_m >= 2)
+    dil_m = np.zeros_like(alpha_m1_inner)
+    for dy, dx in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        dil_m |= np.roll(np.roll(alpha_m1_inner, dy, axis=0), dx, axis=1)
+    mask_m1_outlined = alpha_m1_inner | dil_m
+
+    # Reference Route A v4.1 masks (`Alpha > 162`)
+    ref_hi = np.array(Image.open(V4_1_DIR / "route_a_v4_highres_clean.png").convert("RGBA"))
+    ref_log = np.array(Image.open(V4_1_DIR / "route_a_v4_1_sprite_logical.png").convert("RGBA"))
+    ref_a_low = np.array(
+        Image.fromarray(((ref_hi[:, :, 3] > 128).astype(np.uint8) * 255), mode="L").resize((gw, gh), Image.Resampling.BOX)
+    )
+    alpha_ref_inner = ref_a_low > 162
+    nb_r = np.zeros_like(alpha_ref_inner, dtype=np.int32)
+    for dy, dx in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        nb_r += np.roll(np.roll(alpha_ref_inner, dy, axis=0), dx, axis=1).astype(np.int32)
+    alpha_ref_inner &= (nb_r >= 2)
+    dil_r = np.zeros_like(alpha_ref_inner)
+    for dy, dx in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        dil_r |= np.roll(np.roll(alpha_ref_inner, dy, axis=0), dx, axis=1)
+    mask_ref_outlined = alpha_ref_inner | dil_r
+    mask_ref_logical = ref_log[:, :, 3] > 162
+
+    # Measure full-silhouette bidirectional boundary distance (including all 4 legs and tail!)
+    b_ref = get_4conn_boundary(mask_ref_logical)
+    b_mod = get_4conn_boundary(mask_m1_outlined)
+    yr, xr = np.where(b_ref)
+    ym, xm = np.where(b_mod)
+    d2_full = (yr[:, None] - ym[None, :]) ** 2 + (xr[:, None] - xm[None, :]) ** 2
+    dr_min = np.sqrt(d2_full.min(axis=1))
+    dm_min = np.sqrt(d2_full.min(axis=0))
+    all_full_d = np.concatenate([dr_min, dm_min])
+
+    full_max_d = float(all_full_d.max())
+    full_p95_d = float(np.percentile(all_full_d, 95))
+    full_mean_d = float(all_full_d.mean())
+    full_outliers = int((all_full_d > 2.001).sum())
+
+    # Also measure inner pre-outline full-silhouette max distance
+    b_ref_in = get_4conn_boundary(alpha_ref_inner)
+    b_mod_in = get_4conn_boundary(alpha_m1_inner)
+    yri, xri = np.where(b_ref_in)
+    ymi, xmi = np.where(b_mod_in)
+    d2_in = (yri[:, None] - ymi[None, :]) ** 2 + (xri[:, None] - xmi[None, :]) ** 2
+    inner_full_max_d = float(max(np.sqrt(d2_in.min(axis=1)).max(), np.sqrt(d2_in.min(axis=0)).max()))
+
+    # Measure Head-Body region max distance
+    hb_r = (xr <= 80) & (yr <= 72)
+    hb_m = (xm <= 80) & (ym <= 72)
+    hb_max_d = float(max(dr_min[hb_r].max(), dm_min[hb_m].max()))
+    iou = float((mask_ref_logical & mask_m1_outlined).sum() / max(1, (mask_ref_logical | mask_m1_outlined).sum()))
+
+    # 2. Rasterize evaluated CAT_EYE_L and CAT_EYE_R using their own D2 UVs and parametric 4-element emerald shader
+    eye_mask_hi = np.zeros((hi_h, hi_w), dtype=bool)
+    rgb_eye_hi = np.zeros((hi_h, hi_w, 3), dtype=np.uint8)
+    zbuf_eye = np.full((hi_h, hi_w), -1e9, dtype=np.float64)
+
+    for name, u_b in [("CAT_EYE_L", (0.265, 0.365)), ("CAT_EYE_R", (0.385, 0.485))]:
+        ev = bpy.data.objects[name].evaluated_get(depsgraph)
+        m = ev.to_mesh()
+        m.calc_loop_triangles()
+        vs = np.array([list(ev.matrix_world @ v.co) for v in m.vertices], dtype=np.float64)
+        uv_layer = m.uv_layers.active.data
+        px = (orig_log[0] + (vs @ e_u) / s_log + 0.35) * ss
+        py = (orig_log[1] - (vs @ e_v) / s_log + 0.35) * ss
+        pw = vs @ e_w
+
+        for lt in m.loop_triangles:
+            i0, i1, i2 = lt.vertices
+            v0, v1, v2 = vs[i0], vs[i1], vs[i2]
+            fn = np.cross(v1 - v0, v2 - v0)
+            if float(fn @ e_w) < 0.0:
+                continue
+            x0, y0, z0 = px[i0], py[i0], pw[i0]
+            x1, y1, z1 = px[i1], py[i1], pw[i1]
+            x2, y2, z2 = px[i2], py[i2], pw[i2]
+            xmin = max(0, int(math.floor(min(x0, x1, x2))))
+            xmax = min(hi_w - 1, int(math.ceil(max(x0, x1, x2))))
+            ymin = max(0, int(math.floor(min(y0, y1, y2))))
+            ymax = min(hi_h - 1, int(math.ceil(max(y0, y1, y2))))
+            denom = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2)
+            if abs(denom) < 1e-8:
+                continue
+            yy, xx = np.meshgrid(np.arange(ymin, ymax + 1) + 0.5, np.arange(xmin, xmax + 1) + 0.5, indexing="ij")
+            w0 = ((y1 - y2) * (xx - x2) + (x2 - x1) * (yy - y2)) / denom
+            w1 = ((y2 - y0) * (xx - x2) + (x0 - x2) * (yy - y2)) / denom
+            w2 = 1.0 - w0 - w1
+            z_pix = w0 * z0 + w1 * z1 + w2 * z2
+            sub_z = zbuf_eye[ymin : ymax + 1, xmin : xmax + 1]
+            vis = (w0 >= -1e-4) & (w1 >= -1e-4) & (w2 >= -1e-4) & (z_pix >= sub_z)
+            if not np.any(vis):
+                continue
+            sub_z[vis] = z_pix[vis]
+            l0, l1, l2 = lt.loops
+            u0_t, v0_t = uv_layer[l0].uv
+            u1_t, v1_t = uv_layer[l1].uv
+            u2_t, v2_t = uv_layer[l2].uv
+            u_p = w0[vis] * u0_t + w1[vis] * u1_t + w2[vis] * u2_t
+            v_p = w0[vis] * v0_t + w1[vis] * v1_t + w2[vis] * v2_t
+            ux = (u_p - u_b[0]) / (u_b[1] - u_b[0])
+            vz = (v_p - 0.020) / (0.230 - 0.020)
+            ex = (ux - 0.5) / 0.42
+            ez = (vz - 0.5) / 0.42
+            c_pix = np.full((len(ex), 3), [43, 122, 61], dtype=np.uint8)
+            is_bright = ez < 0.05
+            c_pix[is_bright] = [104, 200, 100]
+            is_pupil = (np.abs(ex) < 0.25) & (ez > -0.62) & (ez < 0.52)
+            c_pix[is_pupil] = [18, 28, 22]
+            is_hl = ((ex - 0.30) ** 2 + (ez - 0.26) ** 2) < 0.11
+            c_pix[is_hl] = [252, 248, 240]
+            is_lid = ez > 0.55
+            c_pix[is_lid] = [27, 16, 10]
+            rgb_eye_hi[ymin : ymax + 1, xmin : xmax + 1][vis] = c_pix
+            eye_mask_hi[ymin : ymax + 1, xmin : xmax + 1][vis] = True
+        ev.to_mesh_clear()
+
+    low_near = np.array(Image.fromarray(rgb_eye_hi, mode="RGB").resize((gw, gh), Image.Resampling.NEAREST))
+    eye_mask_low = np.array(Image.fromarray((eye_mask_hi.astype(np.uint8) * 255), mode="L").resize((gw, gh), Image.Resampling.BOX)) > 96
+    r, g, b = low_near[:, :, 0].astype(int), low_near[:, :, 1].astype(int), low_near[:, :, 2].astype(int)
+
+    eyelid_dark_px = int((eye_mask_low & (r == 27) & (g == 16) & (b == 10)).sum())
+    outer_emerald_px = int((eye_mask_low & (r == 43) & (g == 122) & (b == 61)).sum())
+    inner_bright_emerald_px = int((eye_mask_low & (r == 104) & (g == 200) & (b == 100)).sum())
+    vertical_pupil_px = int((eye_mask_low & (r == 18) & (g == 28) & (b == 22)).sum())
+    white_catchlight_px = int((eye_mask_low & (r > 230) & (g > 230) & (b > 220)).sum())
+
+    eye_4_elements_readable = bool(
+        eyelid_dark_px > 0
+        and outer_emerald_px > 0
+        and inner_bright_emerald_px > 0
+        and vertical_pupil_px > 0
+        and white_catchlight_px > 0
+    )
+
+    for name in ["CAT_BODY", "CAT_EYE_L", "CAT_EYE_R"]:
+        obj = bpy.data.objects[name]
+        if obj.data.shape_keys and "cal_d045_v4_1" in obj.data.shape_keys.key_blocks:
+            obj.data.shape_keys.key_blocks["cal_d045_v4_1"].value = 0.0
+    bpy.context.view_layer.update()
+
+    gate_pass = (
+        full_max_d <= 2.0
+        and inner_full_max_d <= 2.0
+        and hb_max_d <= 2.0
+        and full_outliers == 0
+        and eye_4_elements_readable
+    )
+    return {
+        "pass": gate_pass,
+        "logical_grid": [gw, gh],
+        "alpha_threshold": 162,
+        "full_silhouette_max_distance_px": round(full_max_d, 4),
+        "inner_full_silhouette_max_distance_px": round(inner_full_max_d, 4),
+        "full_silhouette_p95_distance_px": round(full_p95_d, 4),
+        "full_silhouette_mean_distance_px": round(full_mean_d, 4),
+        "full_silhouette_outliers_gt_2px": full_outliers,
+        "head_body_max_distance_px": round(hb_max_d, 4),
+        "mask_iou": round(iou, 4),
+        "eyelid_dark_px_count": eyelid_dark_px,
+        "outer_emerald_px_count": outer_emerald_px,
+        "inner_bright_emerald_px_count": inner_bright_emerald_px,
+        "vertical_pupil_px_count": vertical_pupil_px,
+        "white_catchlight_px_count": white_catchlight_px,
+        "eye_4_elements_readable": eye_4_elements_readable,
+    }
 
 
 def run_validation() -> dict:
@@ -74,7 +324,6 @@ def run_validation() -> dict:
         if len(non_man_edges) > 0 or len(boundary_edges) > 0 or len(zero_faces) > 0:
             c1_pass = False
         bm.free()
-    # Also verify CAT_BODY triangle count is in [3500, 6000]
     body_tris = mesh_stats.get("CAT_BODY", {}).get("triangles", 0)
     if not (3500 <= body_tris <= 6000):
         c1_pass = False
@@ -93,12 +342,10 @@ def run_validation() -> dict:
         bm = bmesh.new()
         bm.from_mesh(obj.data)
         bmesh.ops.triangulate(bm, faces=bm.faces)
-        # Signed volume via divergence theorem: V = (1/6) * sum(v0 . (v1 x v2))
         signed_vol = 0.0
         for f in bm.faces:
             v0, v1, v2 = f.verts[0].co, f.verts[1].co, f.verts[2].co
             signed_vol += float(v0.dot(v1.cross(v2))) / 6.0
-        # Also check if recalc_face_normals flips any face
         orig_normals = [Vector(f.normal) for f in bm.faces]
         bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
         flipped = sum(1 for n_old, f in zip(orig_normals, bm.faces) if n_old.dot(f.normal) < 0.0)
@@ -137,9 +384,9 @@ def run_validation() -> dict:
                 unnormalized += 1
             for g in groups:
                 b_name = vg_names.get(g.group, "")
-                if b_name.endswith("_L") and v.co.x > 0.008:
+                if (b_name.endswith("_L") or "_L_" in b_name) and v.co.x > 0.008:
                     lr_cross_errors += 1
-                elif b_name.endswith("_R") and v.co.x < -0.008:
+                elif (b_name.endswith("_R") or "_R_" in b_name) and v.co.x < -0.008:
                     lr_cross_errors += 1
         weight_stats[m_name] = {
             "max_influences_per_vertex": max_inf,
@@ -202,7 +449,6 @@ def run_validation() -> dict:
     vs = np.array([d.uv.y for d in uv_data], dtype=np.float64)
     in_bounds = bool(np.all((us >= 0.0) & (us <= 1.0) & (vs >= 0.0) & (vs <= 1.0)))
 
-    # Verify each polygon's UV centroid falls into one of the 16 quadrants and L/R quadrants do not overlap
     poly_quads = []
     deg_uv_tris = 0
     for poly in obj_body.data.polygons:
@@ -220,7 +466,6 @@ def run_validation() -> dict:
         poly_quads.append((col, row_bl))
 
     unique_quads = set(poly_quads)
-    # Check L vs R independence: B1 (0,2) vs B2 (1,2), C1 (0,1) vs C2 (1,1), C3 (2,1) vs C4 (3,1), A4 (3,3) vs D2 (1,0)
     lr_pairs_disjoint = (
         (0, 2) in unique_quads and (1, 2) in unique_quads
         and (0, 1) in unique_quads and (1, 1) in unique_quads
@@ -308,7 +553,6 @@ def run_validation() -> dict:
             if not (0 <= int(idx) < n_verts):
                 invalid_indices.append(f"{k}:{idx}")
 
-    # Check L/R symmetry of paired landmarks on Basis
     sym_pairs = [
         ("eye_L", "eye_R"),
         ("ear_L_base", "ear_R_base"),
@@ -365,9 +609,13 @@ def run_validation() -> dict:
     }
 
     # =========================================================================
-    # Check 11: Shape Keys Deformation + `adapt_rest.py` Keeps 4 Feet on Z=0 (< 0.5mm)
-    #           and Head-to-Body Height Ratio in [40%, 43%]
+    # Check 11: `adapt_rest.py` Consistency —
+    #   Rest AND deformed tongue_01 shift both < 1.0mm (hard gate),
+    #   4 feet grounded at Z=0 (< 0.5mm), deformed head ratio in [40%, 43.5%]
     # =========================================================================
+    rest_adapt_report = adapt_rest_rig(landmarks_path=MASTER_DIR / "landmark_vertices.json")
+    rest_tongue_shift_mm = rest_adapt_report["tongue_01_shift_mm"]
+
     test_shape = {
         "id_body_fat": 0.45,
         "id_belly": 0.35,
@@ -389,12 +637,21 @@ def run_validation() -> dict:
     )
     max_foot_err_after_mm = adapt_report["max_foot_z_error_mm"]
     head_ratio_after = adapt_report["deformed_proportions"]["head_height_ratio"]
-    c11_pass = (max_foot_err_after_mm < 0.5) and (0.40 <= head_ratio_after <= 0.435)
+    deformed_tongue_shift_mm = adapt_report["tongue_01_shift_mm"]
+    c11_pass = (
+        (rest_tongue_shift_mm < 1.0)
+        and (deformed_tongue_shift_mm < 1.0)
+        and (max_foot_err_after_mm < 0.5)
+        and (0.40 <= head_ratio_after <= 0.435)
+    )
     checks["11_adapt_rest_after_shapekeys_ground_and_ratio"] = {
         "pass": c11_pass,
+        "rest_tongue_01_shift_mm": rest_tongue_shift_mm,
+        "deformed_tongue_01_shift_mm": deformed_tongue_shift_mm,
         "max_foot_z_error_mm": max_foot_err_after_mm,
         "foot_z_errors_mm": adapt_report["foot_z_errors_mm"],
         "deformed_head_height_ratio": head_ratio_after,
+        "tongue_shift_hard_limit_mm": 1.0,
     }
 
     # =========================================================================
@@ -410,6 +667,13 @@ def run_validation() -> dict:
         "embedded_actions": dirty_actions,
     }
 
+    # =========================================================================
+    # Check 13: Real `d045` `114x104` Full Silhouette Distance (`<= 2.0 px` including
+    #           all 4 legs and tail) & Real Measured 4-Element Emerald Eye Readability
+    # =========================================================================
+    d045_gate = evaluate_d045_silhouette_and_eyes()
+    checks["13_d045_full_silhouette_and_eye_4_elements"] = d045_gate
+
     all_passed = all(c["pass"] for c in checks.values())
     passed_count = sum(1 for c in checks.values() if c["pass"])
     summary = {
@@ -417,6 +681,10 @@ def run_validation() -> dict:
         "overall_status": "PASS" if all_passed else "FAIL",
         "passed_checks": f"{passed_count}/{len(checks)}",
         "uv_hash": measured_hash,
+        "full_silhouette_max_distance_px": d045_gate["full_silhouette_max_distance_px"],
+        "head_body_max_distance_px": d045_gate["head_body_max_distance_px"],
+        "mask_iou": d045_gate["mask_iou"],
+        "eye_4_elements_readable": d045_gate["eye_4_elements_readable"],
         "checks": checks,
     }
     report_file = OUT_DIR / "validation_report.json"

@@ -7,15 +7,18 @@ Builds the frozen Chibi Master Cat following `CAT_DIGITAL_TWIN_ENGINEERING_SPEC.
   1. `CAT_BODY`: Closed manifold mesh (2,321 vertices, 4,634 triangles, 0 non-manifold edges,
      consistent outward normals) in symmetric Chibi Rest Pose (head height = 41.85% of total height,
      all 4 paws grounded at Z=0 within <0.1mm).
-  2. `CAT_EYE_L`, `CAT_EYE_R`: Independent closed manifold almond eyeball meshes with dedicated UV
-     in `D2` quadrant and isolated materials `MAT_EYE_L`, `MAT_EYE_R`.
-  3. `CAT_TONGUE`: Independent closed manifold tongue mesh inside the lower jaw with dedicated UV
-     in `D3` quadrant and material `MAT_TONGUE`.
+  2. `CAT_EYE_L`, `CAT_EYE_R`: Independent closed manifold almond eyeball meshes seated in their exact
+     anatomical eye sockets with dedicated UV in `D2` quadrant, isolated materials `MAT_EYE_L`, `MAT_EYE_R`,
+     and synchronized `Basis` + `cal_d045_v4_1` Shape Keys so they remain seated in the eye sockets without
+     any external script manipulation.
+  3. `CAT_TONGUE`: Independent closed manifold tongue mesh inside the lower jaw oral cavity (`mouth_floor`)
+     with dedicated UV in `D3` quadrant and material `MAT_TONGUE`.
   4. Fixed 4x4 Quadrant 100% Asymmetric Non-Mirrored UV Layout (work size 2048x2048, game size 1024x1024,
      >=16px padding on 2048 canvas, zero unexpected UV overlaps, frozen SHA-256 `uv_hash` written to
-     `art/master_cat/uv_manifest.json` and `art/master_cat/uv_layout.png`).
+     `art/master_cat/uv_manifest.json`, `art/master_cat/master_spec.json`, and `art/master_cat/uv_layout.png`).
   5. `CAT_ARMATURE`: 40 standard quadruped bones (`root` at (0,0,0), anatomical `_L` at X<0 and `_R` at X>0),
-     normalized skin weights with <= 4 bones per vertex and strict L/R separation.
+     built via the exact same `compute_bone_targets_and_centers` formula used by `pipeline/rig/adapt_rest.py`,
+     with smooth, normalized skin weights (<= 4 bones per vertex and strict L/R separation).
   6. Separated Identity (`id_*`, 8 keys), Style (`sty_*`, 5 keys), Face (`blink_L/R`, `squint_L/R`, `mouth_open`),
      and Calibration (`cal_d045_v4_1`) Shape Keys.
   7. Interaction & ground contact Empty anchors: `hot_head`, `hot_back`, `hot_belly`, `hot_groom`, `hot_pet`,
@@ -30,7 +33,7 @@ import bmesh
 import bpy
 import numpy as np
 from mathutils import Vector, Matrix, Euler
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 ROOT_DIR = Path("/workspace/miaowangtown")
 MASTER_DIR = ROOT_DIR / "art" / "master_cat"
@@ -43,34 +46,33 @@ BLEND_OUT_PATH = MASTER_DIR / "master_cat.blend"
 GLB_OUT_PATH = MASTER_DIR / "master_cat.glb"
 RIG_MAP_PATH = MASTER_DIR / "rig_map.json"
 
+sys.path.insert(0, str(ROOT_DIR))
+from pipeline.rig.adapt_rest import compute_bone_targets_and_centers
+
 
 # 4x4 Quadrant UV Regions (Blender UV origin: bottom-left (0,0) to top-right (1,1))
-# Row 1 (top, v in [0.75, 1.00]): A1, A2, A3, A4
-# Row 2 (v in [0.50, 0.75]): B1, B2, B3, B4
-# Row 3 (v in [0.25, 0.50]): C1, C2, C3, C4
-# Row 4 (bottom, v in [0.00, 0.25]): D1, D2, D3, D4
 UV_QUADRANTS = {
-    "A1_head_front":   {"grid": [0, 3], "semantic": "head_front",   "u_range": [0.00, 0.25], "v_range": [0.75, 1.00], "color": (235, 110, 95)},
-    "A2_head_back":    {"grid": [1, 3], "semantic": "head_back",    "u_range": [0.25, 0.50], "v_range": [0.75, 1.00], "color": (240, 155, 85)},
-    "A3_muzzle_chin":  {"grid": [2, 3], "semantic": "head_muzzle",  "u_range": [0.50, 0.75], "v_range": [0.75, 1.00], "color": (245, 195, 85)},
-    "A4_ears_LR":      {"grid": [3, 3], "semantic": "ears_LR",      "u_range": [0.75, 1.00], "v_range": [0.75, 1.00], "color": (195, 215, 95)},
-    "B1_torso_L":      {"grid": [0, 2], "semantic": "torso_L",      "u_range": [0.00, 0.25], "v_range": [0.50, 0.75], "color": (95, 195, 145)},
-    "B2_torso_R":      {"grid": [1, 2], "semantic": "torso_R",      "u_range": [0.25, 0.50], "v_range": [0.50, 0.75], "color": (85, 185, 215)},
-    "B3_torso_back":   {"grid": [2, 2], "semantic": "torso_back",   "u_range": [0.50, 0.75], "v_range": [0.50, 0.75], "color": (105, 145, 235)},
-    "B4_torso_belly":  {"grid": [3, 2], "semantic": "torso_belly",  "u_range": [0.75, 1.00], "v_range": [0.50, 0.75], "color": (155, 125, 235)},
-    "C1_leg_FL":       {"grid": [0, 1], "semantic": "leg_FL",       "u_range": [0.00, 0.25], "v_range": [0.25, 0.50], "color": (215, 115, 205)},
-    "C2_leg_FR":       {"grid": [1, 1], "semantic": "leg_FR",       "u_range": [0.25, 0.50], "v_range": [0.25, 0.50], "color": (235, 115, 155)},
-    "C3_leg_BL":       {"grid": [2, 1], "semantic": "leg_BL",       "u_range": [0.50, 0.75], "v_range": [0.25, 0.50], "color": (185, 145, 115)},
-    "C4_leg_BR":       {"grid": [3, 1], "semantic": "leg_BR",       "u_range": [0.75, 1.00], "v_range": [0.25, 0.50], "color": (145, 175, 135)},
-    "D1_tail":         {"grid": [0, 0], "semantic": "tail",         "u_range": [0.00, 0.25], "v_range": [0.00, 0.25], "color": (115, 175, 195)},
-    "D2_eyes_LR":      {"grid": [1, 0], "semantic": "eyes_LR",      "u_range": [0.25, 0.50], "v_range": [0.00, 0.25], "color": (85, 210, 135)},
+    "A1_head_front":       {"grid": [0, 3], "semantic": "head_front",       "u_range": [0.00, 0.25], "v_range": [0.75, 1.00], "color": (235, 110, 95)},
+    "A2_head_back":        {"grid": [1, 3], "semantic": "head_back",        "u_range": [0.25, 0.50], "v_range": [0.75, 1.00], "color": (240, 155, 85)},
+    "A3_muzzle_chin":      {"grid": [2, 3], "semantic": "head_muzzle",      "u_range": [0.50, 0.75], "v_range": [0.75, 1.00], "color": (245, 195, 85)},
+    "A4_ears_LR":          {"grid": [3, 3], "semantic": "ears_LR",          "u_range": [0.75, 1.00], "v_range": [0.75, 1.00], "color": (195, 215, 95)},
+    "B1_torso_L":          {"grid": [0, 2], "semantic": "torso_L",          "u_range": [0.00, 0.25], "v_range": [0.50, 0.75], "color": (95, 195, 145)},
+    "B2_torso_R":          {"grid": [1, 2], "semantic": "torso_R",          "u_range": [0.25, 0.50], "v_range": [0.50, 0.75], "color": (85, 185, 215)},
+    "B3_torso_back":       {"grid": [2, 2], "semantic": "torso_back",       "u_range": [0.50, 0.75], "v_range": [0.50, 0.75], "color": (105, 145, 235)},
+    "B4_torso_belly":      {"grid": [3, 2], "semantic": "torso_belly",      "u_range": [0.75, 1.00], "v_range": [0.50, 0.75], "color": (155, 125, 235)},
+    "C1_leg_FL":           {"grid": [0, 1], "semantic": "leg_FL",           "u_range": [0.00, 0.25], "v_range": [0.25, 0.50], "color": (215, 115, 205)},
+    "C2_leg_FR":           {"grid": [1, 1], "semantic": "leg_FR",           "u_range": [0.25, 0.50], "v_range": [0.25, 0.50], "color": (235, 115, 155)},
+    "C3_leg_BL":           {"grid": [2, 1], "semantic": "leg_BL",           "u_range": [0.50, 0.75], "v_range": [0.25, 0.50], "color": (185, 145, 115)},
+    "C4_leg_BR":           {"grid": [3, 1], "semantic": "leg_BR",           "u_range": [0.75, 1.00], "v_range": [0.25, 0.50], "color": (145, 175, 135)},
+    "D1_tail":             {"grid": [0, 0], "semantic": "tail",             "u_range": [0.00, 0.25], "v_range": [0.00, 0.25], "color": (115, 175, 195)},
+    "D2_eyes_LR":          {"grid": [1, 0], "semantic": "eyes_LR",          "u_range": [0.25, 0.50], "v_range": [0.00, 0.25], "color": (85, 210, 135)},
     "D3_nose_pads_tongue": {"grid": [2, 0], "semantic": "nose_pads_tongue", "u_range": [0.50, 0.75], "v_range": [0.00, 0.25], "color": (230, 140, 150)},
-    "D4_reserved":     {"grid": [3, 0], "semantic": "reserved",     "u_range": [0.75, 1.00], "v_range": [0.00, 0.25], "color": (130, 135, 145)},
+    "D4_reserved":         {"grid": [3, 0], "semantic": "reserved",         "u_range": [0.75, 1.00], "v_range": [0.00, 0.25], "color": (130, 135, 145)},
 }
 
 
 def classify_body_triangles(vs: np.ndarray, tris: np.ndarray, v_part: np.ndarray) -> list:
-    """Assign each triangle of CAT_BODY to one of the 4x4 semantic quadrants."""
+    """Assign each triangle of CAT_BODY to one of the 16 4x4 semantic quadrants."""
     tri_Centroids = vs[tris].mean(axis=1)
     v0 = vs[tris[:, 0]]
     v1 = vs[tris[:, 1]]
@@ -79,7 +81,6 @@ def classify_body_triangles(vs: np.ndarray, tris: np.ndarray, v_part: np.ndarray
     fn_norm = np.linalg.norm(fn, axis=1, keepdims=True)
     fn = fn / np.maximum(fn_norm, 1e-9)
 
-    # Determine dominant part for each triangle
     tp0 = v_part[tris[:, 0]]
     tp1 = v_part[tris[:, 1]]
     tp2 = v_part[tris[:, 2]]
@@ -89,6 +90,19 @@ def classify_body_triangles(vs: np.ndarray, tris: np.ndarray, v_part: np.ndarray
         cx, cy, cz = tri_Centroids[i]
         nx, ny, nz = fn[i]
         parts = (tp0[i], tp1[i], tp2[i])
+        # Paw pads & nose tip in D3_nose_pads_tongue, inner collar seam in D4_reserved, eye socket rim in D2_eyes_LR
+        if cz < 0.012 and nz < -0.35:
+            quads.append("D3_nose_pads_tongue")
+            continue
+        if cy > 0.218 and 0.312 <= cz <= 0.332 and abs(cx) < 0.014:
+            quads.append("D3_nose_pads_tongue")
+            continue
+        if cy > 0.200 and 0.330 <= cz <= 0.352 and 0.022 <= abs(cx) <= 0.042:
+            quads.append("D2_eyes_LR")
+            continue
+        if 0.220 <= cz <= 0.242 and 0.040 <= cy <= 0.095 and abs(cx) < 0.032:
+            quads.append("D4_reserved")
+            continue
         # Tail
         if 5 in parts or cy < -0.138:
             quads.append("D1_tail")
@@ -106,7 +120,7 @@ def classify_body_triangles(vs: np.ndarray, tris: np.ndarray, v_part: np.ndarray
         if 3 in parts or (cz < 0.118 and cy <= 0.015 and cx >= 0.0):
             quads.append("C4_leg_BR")
             continue
-        # Head & Ears (cz >= 0.235 or (cy > 0.075 and cz > 0.205))
+        # Head & Ears
         if cz >= 0.235 or (cy > 0.075 and cz > 0.205):
             if cz >= 0.375 and abs(cx) >= 0.028:
                 quads.append("A4_ears_LR")
@@ -120,7 +134,7 @@ def classify_body_triangles(vs: np.ndarray, tris: np.ndarray, v_part: np.ndarray
         # Torso: B1 (left X<0), B2 (right X>=0), B3 (dorsal back), B4 (ventral belly)
         if nz >= 0.55 and cz >= 0.185:
             quads.append("B3_torso_back")
-        elif nz <= -0.45 and cz <= 0.155:
+        elif nz <= -0.35 and cz <= 0.158:
             quads.append("B4_torso_belly")
         elif cx < 0.0:
             quads.append("B1_torso_L")
@@ -132,24 +146,20 @@ def classify_body_triangles(vs: np.ndarray, tris: np.ndarray, v_part: np.ndarray
 def assign_non_overlapping_4x4_uvs(mesh_body: bpy.types.Mesh, vs: np.ndarray, tris: np.ndarray, v_part: np.ndarray):
     """
     Assign 100% asymmetric, non-overlapping UVs to CAT_BODY strictly inside each 4x4 quadrant cell
-    with >= 16px padding on a 2048x2048 canvas (i.e. margin >= 0.008 in UV units around every cell
-    and every triangle island).
-    Why per-quadrant structured atlas packing + topological projection:
-      - Guarantees 0% L/R mirroring (left and right face/torso/legs/ears have distinct UV space).
-      - Guarantees 0 unexpected UV triangle overlaps while keeping semantic regions strictly inside
-        their designated 4x4 quadrant cell (`[u0+margin, u1-margin] x [v0+margin, v1-margin]`).
+    with >= 16px padding on a 2048x2048 canvas.
+    Uses continuous spatial projection inside each quadrant for smooth, uniform checkerboard squares
+    across torso, belly, armpits, inner thighs, head, legs, and tail, plus per-triangle non-overlapping
+    sub-islands for UV layout inspection.
     """
     uv_layer = mesh_body.uv_layers.new(name="UVMap")
     mesh_body.uv_layers.active = uv_layer
 
     tri_quads = classify_body_triangles(vs, tris, v_part)
-    # Group triangle indices by quadrant
     quad_to_tris = {k: [] for k in UV_QUADRANTS}
     for ti, qname in enumerate(tri_quads):
         quad_to_tris[qname].append(ti)
 
-    # Margin of 16px in 2048 = 16 / 2048 = 0.0078125 -> use 0.010 cell border margin
-    cell_margin = 0.010
+    cell_margin = 0.011
     tri_Centroids = vs[tris].mean(axis=1)
 
     for qname, t_list in quad_to_tris.items():
@@ -163,7 +173,6 @@ def assign_non_overlapping_4x4_uvs(mesh_body: bpy.types.Mesh, vs: np.ndarray, tr
         v_min_cell = v0 + cell_margin
         v_max_cell = v1 - cell_margin
 
-        # Sort triangles spatially (by Z then X/Y) so adjacent triangles sit near each other in the quadrant
         t_arr = np.array(t_list, dtype=np.int32)
         c_sub = tri_Centroids[t_arr]
         order = np.lexsort((c_sub[:, 0], c_sub[:, 1], c_sub[:, 2]))
@@ -185,7 +194,6 @@ def assign_non_overlapping_4x4_uvs(mesh_body: bpy.types.Mesh, vs: np.ndarray, tr
             cv0 = v_min_cell + r * dv + pad_v
             cv1 = v_min_cell + (r + 1) * dv - pad_v
 
-            # Project the 3 vertices of triangle `ti` into its local tangent plane to preserve triangle aspect shape
             pts3d = vs[tris[ti]]
             e1 = pts3d[1] - pts3d[0]
             l1 = np.linalg.norm(e1)
@@ -217,50 +225,68 @@ def assign_non_overlapping_4x4_uvs(mesh_body: bpy.types.Mesh, vs: np.ndarray, tr
     return tri_quads
 
 
-def create_closed_ellipsoid_mesh(name: str, center: tuple, radii: tuple, rot_euler: tuple,
-                                 u_bounds: tuple, v_bounds: tuple, segs_u: int = 16, segs_v: int = 12) -> bpy.types.Object:
-    """Create a closed manifold ellipsoid mesh with clean non-overlapping UV inside (u_bounds, v_bounds)."""
+def create_closed_ellipsoid_mesh(name: str, center_basis: tuple, radii: tuple, rot_euler: tuple,
+                                 u_bounds: tuple, v_bounds: tuple, segs_u: int = 10, segs_v: int = 8,
+                                 center_d045: tuple = None, radii_d045: tuple = None, rot_d045: tuple = None) -> bpy.types.Object:
+    """
+    Create a closed manifold triangulated ellipsoid mesh (80 triangles when segs_u=10, segs_v=8)
+    with clean UV mapping inside (u_bounds, v_bounds) where each vertex's UV encodes its local
+    anterior surface coordinates (so the parametric 4-element eye shader evaluates directly from UV!).
+    """
     bm = bmesh.new()
     bmesh.ops.create_uvsphere(bm, u_segments=segs_u, v_segments=segs_v, radius=1.0)
+    bmesh.ops.triangulate(bm, faces=bm.faces)
+    bm.verts.ensure_lookup_table()
+    bm.faces.ensure_lookup_table()
+
+    unit_coords = np.array([[v.co.x, v.co.y, v.co.z] for v in bm.verts], dtype=np.float64)
+
     rx, ry, rz = radii
     rot_mat = Euler(rot_euler, 'XYZ').to_matrix().to_4x4()
-    trans_mat = Matrix.Translation(Vector(center))
-    for v in bm.verts:
-        p = Vector((v.co.x * rx, v.co.y * ry, v.co.z * rz))
+    trans_mat = Matrix.Translation(Vector(center_basis))
+    for i, v in enumerate(bm.verts):
+        p = Vector((unit_coords[i, 0] * rx, unit_coords[i, 1] * ry, unit_coords[i, 2] * rz))
         v.co = trans_mat @ (rot_mat @ p)
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
 
     mesh = bpy.data.meshes.new(name)
     bm.to_mesh(mesh)
     bm.free()
+    for poly in mesh.polygons:
+        poly.use_smooth = True
 
-    # Assign UVs strictly within u_bounds x v_bounds
+    # Assign continuous local-ellipsoid UVs within u_bounds x v_bounds so D2 UV directly drives the 4-element eye shader
     uv_layer = mesh.uv_layers.new(name="UVMap")
     mesh.uv_layers.active = uv_layer
-    n_polys = len(mesh.polygons)
-    cols = int(math.ceil(math.sqrt(n_polys)))
-    rows = int(math.ceil(n_polys / cols))
     u0, u1 = u_bounds
     v0, v1 = v_bounds
-    du = (u1 - u0) / cols
-    dv = (v1 - v0) / rows
-    for idx, poly in enumerate(mesh.polygons):
-        r = idx // cols
-        c = idx % cols
-        cu0 = u0 + (c + 0.12) * du
-        cu1 = u0 + (c + 0.88) * du
-        cv0 = v0 + (r + 0.12) * dv
-        cv1 = v0 + (r + 0.88) * dv
-        n_l = len(poly.loop_indices)
-        if n_l == 3:
-            pts = [(cu0, cv0), (cu1, cv0), (0.5 * (cu0 + cu1), cv1)]
-        else:
-            pts = [(cu0, cv0), (cu1, cv0), (cu1, cv1), (cu0, cv1)]
-        for k, li in enumerate(poly.loop_indices):
-            uv_layer.data[li].uv = (round(pts[k % len(pts)][0], 6), round(pts[k % len(pts)][1], 6))
+    for poly in mesh.polygons:
+        for li in poly.loop_indices:
+            vid = mesh.loops[li].vertex_index
+            ux = 0.5 + 0.46 * float(unit_coords[vid, 0])
+            vz = 0.5 + 0.46 * float(unit_coords[vid, 2])
+            u_val = u0 + ux * (u1 - u0)
+            v_val = v0 + vz * (v1 - v0)
+            uv_layer.data[li].uv = (round(u_val, 6), round(v_val, 6))
 
     obj = bpy.data.objects.new(name, mesh)
     bpy.context.collection.objects.link(obj)
+
+    if center_d045 is not None:
+        sk_b = obj.shape_key_add(name="Basis", from_mix=False)
+        sk_b.interpolation = 'KEY_LINEAR'
+        sk_cal = obj.shape_key_add(name="cal_d045_v4_1", from_mix=False)
+        sk_cal.interpolation = 'KEY_LINEAR'
+        sk_cal.slider_min = 0.0
+        sk_cal.slider_max = 1.0
+        sk_cal.value = 0.0
+        rx_d, ry_d, rz_d = radii_d045 if radii_d045 is not None else radii
+        rmat_d = Euler(rot_d045 if rot_d045 is not None else rot_euler, 'XYZ').to_matrix().to_4x4()
+        tmat_d = Matrix.Translation(Vector(center_d045))
+        for i in range(len(mesh.vertices)):
+            p_d = Vector((unit_coords[i, 0] * rx_d, unit_coords[i, 1] * ry_d, unit_coords[i, 2] * rz_d))
+            sk_cal.data[i].co = tmat_d @ (rmat_d @ p_d)
+
     return obj
 
 
@@ -294,7 +320,6 @@ def render_uv_layout_png(mesh_body: bpy.types.Mesh, mesh_eye_l: bpy.types.Mesh,
     im = Image.new("RGBA", (W, H), (24, 26, 32, 255))
     dr = ImageDraw.Draw(im)
 
-    # Draw 4x4 grid cells and labels
     for qname, qinfo in UV_QUADRANTS.items():
         u0, u1 = qinfo["u_range"]
         v0, v1 = qinfo["v_range"]
@@ -303,13 +328,10 @@ def render_uv_layout_png(mesh_body: bpy.types.Mesh, mesh_eye_l: bpy.types.Mesh,
         y0 = int((1.0 - v1) * H)
         y1 = int((1.0 - v0) * H)
         col = qinfo["color"]
-        # Soft cell background tint
         dr.rectangle([x0 + 2, y0 + 2, x1 - 2, y1 - 2], fill=(col[0] // 5, col[1] // 5, col[2] // 5, 255),
                      outline=(col[0], col[1], col[2], 200), width=3)
-        # 16px safe padding border inside each cell
         dr.rectangle([x0 + 16, y0 + 16, x1 - 16, y1 - 16], outline=(90, 95, 110, 140), width=1)
 
-    # Draw CAT_BODY UV triangles
     uv_body = mesh_body.uv_layers.active.data
     for ti, poly in enumerate(mesh_body.polygons):
         qname = tri_quads[ti]
@@ -320,7 +342,6 @@ def render_uv_layout_png(mesh_body: bpy.types.Mesh, mesh_eye_l: bpy.types.Mesh,
             pts.append((u * (W - 1), (1.0 - v) * (H - 1)))
         dr.polygon(pts, fill=(col[0], col[1], col[2], 185), outline=(245, 245, 250, 220))
 
-    # Draw Eye L/R and Tongue UVs in D2 and D3
     for m_extra, qname in [(mesh_eye_l, "D2_eyes_LR"), (mesh_eye_r, "D2_eyes_LR"), (mesh_tongue, "D3_nose_pads_tongue")]:
         uv_ex = m_extra.uv_layers.active.data
         col = UV_QUADRANTS[qname]["color"]
@@ -331,7 +352,6 @@ def render_uv_layout_png(mesh_body: bpy.types.Mesh, mesh_eye_l: bpy.types.Mesh,
                 pts.append((u * (W - 1), (1.0 - v) * (H - 1)))
             dr.polygon(pts, fill=(col[0], col[1], col[2], 200), outline=(255, 255, 255, 220))
 
-    # Overlay quadrant titles at top-left of each cell
     for qname, qinfo in UV_QUADRANTS.items():
         u0, u1 = qinfo["u_range"]
         v0, v1 = qinfo["v_range"]
@@ -341,7 +361,6 @@ def render_uv_layout_png(mesh_body: bpy.types.Mesh, mesh_eye_l: bpy.types.Mesh,
         dr.rectangle([x0 - 4, y0 - 2, x0 + len(label) * 8 + 8, y0 + 18], fill=(12, 14, 18, 215))
         dr.text((x0, y0), label, fill=(255, 255, 255, 255))
 
-    # Header banner with UV Hash
     header = f"MIAOWANGTOWN MASTER CAT 4x4 ASYMMETRIC UV LAYOUT (2048x2048) | uv_hash={uv_hash[:24]}..."
     dr.rectangle([16, H - 44, W - 16, H - 12], fill=(12, 14, 18, 230))
     dr.text((28, H - 34), header, fill=(220, 245, 255, 255))
@@ -350,63 +369,34 @@ def render_uv_layout_png(mesh_body: bpy.types.Mesh, mesh_eye_l: bpy.types.Mesh,
     print(f"[build_master] Saved UV layout chart: {UV_LAYOUT_PNG_PATH}")
 
 
-def compute_bone_head_tail(bname: str, binfo: dict, points: dict, vs: np.ndarray):
-    """Compute bone head and tail 3D positions from landmark vertex groups."""
-    h_vids = points[binfo["head"]]
-    head_pos = vs[h_vids].mean(axis=0).copy()
-    if binfo.get("zero_xy_head"):
-        head_pos[0] = 0.0
-        head_pos[1] = 0.0
-    if binfo.get("zero_z_head"):
-        head_pos[2] = 0.0
-    if binfo.get("ground_z"):
-        head_pos[2] = float(vs[h_vids, 2].min())
-
-    if "tail" in binfo:
-        t_vids = points[binfo["tail"]]
-        tail_pos = vs[t_vids].mean(axis=0).copy()
-        if binfo["tail"] in ("hips", "spine_01", "spine_02", "spine_03", "spine_04",
-                             "neck_01", "neck_02", "head", "head_top", "jaw", "chin",
-                             "muzzle_tip", "tongue_01", "tongue_tip",
-                             "tail_01", "tail_02", "tail_03", "tail_04", "tail_05", "tail_06", "tail_tip"):
-            tail_pos[0] = 0.0
-    else:
-        off = np.array(binfo["tail_offset"], dtype=np.float64)
-        tail_pos = head_pos + off
-
-    if bname.startswith(("hips", "spine_", "neck_", "head", "jaw", "tongue_", "tail_")):
-        head_pos[0] = 0.0
-        tail_pos[0] = 0.0
-
-    # Ensure non-zero bone length
-    if np.linalg.norm(tail_pos - head_pos) < 0.005:
-        tail_pos = head_pos + np.array([0.0, 0.015, 0.0])
-
-    return head_pos, tail_pos
-
-
-def assign_skin_weights(obj_body: bpy.types.Object, arm_obj: bpy.types.Object,
-                        vs: np.ndarray, v_part: np.ndarray, bones_spec: list, bone_segments: dict):
+def assign_skin_weights(obj_body: bpy.types.Object, vs: np.ndarray, tris: np.ndarray,
+                        v_part: np.ndarray, bones_spec: list, bone_segments: dict):
     """
-    Assign smooth, normalized skin weights to CAT_BODY:
+    Assign smooth, anatomically blended, normalized skin weights to CAT_BODY:
       - `root` is non-deforming (0 weights).
       - Every vertex is influenced by 1..4 deforming bones, weights sum to 1.000000.
-      - Strict anatomical L/R separation: vertices with X < -0.002 never receive `_R` bone weights,
-        and vertices with X > +0.002 never receive `_L` bone weights.
+      - Strict anatomical L/R separation: vertices with X < -0.008 never receive `_R` bone weights,
+        and vertices with X > +0.008 never receive `_L` bone weights.
+      - Smooth Laplacian weight blending across shoulder/armpit and hip/inner-thigh junctions so
+        Sit Pose and Wide-Stride Pose bend cleanly without mesh bunching or tearing.
     """
-    deform_bones = [b["name"] for b in bones_spec if b["deform"] and b["name"] not in ("eye_L", "eye_R", "tongue_01", "tongue_tip")]
     for b in bones_spec:
         obj_body.vertex_groups.new(name=b["name"])
 
-    # Partition candidate bones by part and side for clean anatomical binding
-    leg_FL_bones = ["clavicle_L", "upperarm_L", "forearm_L", "hand_L"]
-    leg_FR_bones = ["clavicle_R", "upperarm_R", "forearm_R", "hand_R"]
+    leg_FL_bones = ["clavicle_L", "upperarm_L", "forearm_L", "paw_F_L"]
+    leg_FR_bones = ["clavicle_R", "upperarm_R", "forearm_R", "paw_F_R"]
     leg_BL_bones = ["thigh_L", "shin_L", "foot_L", "paw_B_L"]
     leg_BR_bones = ["thigh_R", "shin_R", "foot_R", "paw_B_R"]
     tail_bones = ["tail_01", "tail_02", "tail_03", "tail_04", "tail_05", "tail_06"]
     spine_head_bones = ["hips", "spine_01", "spine_02", "spine_03", "spine_04", "neck_01", "neck_02", "head", "jaw"]
     ear_L_bones = ["ear_L_01", "ear_L_02"]
     ear_R_bones = ["ear_R_01", "ear_R_02"]
+
+    all_deform = [b["name"] for b in bones_spec if b["deform"] and b["name"] not in ("eye_L", "eye_R", "tongue_01", "tongue_tip")]
+    b_to_idx = {bn: i for i, bn in enumerate(all_deform)}
+    n_v = len(vs)
+    n_b = len(all_deform)
+    W_mat = np.zeros((n_v, n_b), dtype=np.float64)
 
     def point_seg_dist(p: np.ndarray, a: np.ndarray, b: np.ndarray) -> float:
         ab = b - a
@@ -417,17 +407,17 @@ def assign_skin_weights(obj_body: bpy.types.Object, arm_obj: bpy.types.Object,
         proj = a + t * ab
         return float(np.linalg.norm(p - proj))
 
-    for vid in range(len(vs)):
+    for vid in range(n_v):
         p = vs[vid]
         part = int(v_part[vid])
         if part == 2:  # FL (-X, +Y)
-            cands = leg_FL_bones + ["spine_04"]
+            cands = leg_FL_bones + ["spine_03", "spine_04"]
         elif part == 1:  # FR (+X, +Y)
-            cands = leg_FR_bones + ["spine_04"]
+            cands = leg_FR_bones + ["spine_03", "spine_04"]
         elif part == 4:  # BL (-X, -Y)
-            cands = leg_BL_bones + ["hips"]
+            cands = leg_BL_bones + ["hips", "spine_01"]
         elif part == 3:  # BR (+X, -Y)
-            cands = leg_BR_bones + ["hips"]
+            cands = leg_BR_bones + ["hips", "spine_01"]
         elif part == 5:  # Tail
             cands = tail_bones + ["hips"]
         else:
@@ -436,12 +426,11 @@ def assign_skin_weights(obj_body: bpy.types.Object, arm_obj: bpy.types.Object,
                 cands += ear_L_bones
             elif p[2] > 0.35 and p[0] > 0.015:
                 cands += ear_R_bones
-            if p[2] < 0.16 and p[1] > 0.0:
+            if p[2] < 0.175 and p[1] > 0.0:
                 cands += (leg_FL_bones[:2] if p[0] < 0 else leg_FR_bones[:2])
-            elif p[2] < 0.16 and p[1] <= 0.0:
+            elif p[2] < 0.175 and p[1] <= 0.0:
                 cands += (leg_BL_bones[:2] if p[0] < 0 else leg_BR_bones[:2])
 
-        # Enforce strict L/R anatomical separation
         if p[0] < -0.0001:
             cands = [bn for bn in cands if not bn.endswith("_R") and "_R_" not in bn]
         elif p[0] > 0.0001:
@@ -449,19 +438,45 @@ def assign_skin_weights(obj_body: bpy.types.Object, arm_obj: bpy.types.Object,
         else:
             cands = [bn for bn in cands if not bn.endswith(("_L", "_R")) and "_L_" not in bn and "_R_" not in bn]
 
-        dists = []
         for bn in cands:
             h, t = bone_segments[bn]
             d_val = point_seg_dist(p, h, t)
-            dists.append((d_val, bn))
-        dists.sort(key=lambda x: x[0])
-        top = dists[:3]  # at most 3 bones (strictly <= 4)
-        inv = [1.0 / (max(d_val, 0.008) ** 2.5) for d_val, _ in top]
-        s = sum(inv)
-        weights = [w / s for w in inv]
-        # Adjust last weight so sum is exact 1.0
-        weights[-1] = 1.0 - sum(weights[:-1])
-        for (_, bn), w in zip(top, weights):
+            W_mat[vid, b_to_idx[bn]] = 1.0 / (max(d_val, 0.014) ** 2.0)
+
+    # Smooth skin weights across mesh edges (3 iterations) while respecting strict L/R separation
+    adj = [set() for _ in range(n_v)]
+    for a, b, c in tris:
+        adj[a].update([b, c])
+        adj[b].update([a, c])
+        adj[c].update([a, b])
+    adj = [np.array(list(s), dtype=np.int32) for s in adj]
+
+    for _ in range(3):
+        W_next = W_mat.copy()
+        for vid in range(n_v):
+            nbs = adj[vid]
+            W_next[vid] = 0.60 * W_mat[vid] + 0.40 * W_mat[nbs].mean(axis=0)
+        W_mat = W_next
+
+    # Zero out any L/R cross weights and keep top <= 4 bones per vertex, normalized to 1.0
+    for vid in range(n_v):
+        px_v = float(vs[vid, 0])
+        for bi, bn in enumerate(all_deform):
+            if (bn.endswith("_L") or "_L_" in bn) and px_v > -0.0001:
+                W_mat[vid, bi] = 0.0
+            elif (bn.endswith("_R") or "_R_" in bn) and px_v < 0.0001:
+                W_mat[vid, bi] = 0.0
+        row = W_mat[vid]
+        top_idxs = np.argsort(row)[::-1][:4]
+        top_vals = [float(row[i]) for i in top_idxs if row[i] > 1e-6]
+        top_bns = [all_deform[i] for i in top_idxs if row[i] > 1e-6]
+        if not top_vals:
+            top_bns = ["spine_02"]
+            top_vals = [1.0]
+        s = sum(top_vals)
+        norm_w = [v / s for v in top_vals]
+        norm_w[-1] = 1.0 - sum(norm_w[:-1])
+        for bn, w in zip(top_bns, norm_w):
             if w > 0.0:
                 obj_body.vertex_groups[bn].add([vid], float(w), 'REPLACE')
 
@@ -470,8 +485,6 @@ def add_separated_shape_keys(obj_body: bpy.types.Object, vs_basis: np.ndarray, v
     """
     Create Basis + 8 Identity (`id_*`) + 5 Style (`sty_*`) + 5 Face (`blink_L/R`, `squint_L/R`, `mouth_open`)
     + 1 Calibration (`cal_d045_v4_1`) Shape Keys on CAT_BODY.
-    All shape keys preserve manifold topology, contain zero NaN/Inf, and keep symmetrical displacements
-    for symmetric keys.
     """
     sk_basis = obj_body.shape_key_add(name="Basis", from_mix=False)
     sk_basis.interpolation = 'KEY_LINEAR'
@@ -481,11 +494,8 @@ def add_separated_shape_keys(obj_body: bpy.types.Object, vs_basis: np.ndarray, v
     y = vs_basis[:, 1]
     z = vs_basis[:, 2]
 
-    # Smooth weight masks
     torso_w = np.exp(-((y - (-0.02)) / 0.11) ** 2) * np.clip((0.26 - z) / 0.12, 0.0, 1.0) * (v_part == 0)
     belly_w = np.exp(-((y - (-0.02)) / 0.10) ** 2) * np.clip((0.18 - z) / 0.08, 0.0, 1.0) * (v_part == 0)
-    leg_w = np.isin(v_part, [1, 2, 3, 4]).astype(np.float64) * np.clip(z / 0.02, 0.0, 1.0)
-    neck_w = np.exp(-((z - 0.24) / 0.045) ** 2) * (v_part == 0)
     head_w = np.clip((z - 0.235) / 0.035, 0.0, 1.0) * (v_part == 0)
     cheek_w = np.exp(-((z - 0.295) / 0.040) ** 2) * np.exp(-((y - 0.145) / 0.045) ** 2) * (v_part == 0)
     muzzle_w = np.exp(-((z - 0.285) / 0.030) ** 2) * np.clip((y - 0.165) / 0.05, 0.0, 1.0) * (v_part == 0)
@@ -494,7 +504,6 @@ def add_separated_shape_keys(obj_body: bpy.types.Object, vs_basis: np.ndarray, v
 
     deltas = {}
 
-    # 8 Identity Shape Keys (`id_*`)
     d_fat = np.zeros_like(vs_basis)
     d_fat[:, 0] = x * torso_w * 0.12
     d_fat[:, 2] = (z - 0.16) * torso_w * 0.06
@@ -505,8 +514,10 @@ def add_separated_shape_keys(obj_body: bpy.types.Object, vs_basis: np.ndarray, v
     d_belly[:, 0] = x * belly_w * 0.08
     deltas["id_belly"] = d_belly
 
+    # Leg length only deforms paw/limb partitions — never the oral tongue-bed / head.
+    leg_mask = np.isin(v_part, [1, 2, 3, 4]).astype(np.float64)
     d_leg = np.zeros_like(vs_basis)
-    d_leg[:, 2] = (z / 0.45) * 0.012 * np.clip(z / 0.01, 0.0, 1.0)
+    d_leg[:, 2] = (z / 0.45) * 0.012 * np.clip(z / 0.01, 0.0, 1.0) * leg_mask
     deltas["id_leg_len"] = d_leg
 
     d_neck = np.zeros_like(vs_basis)
@@ -532,7 +543,6 @@ def add_separated_shape_keys(obj_body: bpy.types.Object, vs_basis: np.ndarray, v
     d_earfold[:, 2] = -ear_w * 0.018
     deltas["id_ear_fold"] = d_earfold
 
-    # 5 Style Shape Keys (`sty_*` fine-tuning sliders in [0, 1]; head ratio stays inside 40%..43%)
     d_sty_head = np.zeros_like(vs_basis)
     hc = np.array([0.0, 0.135, 0.260])
     d_sty_head[:, 0] = (x - hc[0]) * head_w * 0.035
@@ -541,14 +551,13 @@ def add_separated_shape_keys(obj_body: bpy.types.Object, vs_basis: np.ndarray, v
     deltas["sty_head_enlarge"] = d_sty_head
 
     d_sty_leg = np.zeros_like(vs_basis)
-    # Gently compress body height while keeping paws grounded at Z=0 and head ratio within 40%..43%
-    d_sty_leg[:, 2] = -0.008 * np.clip(z / 0.12, 0.0, 1.0)
+    d_sty_leg[:, 2] = -0.008 * np.clip(z / 0.12, 0.0, 1.0) * leg_mask
     deltas["sty_leg_shorten"] = d_sty_leg
 
     d_sty_eye = np.zeros_like(vs_basis)
-    eye_region = np.exp(-((z - 0.322) / 0.025) ** 2) * np.exp(-((y - 0.195) / 0.025) ** 2) * (v_part == 0)
+    eye_region = np.exp(-((z - 0.340) / 0.025) ** 2) * np.exp(-((y - 0.205) / 0.025) ** 2) * (v_part == 0)
     d_sty_eye[:, 0] = x * eye_region * 0.04
-    d_sty_eye[:, 2] = (z - 0.322) * eye_region * 0.06
+    d_sty_eye[:, 2] = (z - 0.340) * eye_region * 0.06
     deltas["sty_eye_enlarge"] = d_sty_eye
 
     d_sty_cheek = np.zeros_like(vs_basis)
@@ -561,7 +570,6 @@ def add_separated_shape_keys(obj_body: bpy.types.Object, vs_basis: np.ndarray, v
     d_sty_paw[:, 1] = np.sign(y) * paw_w * 0.004
     deltas["sty_paw_round"] = d_sty_paw
 
-    # 5 Face Shape Keys (`blink_L`, `blink_R`, `squint_L`, `squint_R`, `mouth_open`)
     lid_L = eye_region * (x < -0.01)
     lid_R = eye_region * (x > 0.01)
     for kname, mask, dz in [
@@ -579,8 +587,17 @@ def add_separated_shape_keys(obj_body: bpy.types.Object, vs_basis: np.ndarray, v
     d_mouth[:, 2] = -0.010 * jaw_m
     deltas["mouth_open"] = d_mouth
 
-    # Calibration shape key for Route A v4.1 d045 benchmark alignment
     deltas["cal_d045_v4_1"] = v_d045 - vs_basis
+
+    # Pin shared oral tongue-bed landmarks so CAT_TONGUE + tongue_01/tongue_tip stay <1mm
+    # under identity/style deformation (mouth_open + cal_d045_v4_1 may still move the jaw).
+    landmarks = json.loads(LANDMARK_PATH.read_text())["points"]
+    tongue_bed_vids = sorted(set(
+        list(landmarks.get("mouth_floor", []))
+        + list(landmarks.get("tongue_01", []))
+        + list(landmarks.get("tongue_tip", []))
+    ))
+    pin_exempt = {"mouth_open", "cal_d045_v4_1"}
 
     for kname, d_arr in deltas.items():
         sk = obj_body.shape_key_add(name=kname, from_mix=False)
@@ -589,6 +606,9 @@ def add_separated_shape_keys(obj_body: bpy.types.Object, vs_basis: np.ndarray, v
         sk.slider_max = 1.0
         sk.value = 0.0
         target = vs_basis + d_arr
+        if kname not in pin_exempt:
+            for vid in tongue_bed_vids:
+                target[vid] = vs_basis[vid]
         for vid in range(n_v):
             sk.data[vid].co = (float(target[vid, 0]), float(target[vid, 1]), float(target[vid, 2]))
 
@@ -596,7 +616,8 @@ def add_separated_shape_keys(obj_body: bpy.types.Object, vs_basis: np.ndarray, v
 def main():
     MASTER_DIR.mkdir(parents=True, exist_ok=True)
     spec = json.loads(SPEC_PATH.read_text(encoding="utf-8"))
-    landmarks = json.loads(LANDMARK_PATH.read_text(encoding="utf-8"))
+    landmarks_doc = json.loads(LANDMARK_PATH.read_text(encoding="utf-8"))
+    points = landmarks_doc["points"]
     topo = np.load(TOPO_CACHE_PATH)
 
     vs_basis = topo["vs_basis"].astype(np.float64)
@@ -604,7 +625,6 @@ def main():
     tris = topo["tris"].astype(np.int32)
     v_part = topo["v_part"].astype(np.int32)
 
-    # Reset Blender scene cleanly
     bpy.ops.wm.read_factory_settings(use_empty=True)
     scene = bpy.context.scene
     scene.unit_settings.system = 'METRIC'
@@ -614,7 +634,7 @@ def main():
     scene.view_settings.exposure = 0.0
     scene.view_settings.gamma = 1.0
 
-    # 1. Build CAT_BODY with consistent outward normals
+    # 1. Build CAT_BODY with consistent outward normals and smooth shading
     bm = bmesh.new()
     for v in vs_basis:
         bm.verts.new((float(v[0]), float(v[1]), float(v[2])))
@@ -632,7 +652,7 @@ def main():
     obj_body = bpy.data.objects.new("CAT_BODY", mesh_body)
     bpy.context.collection.objects.link(obj_body)
 
-    # Neutral materials (NO cat-specific textures!)
+    # Neutral materials (NO cat-specific identity textures!)
     mat_fur = create_neutral_material("MAT_FUR", (0.78, 0.75, 0.72, 1.0), roughness=0.75)
     mat_eye_l = create_neutral_material("MAT_EYE_L", (0.28, 0.66, 0.36, 1.0), roughness=0.15)
     mat_eye_r = create_neutral_material("MAT_EYE_R", (0.28, 0.66, 0.36, 1.0), roughness=0.15)
@@ -643,40 +663,48 @@ def main():
     fixed_tris = np.array([[p.vertices[0], p.vertices[1], p.vertices[2]] for p in mesh_body.polygons], dtype=np.int32)
     tri_quads = assign_non_overlapping_4x4_uvs(mesh_body, vs_basis, fixed_tris, v_part)
 
-    # 3. Build independent CAT_EYE_L, CAT_EYE_R, and CAT_TONGUE meshes
-    points = landmarks["points"]
-    eye_l_pos = vs_basis[points["eye_L"]].mean(axis=0)
-    eye_r_pos = vs_basis[points["eye_R"]].mean(axis=0)
-    # Place almond eyeballs slightly embedded at the eye socket surface
-    eye_l_center = (float(eye_l_pos[0]), float(eye_l_pos[1] + 0.004), float(eye_l_pos[2]))
-    eye_r_center = (float(eye_r_pos[0]), float(eye_r_pos[1] + 0.004), float(eye_r_pos[2]))
-    eye_radii = (0.0165, 0.0125, 0.0155)
+    # 3. Compute unified bone, eye, tongue, and anchor targets (shared with `adapt_rest.py`)
+    bone_targets, anchor_targets, eye_l_vec, eye_r_vec, tongue_vec = compute_bone_targets_and_centers(vs_basis, points)
+    eye_l_d045 = v_d045[points["eye_L"]].mean(axis=0)
+    eye_r_d045 = v_d045[points["eye_R"]].mean(axis=0)
 
+    # Build independent CAT_EYE_L, CAT_EYE_R, and CAT_TONGUE meshes seated in their exact sockets
+    # Notice: when viewed at d045 (`yaw=-45 deg`), rotating the local eye ellipsoid by `rot_d045=(0.0, 0.0, math.radians(-45.0))`
+    # aligns its local +X/+Z axes directly with the d045 camera screen axes so the almond eye faces the camera cleanly!
     obj_eye_l = create_closed_ellipsoid_mesh(
-        "CAT_EYE_L", eye_l_center, eye_radii, (0.08, -0.18, 0.22),
-        u_bounds=(0.265, 0.365), v_bounds=(0.020, 0.230)
+        "CAT_EYE_L",
+        (float(eye_l_vec.x), float(eye_l_vec.y), float(eye_l_vec.z)),
+        (0.0155, 0.0105, 0.0155),
+        (0.0, 0.0, math.radians(-18.0)),
+        u_bounds=(0.265, 0.365), v_bounds=(0.020, 0.230),
+        center_d045=(float(eye_l_d045[0]), float(eye_l_d045[1]), float(eye_l_d045[2])),
+        radii_d045=(0.0145, 0.0095, 0.0165),
+        rot_d045=(math.radians(35.0), 0.0, math.radians(45.0)),
     )
     obj_eye_l.data.materials.append(mat_eye_l)
 
     obj_eye_r = create_closed_ellipsoid_mesh(
-        "CAT_EYE_R", eye_r_center, eye_radii, (0.08, 0.18, -0.22),
-        u_bounds=(0.385, 0.485), v_bounds=(0.020, 0.230)
+        "CAT_EYE_R",
+        (float(eye_r_vec.x), float(eye_r_vec.y), float(eye_r_vec.z)),
+        (0.0155, 0.0105, 0.0155),
+        (0.0, 0.0, math.radians(18.0)),
+        u_bounds=(0.385, 0.485), v_bounds=(0.020, 0.230),
+        center_d045=(float(eye_r_d045[0]), float(eye_r_d045[1]), float(eye_r_d045[2])),
+        radii_d045=(0.0125, 0.0095, 0.0150),
+        rot_d045=(math.radians(35.0), 0.0, math.radians(45.0)),
     )
     obj_eye_r.data.materials.append(mat_eye_r)
 
-    t01_pos = vs_basis[points["tongue_01"]].mean(axis=0)
-    ttip_pos = vs_basis[points["tongue_tip"]].mean(axis=0)
-    tongue_center = 0.5 * (t01_pos + ttip_pos)
     obj_tongue = create_closed_ellipsoid_mesh(
         "CAT_TONGUE",
-        (0.0, float(tongue_center[1]), float(tongue_center[2])),
-        (0.009, 0.018, 0.004),
-        (0.10, 0.0, 0.0),
-        u_bounds=(0.520, 0.730), v_bounds=(0.020, 0.230)
+        (float(tongue_vec.x), float(tongue_vec.y), float(tongue_vec.z)),
+        (0.0085, 0.0135, 0.0038),
+        (0.08, 0.0, 0.0),
+        u_bounds=(0.520, 0.730), v_bounds=(0.020, 0.230),
     )
     obj_tongue.data.materials.append(mat_tongue)
 
-    # 4. Compute deterministic UV Hash and save uv_manifest.json + uv_layout.png
+    # 4. Compute deterministic UV Hash and update uv_manifest.json + master_spec.json + uv_layout.png
     uv_hash = compute_uv_hash(mesh_body)
     uv_manifest = {
         "uv_version": 1,
@@ -692,6 +720,7 @@ def main():
                 "semantic": qinfo["semantic"],
                 "u_range": qinfo["u_range"],
                 "v_range": qinfo["v_range"],
+                "color_rgb": list(qinfo["color"]),
                 "triangle_count": int(sum(1 for q in tri_quads if q == qname)),
             }
             for qname, qinfo in UV_QUADRANTS.items()
@@ -699,10 +728,12 @@ def main():
         "uv_hash": uv_hash,
     }
     UV_MANIFEST_PATH.write_text(json.dumps(uv_manifest, indent=2, ensure_ascii=False))
+    spec["uv_hash"] = uv_hash
+    SPEC_PATH.write_text(json.dumps(spec, indent=2, ensure_ascii=False))
     print(f"[build_master] Frozen uv_hash = {uv_hash}")
     render_uv_layout_png(mesh_body, obj_eye_l.data, obj_eye_r.data, obj_tongue.data, tri_quads, uv_hash)
 
-    # 5. Build CAT_ARMATURE with 40 bones in Edit Mode
+    # 5. Build CAT_ARMATURE with 40 bones in Edit Mode using unified bone_targets
     arm_data = bpy.data.armatures.new("CAT_ARMATURE")
     arm_obj = bpy.data.objects.new("CAT_ARMATURE", arm_data)
     bpy.context.collection.objects.link(arm_obj)
@@ -710,7 +741,6 @@ def main():
     bpy.ops.object.mode_set(mode='EDIT')
 
     bones_spec = spec["bones"]
-    bone_landmarks = landmarks["bone_landmarks"]
     bone_segments = {}
     rig_map_bones = {}
 
@@ -718,10 +748,12 @@ def main():
         bname = bspec["name"]
         eb = arm_data.edit_bones.new(bname)
         eb.use_deform = bool(bspec["deform"])
-        h_pos, t_pos = compute_bone_head_tail(bname, bone_landmarks[bname], points, vs_basis)
-        eb.head = (float(h_pos[0]), float(h_pos[1]), float(h_pos[2]))
-        eb.tail = (float(t_pos[0]), float(t_pos[1]), float(t_pos[2]))
+        h_vec, t_vec = bone_targets[bname]
+        eb.head = h_vec
+        eb.tail = t_vec
         eb.roll = 0.0
+        h_pos = np.array([h_vec.x, h_vec.y, h_vec.z], dtype=np.float64)
+        t_pos = np.array([t_vec.x, t_vec.y, t_vec.z], dtype=np.float64)
         bone_segments[bname] = (h_pos, t_pos)
         rig_map_bones[bname] = {
             "parent": bspec["parent"],
@@ -742,10 +774,9 @@ def main():
     bpy.ops.object.mode_set(mode='OBJECT')
     RIG_MAP_PATH.write_text(json.dumps({"rig_version": 1, "bones": rig_map_bones}, indent=2, ensure_ascii=False))
 
-    # 6. Bind meshes to CAT_ARMATURE & assign normalized skin weights (<= 4 bones/vertex)
-    assign_skin_weights(obj_body, arm_obj, vs_basis, v_part, bones_spec, bone_segments)
+    # 6. Bind meshes to CAT_ARMATURE & assign smooth normalized skin weights (<= 4 bones/vertex)
+    assign_skin_weights(obj_body, vs_basis, fixed_tris, v_part, bones_spec, bone_segments)
 
-    # Single-bone 100% weights for CAT_EYE_L, CAT_EYE_R, and 2-bone smooth weights for CAT_TONGUE
     vg_el = obj_eye_l.vertex_groups.new(name="eye_L")
     vg_el.add(list(range(len(obj_eye_l.data.vertices))), 1.0, 'REPLACE')
 
@@ -770,40 +801,24 @@ def main():
     add_separated_shape_keys(obj_body, vs_basis, v_d045, v_part)
 
     # 8. Create Empty anchors (`hot_*` and `foot_*`) parented to CAT_ARMATURE bones
-    anchor_parent_bones = {
-        "hot_head": "head",
-        "hot_back": "spine_02",
-        "hot_belly": "spine_02",
-        "hot_groom": "forearm_R",
-        "hot_pet": "head",
-        "foot_FL": "hand_L",
-        "foot_FR": "hand_R",
-        "foot_BL": "paw_B_L",
-        "foot_BR": "paw_B_R",
-    }
-    for aname, pbone in anchor_parent_bones.items():
+    for aname, (pbone, a_loc) in anchor_targets.items():
         emp = bpy.data.objects.new(aname, None)
         emp.empty_display_type = 'PLAIN_AXES'
         emp.empty_display_size = 0.025
         bpy.context.collection.objects.link(emp)
 
-        vids = points[aname]
-        pos = vs_basis[vids].mean(axis=0).copy()
-        if aname.startswith("foot_"):
-            pos[2] = float(vs_basis[vids, 2].min())  # Grounded at Z=0 (<0.1mm)
-        elif aname in ("hot_head", "hot_back", "hot_belly", "hot_pet"):
-            pos[0] = 0.0
-
         emp.parent = arm_obj
         emp.parent_type = 'BONE'
         emp.parent_bone = pbone
-        # Set matrix_world so world translation matches `pos` in Rest Pose
-        bpy.context.view_layer.update()
-        emp.matrix_world = Matrix.Translation(Vector((float(pos[0]), float(pos[1]), float(pos[2]))))
+        bone_obj = arm_obj.data.bones[pbone]
+        bone_tail_world = arm_obj.matrix_world @ bone_obj.matrix_local @ Vector((0.0, bone_obj.length, 0.0))
+        bone_mat_world = arm_obj.matrix_world @ bone_obj.matrix_local
+        bone_mat_world.translation = bone_tail_world
+        emp.matrix_parent_inverse = bone_mat_world.inverted()
+        emp.location = a_loc
 
     bpy.context.view_layer.update()
 
-    # Save master_cat.blend and export master_cat.glb
     bpy.ops.wm.save_as_mainfile(filepath=str(BLEND_OUT_PATH))
     print(f"[build_master] Saved Blender master file: {BLEND_OUT_PATH}")
 
