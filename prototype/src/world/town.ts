@@ -23,7 +23,11 @@ import {
   type Material,
   type Texture,
 } from 'three';
-import type { WorldNav } from '../anim/brain';
+export interface WorldNav {
+  walkable(p: Vector3): boolean;
+  heightAt(x: number, z: number): number;
+  randomTarget(from: Vector3): Vector3;
+}
 
 const GROUND = 22;
 

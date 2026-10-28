@@ -38,8 +38,8 @@ import sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
 
-V1_DIR = Path("/workspace/miaowangtown/docs/validation/ab_static_compare")
-V4_DIR = Path("/workspace/miaowangtown/docs/validation/route_a_v4_clean")
+V1_DIR = Path("/workspace/miaowangtown/reference/town_ref")
+V4_DIR = Path("/workspace/miaowangtown/docs/validation/route_a_v4_1_ultimate")
 OUT_DIR = Path("/workspace/miaowangtown/docs/validation/route_a_v4_1_ultimate")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -290,7 +290,7 @@ def build_route_a_v4_1_sprite() -> Image.Image:
 
 
 def composite_v4_1_into_town(sprite_2x: Image.Image) -> Image.Image:
-    bg = Image.open(V4_DIR / "clean_town_bg.png").convert("RGBA")
+    bg = Image.open(V1_DIR / "clean_town_bg.png").convert("RGBA")
     tw, th = sprite_2x.size
 
     paste_x = 840 - (tw // 4) * 2

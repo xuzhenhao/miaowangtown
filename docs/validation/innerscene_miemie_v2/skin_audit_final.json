@@ -1,9 +1,0 @@
-{
-  "verts": 6027,
-  "tris": 10000,
-  "unique_positions": 5136,
-  "uv_seam_weight_mismatches": 0,
-  "upper_leg_shear": 0,
-  "belly_midline_leakage": 0,
-  "note": "post eye-widen re-export; audit_only confirmed seam/shear/belly all 0"
-}
