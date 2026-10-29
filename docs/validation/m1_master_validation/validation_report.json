@@ -2,7 +2,7 @@
   "milestone": "M1",
   "overall_status": "PASS",
   "passed_checks": "13/13",
-  "uv_hash": "sha256:d4f2fd66315581aac5ff80404b5883ebb731e41f9912969f0f58659a02a67982",
+  "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
   "pure_basis_rest_mesh_evaluated": true,
   "full_silhouette_max_distance_px": 2.0,
   "head_body_max_distance_px": 2.0,
@@ -14,8 +14,8 @@
       "meshes": {
         "CAT_BODY": {
           "exists": true,
-          "vertices": 2321,
-          "triangles": 4634,
+          "vertices": 2559,
+          "triangles": 5112,
           "non_manifold_edges": 0,
           "boundary_edges": 0,
           "zero_area_faces": 0
@@ -114,7 +114,7 @@
         0.01244
       ],
       "uv_max": [
-        0.98781,
+        0.988057,
         0.987632
       ],
       "occupied_quadrants": 16,
@@ -123,8 +123,8 @@
     },
     "06_uv_hash_matches_manifest": {
       "pass": true,
-      "measured_uv_hash": "sha256:d4f2fd66315581aac5ff80404b5883ebb731e41f9912969f0f58659a02a67982",
-      "manifest_uv_hash": "sha256:d4f2fd66315581aac5ff80404b5883ebb731e41f9912969f0f58659a02a67982"
+      "measured_uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
+      "manifest_uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f"
     },
     "07_40_bones_hierarchy": {
       "pass": true,

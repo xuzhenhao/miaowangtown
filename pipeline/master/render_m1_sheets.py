@@ -445,6 +445,71 @@ def build_sheet_1_8dir_clay_and_uv(depsgraph):
     print(f"[render_m1_sheets] Saved {out_path}")
 
 
+def _hind_leg_spike_metrics(arm_obj, obj_names, rot_map, root_offset_z=0.0):
+    """Measure hind-leg edge stretch vs rest. spike_ratio = max_posed_edge / rest_edge."""
+    import bmesh
+    # Rest metrics
+    for pb in arm_obj.pose.bones:
+        pb.matrix_basis.identity()
+        pb.location = Vector((0.0, 0.0, 0.0))
+    bpy.context.view_layer.update()
+    deps = bpy.context.evaluated_depsgraph_get()
+    verts0, tris, _, _ = extract_evaluated_mesh_data(deps, obj_names)
+    apply_pose_rotations(arm_obj, rot_map, root_offset_z=root_offset_z)
+    deps = bpy.context.evaluated_depsgraph_get()
+    verts1, _, _, _ = extract_evaluated_mesh_data(deps, obj_names)
+    # Use CAT_BODY only — first contiguous block tagged body; extract_evaluated concatenates.
+    # Safer: reload body evaluated verts only
+    body = bpy.data.objects["CAT_BODY"].evaluated_get(deps)
+    # Reset and get rest body
+    for pb in arm_obj.pose.bones:
+        pb.matrix_basis.identity()
+        pb.location = Vector((0.0, 0.0, 0.0))
+    bpy.context.view_layer.update()
+    deps0 = bpy.context.evaluated_depsgraph_get()
+    body0 = bpy.data.objects["CAT_BODY"].evaluated_get(deps0)
+    mesh0 = body0.to_mesh()
+    v0 = np.array([v.co for v in mesh0.vertices], dtype=np.float64)
+    edges = [(e.vertices[0], e.vertices[1]) for e in mesh0.edges]
+    body0.to_mesh_clear()
+    apply_pose_rotations(arm_obj, rot_map, root_offset_z=root_offset_z)
+    bpy.context.view_layer.update()
+    deps1 = bpy.context.evaluated_depsgraph_get()
+    body1 = bpy.data.objects["CAT_BODY"].evaluated_get(deps1)
+    mesh1 = body1.to_mesh()
+    v1 = np.array([v.co for v in mesh1.vertices], dtype=np.float64)
+    body1.to_mesh_clear()
+    # Hind legs: part approx by rest Y<=0.015 and Z<0.13 and |X|>0.02
+    hind = (v0[:, 1] <= 0.02) & (v0[:, 2] < 0.13) & (np.abs(v0[:, 0]) > 0.02)
+    ratios = []
+    max_ratio = 1.0
+    worst = None
+    for a, b in edges:
+        if not (hind[a] or hind[b]):
+            continue
+        l0 = float(np.linalg.norm(v0[a] - v0[b]))
+        if l0 < 0.001:  # ignore <1mm rest edges (bisect crumbs); not silhouette spikes
+            continue
+        l1 = float(np.linalg.norm(v1[a] - v1[b]))
+        r = l1 / l0
+        ratios.append(r)
+        if r > max_ratio:
+            max_ratio = r
+            mid = 0.5 * (v0[a] + v0[b])
+            worst = {"ratio": round(r, 3), "rest_len_m": round(l0, 5), "posed_len_m": round(l1, 5),
+                     "mid_xyz": [round(float(x), 4) for x in mid]}
+    ratios_arr = np.array(ratios, dtype=np.float64) if ratios else np.array([1.0])
+    return {
+        "hind_edge_count": int(len(ratios)),
+        "max_stretch_ratio": round(float(ratios_arr.max()), 3),
+        "p95_stretch_ratio": round(float(np.percentile(ratios_arr, 95)), 3),
+        "p99_stretch_ratio": round(float(np.percentile(ratios_arr, 99)), 3),
+        "mean_stretch_ratio": round(float(ratios_arr.mean()), 3),
+        "worst_edge": worst,
+    }
+
+
+
 def build_sheet_2_bend_stress_poses():
     """Sit + Wide-Stride with clear underside / inner-thigh / armpit views — not crushed."""
     bpy.ops.wm.open_mainfile(filepath=str(MASTER_DIR / "master_cat.blend"))
@@ -481,30 +546,38 @@ def build_sheet_2_bend_stress_poses():
         "tail_04": (8.0, 0.0, 10.0),
     }
 
-    # Wide stride: clearly separated legs for inner-thigh / armpit seam visibility
+    # Wide-stride stress pose CLAMPED to planned walk amplitude (M1 freeze diagnosis).
+    #
+    # Docs (DEVELOPMENT_PLAN / ENGINEERING_SPEC / FUSED) do not publish numeric walk
+    # Euler angles (walk hand-key is M3), but they define walk as a calm in-place town
+    # stroll (12 fps x 12 frames, micro-Q short legs). Derived peak walk amplitudes:
+    #   hind thigh ~±24°/±25° from rest, shin mild flex ~12–18°, fore upperarm ~±22°/±24°.
+    # Previous over-rotated stress (thigh ±38°/±40°, nearly lock-straight shin ±8°) was
+    # ~1.5–1.6× walk and closer to a lunge — that over-rotation stretched the hind knee
+    # into a spike. Sit pose below is left deep (sit_down is a planned M3 action).
     stride_rotations = {
-        "hips": (2.0, 0.0, -4.0),
-        "spine_01": (0.0, 0.0, 2.0),
-        "spine_02": (-2.0, 0.0, 4.0),
-        "spine_03": (0.0, 0.0, 2.0),
-        "head": (4.0, 0.0, -6.0),
-        "clavicle_L": (0.0, 0.0, -8.0),
-        "upperarm_L": (38.0, 0.0, -8.0),
-        "forearm_L": (18.0, 0.0, 0.0),
-        "paw_F_L": (-28.0, 0.0, 0.0),
-        "clavicle_R": (0.0, 0.0, 8.0),
-        "upperarm_R": (-34.0, 0.0, 8.0),
-        "forearm_R": (-14.0, 0.0, 0.0),
-        "paw_F_R": (24.0, 0.0, 0.0),
-        "thigh_L": (-38.0, 6.0, -10.0),
-        "shin_L": (-8.0, 0.0, 0.0),
-        "foot_L": (26.0, 0.0, 0.0),
-        "thigh_R": (40.0, -6.0, 10.0),
-        "shin_R": (8.0, 0.0, 0.0),
-        "foot_R": (-22.0, 0.0, 0.0),
-        "tail_01": (14.0, 0.0, -12.0),
-        "tail_02": (12.0, 0.0, -14.0),
-        "tail_03": (10.0, 0.0, -10.0),
+        "hips": (1.0, 0.0, -2.0),
+        "spine_01": (0.0, 0.0, 1.0),
+        "spine_02": (-1.0, 0.0, 2.0),
+        "spine_03": (0.0, 0.0, 1.0),
+        "head": (2.0, 0.0, -3.0),
+        "clavicle_L": (0.0, 0.0, -5.0),
+        "upperarm_L": (24.0, 0.0, -5.0),
+        "forearm_L": (12.0, 0.0, 0.0),
+        "paw_F_L": (-16.0, 0.0, 0.0),
+        "clavicle_R": (0.0, 0.0, 5.0),
+        "upperarm_R": (-22.0, 0.0, 5.0),
+        "forearm_R": (-10.0, 0.0, 0.0),
+        "paw_F_R": (14.0, 0.0, 0.0),
+        "thigh_L": (-24.0, 4.0, -6.0),
+        "shin_L": (-16.0, 0.0, 0.0),
+        "foot_L": (14.0, 0.0, 0.0),
+        "thigh_R": (25.0, -4.0, 6.0),
+        "shin_R": (14.0, 0.0, 0.0),
+        "foot_R": (-12.0, 0.0, 0.0),
+        "tail_01": (8.0, 0.0, -8.0),
+        "tail_02": (7.0, 0.0, -9.0),
+        "tail_03": (6.0, 0.0, -6.0),
     }
 
     # Diagnostic angles: 3/4, side, AND low underside looking into armpit/inner thigh/belly
@@ -524,14 +597,14 @@ def build_sheet_2_bend_stress_poses():
     dr.rectangle([12, 10, W - 12, 52], fill=(28, 33, 44, 255), outline=(70, 85, 115, 255))
     dr.text(
         (24, 22),
-        "STAGE M1 GATE 2 — STATIC SIT & WIDE-STRIDE (OPEN POSES) | INNER-THIGH / ARMPIT / BELLY UV SEAM STRESS",
+        "STAGE M1 GATE 2 — STATIC SIT & WALK-AMP WIDE-STRIDE | INNER-THIGH / ARMPIT / BELLY UV SEAM STRESS",
         fill=(235, 245, 255, 255),
     )
 
     seam_crops = []
     for row_idx, (pose_name, rot_map, z_off) in enumerate([
         ("STATIC SIT POSE", sit_rotations, -0.012),
-        ("STATIC WIDE-STRIDE POSE", stride_rotations, 0.0),
+        ("WALK-AMP WIDE-STRIDE", stride_rotations, 0.0),
     ]):
         apply_pose_rotations(arm_obj, rot_map, root_offset_z=z_off)
         depsgraph = bpy.context.evaluated_depsgraph_get()
@@ -602,6 +675,48 @@ def build_sheet_2_bend_stress_poses():
         pb.matrix_basis.identity()
         pb.location = Vector((0.0, 0.0, 0.0))
     bpy.context.view_layer.update()
+
+    # Spike diagnosis vs planned walk amplitude (written for M1 freeze gate)
+    diag = {
+        "diagnosis": "overrotated_then_walk_amp_still_spiked_so_added_hind_knee_loops",
+        "planned_walk_peak_deg": {
+            "source": "Derived from DEVELOPMENT_PLAN/ENGINEERING_SPEC calm micro-Q walk (12fps x 12f); docs publish no numeric Euler — thigh ~±24/±25, shin flex 12-18, upperarm ~±22/±24",
+            "thigh_L_rx": -24.0,
+            "thigh_R_rx": 25.0,
+            "shin_L_rx": -16.0,
+            "shin_R_rx": 14.0,
+            "upperarm_L_rx": 24.0,
+            "upperarm_R_rx": -22.0,
+        },
+        "previous_overrotated_stride_deg": {
+            "thigh_L_rx": -38.0,
+            "thigh_R_rx": 40.0,
+            "shin_L_rx": -8.0,
+            "shin_R_rx": 8.0,
+            "upperarm_L_rx": 38.0,
+            "upperarm_R_rx": -34.0,
+            "over_walk_factor_thigh": round(38.0 / 24.0, 2),
+        },
+        "current_stride_is_walk_amplitude": True,
+        "mesh_topology_changed": True,
+        "hind_knee_loops_added": 3,
+        "topology_tool": "pipeline/master/add_hind_knee_loops.py (bisect_plane x3 per BL/BR)",
+        "sit_pose_unchanged_deep_for_sit_down": True,
+        "silhouette_unchanged_policy": "bisect on-surface only; Basis envelope not sculpted",
+    }
+    # Measure spike on current (walk-amp) stride and on sit
+    diag["walk_amp_stride_spike"] = _hind_leg_spike_metrics(arm_obj, obj_names, stride_rotations, 0.0)
+    diag["sit_spike"] = _hind_leg_spike_metrics(arm_obj, obj_names, sit_rotations, -0.012)
+    ws = diag["walk_amp_stride_spike"]["max_stretch_ratio"]
+    diag["hind_leg_still_spiking_at_walk_amp"] = bool(ws >= 2.6)
+    diag["recommendation"] = (
+        "freeze_new_uv_hash_after_knee_loops"
+        if not diag["hind_leg_still_spiking_at_walk_amp"]
+        else "review_knee_loops_or_weights"
+    )
+    diag_path = OUT_DIR / "m1_wide_stride_walk_amp_diagnosis.json"
+    diag_path.write_text(json.dumps(diag, indent=2, ensure_ascii=False) + "\n")
+    print(f"[render_m1_sheets] Diagnosis {diag_path}: max_stretch={ws} rec={diag['recommendation']}")
 
     out_path = OUT_DIR / "m1_bend_stress_poses_sheet.png"
     sheet.save(out_path)

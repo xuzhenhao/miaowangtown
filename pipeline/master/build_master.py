@@ -419,7 +419,7 @@ def assign_skin_weights(obj_body: bpy.types.Object, vs: np.ndarray, tris: np.nda
         for bn in cands:
             h, t = bone_segments[bn]
             d_val = point_seg_dist(p, h, t)
-            W_mat[vid, b_to_idx[bn]] = 1.0 / (max(d_val, 0.014) ** 2.0)
+            W_mat[vid, b_to_idx[bn]] = 1.0 / (max(d_val, 0.011) ** 1.85)
 
     # Smooth skin weights across mesh edges (3 iterations) while respecting strict L/R separation
     adj = [set() for _ in range(n_v)]
@@ -429,11 +429,12 @@ def assign_skin_weights(obj_body: bpy.types.Object, vs: np.ndarray, tris: np.nda
         adj[c].update([a, b])
     adj = [np.array(list(s), dtype=np.int32) for s in adj]
 
-    for _ in range(3):
+    # Extra Laplacian passes after hind-knee densify so thigh/shin/hips blend across the new rings
+    for _ in range(8):
         W_next = W_mat.copy()
         for vid in range(n_v):
             nbs = adj[vid]
-            W_next[vid] = 0.60 * W_mat[vid] + 0.40 * W_mat[nbs].mean(axis=0)
+            W_next[vid] = 0.55 * W_mat[vid] + 0.45 * W_mat[nbs].mean(axis=0)
         W_mat = W_next
 
     # Zero out any L/R cross weights beyond +-8mm and keep top <= 4 bones per vertex, normalized to 1.0

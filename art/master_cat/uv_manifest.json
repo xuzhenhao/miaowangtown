@@ -110,7 +110,7 @@
         195,
         145
       ],
-      "triangle_count": 469
+      "triangle_count": 464
     },
     "B2_torso_R": {
       "grid": [
@@ -131,7 +131,7 @@
         185,
         215
       ],
-      "triangle_count": 477
+      "triangle_count": 473
     },
     "B3_torso_back": {
       "grid": [
@@ -173,7 +173,7 @@
         125,
         235
       ],
-      "triangle_count": 398
+      "triangle_count": 258
     },
     "C1_leg_FL": {
       "grid": [
@@ -194,7 +194,7 @@
         115,
         205
       ],
-      "triangle_count": 377
+      "triangle_count": 374
     },
     "C2_leg_FR": {
       "grid": [
@@ -236,7 +236,7 @@
         145,
         115
       ],
-      "triangle_count": 528
+      "triangle_count": 859
     },
     "C4_leg_BR": {
       "grid": [
@@ -257,7 +257,7 @@
         175,
         135
       ],
-      "triangle_count": 496
+      "triangle_count": 795
     },
     "D1_tail": {
       "grid": [
@@ -344,5 +344,5 @@
       "triangle_count": 70
     }
   },
-  "uv_hash": "sha256:d4f2fd66315581aac5ff80404b5883ebb731e41f9912969f0f58659a02a67982"
+  "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f"
 }

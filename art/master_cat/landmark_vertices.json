@@ -1,41 +1,41 @@
 {
-  "mesh_version": 1,
+  "mesh_version": 2,
   "points": {
     "root": [
-      1162,
+      1161,
       28,
-      1923,
+      1920,
       821
     ],
     "hips": [
-      2288
+      2285
     ],
     "hips_center": [
-      2288
+      2285
     ],
     "head": [
       575
     ],
     "head_top": [
-      1440,
+      1437,
       314
     ],
     "jaw": [
-      2278
+      2275
     ],
     "tongue_01": [
-      2230,
-      2251
+      2227,
+      2248
     ],
     "tongue_tip": [
-      2230,
-      2251
+      2227,
+      2248
     ],
     "ear_L_01": [
-      1440
+      1437
     ],
     "ear_L_02": [
-      1535
+      1532
     ],
     "ear_R_01": [
       314
@@ -44,64 +44,64 @@
       409
     ],
     "upperarm_L": [
-      1302
+      1301
     ],
     "upperarm_R": [
       168
     ],
     "forearm_L": [
-      1208
+      1207
     ],
     "forearm_R": [
       74
     ],
     "hand_L": [
-      1184
+      1183
     ],
     "hand_R": [
       50
     ],
     "paw_F_L": [
-      1162
+      1161
     ],
     "paw_F_R": [
       28
     ],
     "thigh_L": [
-      2104
+      2101
     ],
     "thigh_R": [
       1010
     ],
     "shin_L": [
-      1915
+      1912
     ],
     "shin_R": [
       813
     ],
     "foot_L": [
-      1908
+      1905
     ],
     "foot_R": [
       806
     ],
     "paw_B_L": [
-      1923
+      1920
     ],
     "paw_B_R": [
       821
     ],
     "tail_06": [
-      2244
+      2241
     ],
     "foot_FL": [
-      1162
+      1161
     ],
     "foot_FR": [
       28
     ],
     "foot_BL": [
-      1923
+      1920
     ],
     "foot_BR": [
       821
@@ -116,10 +116,10 @@
       614
     ],
     "spine_04": [
-      2253
+      2250
     ],
     "neck_01": [
-      2231
+      2228
     ],
     "neck_02": [
       577
@@ -128,29 +128,29 @@
       575
     ],
     "crown": [
-      1440,
+      1437,
       314
     ],
     "chin": [
-      2294
+      2291
     ],
     "muzzle_tip": [
-      2238
+      2235
     ],
     "eye_L": [
-      1627
+      1624
     ],
     "eye_R": [
       501
     ],
     "ear_L_base": [
-      1440
+      1437
     ],
     "ear_L_mid": [
-      1535
+      1532
     ],
     "ear_L_tip": [
-      1537
+      1534
     ],
     "ear_R_base": [
       314
@@ -162,101 +162,102 @@
       411
     ],
     "clavicle_L": [
-      1286
+      1285
     ],
     "clavicle_R": [
       152
     ],
     "shoulder_FL": [
-      1302
+      1301
     ],
     "shoulder_FR": [
       168
     ],
     "elbow_FL": [
-      1208
+      1207
     ],
     "elbow_FR": [
       74
     ],
     "wrist_FL": [
-      1184
+      1183
     ],
     "wrist_FR": [
       50
     ],
     "paw_FL": [
-      1162
+      1161
     ],
     "paw_FR": [
       28
     ],
     "thigh_BL": [
-      2104
+      2101
     ],
     "thigh_BR": [
       1010
     ],
     "knee_BL": [
-      1915
+      1912
     ],
     "knee_BR": [
       813
     ],
     "ankle_BL": [
-      1908
+      1905
     ],
     "ankle_BR": [
       806
     ],
     "paw_BL": [
-      1923
+      1920
     ],
     "paw_BR": [
       821
     ],
     "tail_root": [
-      2158
+      2155
     ],
     "tail_01": [
       1097
     ],
     "tail_02": [
-      2181
+      2178
     ],
     "tail_03": [
       1124
     ],
     "tail_04": [
-      2269
+      2266
     ],
     "tail_05": [
-      2225
+      2222
     ],
     "tail_tip": [
-      2244
+      2241
     ],
     "hot_head": [
-      1440,
+      1437,
       314
     ],
     "hot_back": [
       619
     ],
     "hot_belly": [
-      2302
+      2299
     ],
     "hot_groom": [
-      1184
+      1183
     ],
     "hot_pet": [
-      1440,
+      1437,
       314
     ],
     "mouth_floor": [
-      2230,
-      2251
+      2227,
+      2248
     ]
   },
-  "tongue_bed_note": "mouth_floor, tongue_01, and tongue_tip share the same oral lower-jaw tongue-bed vertices so CAT_TONGUE mesh and tongue_01/tongue_tip bones stay co-located (<1mm)."
+  "tongue_bed_note": "mouth_floor, tongue_01, and tongue_tip share the same oral lower-jaw tongue-bed vertices so CAT_TONGUE mesh and tongue_01/tongue_tip bones stay co-located (<1mm).",
+  "hind_knee_loops_note": "M1 freeze: added 3 bisect rings per hind knee (BL/BR) along thigh→ankle; Rest envelope unchanged (cuts on-surface)."
 }

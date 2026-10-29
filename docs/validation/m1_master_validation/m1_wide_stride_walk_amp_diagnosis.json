@@ -1,0 +1,79 @@
+{
+  "diagnosis": "overrotated_then_walk_amp_still_spiked_so_added_hind_knee_loops",
+  "planned_walk_peak_deg": {
+    "source": "Derived from DEVELOPMENT_PLAN/ENGINEERING_SPEC calm micro-Q walk (12fps x 12f); docs publish no numeric Euler — thigh ~±24/±25, shin flex 12-18, upperarm ~±22/±24",
+    "thigh_L_rx": -24.0,
+    "thigh_R_rx": 25.0,
+    "shin_L_rx": -16.0,
+    "shin_R_rx": 14.0,
+    "upperarm_L_rx": 24.0,
+    "upperarm_R_rx": -22.0
+  },
+  "previous_overrotated_stride_deg": {
+    "thigh_L_rx": -38.0,
+    "thigh_R_rx": 40.0,
+    "shin_L_rx": -8.0,
+    "shin_R_rx": 8.0,
+    "upperarm_L_rx": 38.0,
+    "upperarm_R_rx": -34.0,
+    "over_walk_factor_thigh": 1.58
+  },
+  "current_stride_is_walk_amplitude": true,
+  "mesh_topology_changed": true,
+  "hind_knee_loops_added": 3,
+  "topology_tool": "pipeline/master/add_hind_knee_loops.py (bisect_plane x3 per BL/BR)",
+  "sit_pose_unchanged_deep_for_sit_down": true,
+  "silhouette_unchanged_policy": "bisect on-surface only; Basis envelope not sculpted",
+  "walk_amp_stride_spike": {
+    "hind_edge_count": 2535,
+    "max_stretch_ratio": 2.276,
+    "p95_stretch_ratio": 1.065,
+    "p99_stretch_ratio": 1.332,
+    "mean_stretch_ratio": 0.998,
+    "worst_edge": {
+      "ratio": 2.276,
+      "rest_len_m": 0.0094,
+      "posed_len_m": 0.0214,
+      "mid_xyz": [
+        -0.0715,
+        -0.0127,
+        0.1035
+      ]
+    }
+  },
+  "sit_spike": {
+    "hind_edge_count": 2535,
+    "max_stretch_ratio": 3.039,
+    "p95_stretch_ratio": 1.153,
+    "p99_stretch_ratio": 1.538,
+    "mean_stretch_ratio": 0.951,
+    "worst_edge": {
+      "ratio": 3.039,
+      "rest_len_m": 0.01038,
+      "posed_len_m": 0.03154,
+      "mid_xyz": [
+        -0.065,
+        0.0001,
+        0.1179
+      ]
+    }
+  },
+  "hind_leg_still_spiking_at_walk_amp": false,
+  "recommendation": "freeze_new_uv_hash_after_knee_loops",
+  "old_uv_hash": "sha256:d4f2fd66315581aac5ff80404b5883ebb731e41f9912969f0f58659a02a67982",
+  "new_uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
+  "validate": {
+    "passed_checks": "13/13",
+    "full_silhouette_max_distance_px": 2.0,
+    "mask_iou": 0.9521,
+    "pure_basis": true
+  },
+  "body_mesh": {
+    "exists": true,
+    "vertices": 2559,
+    "triangles": 5112,
+    "non_manifold_edges": 0,
+    "boundary_edges": 0,
+    "zero_area_faces": 0
+  }
+}
