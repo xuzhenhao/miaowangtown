@@ -1,0 +1,188 @@
+{
+  "ok": true,
+  "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
+  "uv_hash_unchanged": true,
+  "pitch_deg": 35.0,
+  "seed": 20261029,
+  "scale_m_per_logical_px": 0.004,
+  "origin_logical_px": [
+    52.7,
+    94.0
+  ],
+  "logical_grid": [
+    114,
+    104
+  ],
+  "supersample": 4,
+  "hi_size": [
+    456,
+    416
+  ],
+  "sdxl_canvas": 768,
+  "directions": {
+    "d000": {
+      "yaw_deg": 0.0,
+      "pitch_deg": 35.0,
+      "is_complementary": true,
+      "is_m2_1_anchor": false,
+      "visible_px": 57274,
+      "paths": {
+        "depth": "cats/miemie/identity_v1/control_views/d000/depth.png",
+        "normal": "cats/miemie/identity_v1/control_views/d000/normal.png",
+        "part_mask": "cats/miemie/identity_v1/control_views/d000/part_mask.png",
+        "depth_768": "cats/miemie/identity_v1/control_views/d000/depth_768.png",
+        "normal_768": "cats/miemie/identity_v1/control_views/d000/normal_768.png"
+      }
+    },
+    "d045": {
+      "yaw_deg": -45.0,
+      "pitch_deg": 35.0,
+      "is_complementary": false,
+      "is_m2_1_anchor": true,
+      "visible_px": 78436,
+      "paths": {
+        "depth": "cats/miemie/identity_v1/control_views/d045/depth.png",
+        "normal": "cats/miemie/identity_v1/control_views/d045/normal.png",
+        "part_mask": "cats/miemie/identity_v1/control_views/d045/part_mask.png",
+        "depth_768": "cats/miemie/identity_v1/control_views/d045/depth_768.png",
+        "normal_768": "cats/miemie/identity_v1/control_views/d045/normal_768.png"
+      }
+    },
+    "d090": {
+      "yaw_deg": -90.0,
+      "pitch_deg": 35.0,
+      "is_complementary": true,
+      "is_m2_1_anchor": false,
+      "visible_px": 61142,
+      "paths": {
+        "depth": "cats/miemie/identity_v1/control_views/d090/depth.png",
+        "normal": "cats/miemie/identity_v1/control_views/d090/normal.png",
+        "part_mask": "cats/miemie/identity_v1/control_views/d090/part_mask.png",
+        "depth_768": "cats/miemie/identity_v1/control_views/d090/depth_768.png",
+        "normal_768": "cats/miemie/identity_v1/control_views/d090/normal_768.png"
+      }
+    },
+    "d135": {
+      "yaw_deg": -135.0,
+      "pitch_deg": 35.0,
+      "is_complementary": true,
+      "is_m2_1_anchor": false,
+      "visible_px": 58694,
+      "paths": {
+        "depth": "cats/miemie/identity_v1/control_views/d135/depth.png",
+        "normal": "cats/miemie/identity_v1/control_views/d135/normal.png",
+        "part_mask": "cats/miemie/identity_v1/control_views/d135/part_mask.png",
+        "depth_768": "cats/miemie/identity_v1/control_views/d135/depth_768.png",
+        "normal_768": "cats/miemie/identity_v1/control_views/d135/normal_768.png"
+      }
+    },
+    "d180": {
+      "yaw_deg": 180.0,
+      "pitch_deg": 35.0,
+      "is_complementary": true,
+      "is_m2_1_anchor": false,
+      "visible_px": 66756,
+      "paths": {
+        "depth": "cats/miemie/identity_v1/control_views/d180/depth.png",
+        "normal": "cats/miemie/identity_v1/control_views/d180/normal.png",
+        "part_mask": "cats/miemie/identity_v1/control_views/d180/part_mask.png",
+        "depth_768": "cats/miemie/identity_v1/control_views/d180/depth_768.png",
+        "normal_768": "cats/miemie/identity_v1/control_views/d180/normal_768.png"
+      }
+    },
+    "d225": {
+      "yaw_deg": 135.0,
+      "pitch_deg": 35.0,
+      "is_complementary": true,
+      "is_m2_1_anchor": false,
+      "visible_px": 70290,
+      "paths": {
+        "depth": "cats/miemie/identity_v1/control_views/d225/depth.png",
+        "normal": "cats/miemie/identity_v1/control_views/d225/normal.png",
+        "part_mask": "cats/miemie/identity_v1/control_views/d225/part_mask.png",
+        "depth_768": "cats/miemie/identity_v1/control_views/d225/depth_768.png",
+        "normal_768": "cats/miemie/identity_v1/control_views/d225/normal_768.png"
+      }
+    },
+    "d270": {
+      "yaw_deg": 90.0,
+      "pitch_deg": 35.0,
+      "is_complementary": true,
+      "is_m2_1_anchor": false,
+      "visible_px": 59147,
+      "paths": {
+        "depth": "cats/miemie/identity_v1/control_views/d270/depth.png",
+        "normal": "cats/miemie/identity_v1/control_views/d270/normal.png",
+        "part_mask": "cats/miemie/identity_v1/control_views/d270/part_mask.png",
+        "depth_768": "cats/miemie/identity_v1/control_views/d270/depth_768.png",
+        "normal_768": "cats/miemie/identity_v1/control_views/d270/normal_768.png"
+      }
+    },
+    "d315": {
+      "yaw_deg": 45.0,
+      "pitch_deg": 35.0,
+      "is_complementary": true,
+      "is_m2_1_anchor": false,
+      "visible_px": 60943,
+      "paths": {
+        "depth": "cats/miemie/identity_v1/control_views/d315/depth.png",
+        "normal": "cats/miemie/identity_v1/control_views/d315/normal.png",
+        "part_mask": "cats/miemie/identity_v1/control_views/d315/part_mask.png",
+        "depth_768": "cats/miemie/identity_v1/control_views/d315/depth_768.png",
+        "normal_768": "cats/miemie/identity_v1/control_views/d315/normal_768.png"
+      }
+    }
+  },
+  "complementary": [
+    "d000",
+    "d090",
+    "d180",
+    "d270",
+    "d135",
+    "d225",
+    "d315"
+  ],
+  "part_colors": {
+    "head": [
+      220,
+      60,
+      60
+    ],
+    "torso": [
+      60,
+      180,
+      80
+    ],
+    "leg_FL": [
+      60,
+      120,
+      220
+    ],
+    "leg_FR": [
+      40,
+      80,
+      200
+    ],
+    "leg_BL": [
+      120,
+      80,
+      220
+    ],
+    "leg_BR": [
+      100,
+      60,
+      180
+    ],
+    "tail": [
+      220,
+      180,
+      40
+    ],
+    "eye": [
+      0,
+      255,
+      255
+    ]
+  },
+  "note": "Control maps only. Complementary albedo must come from locked commercial SDXL stack; never procedural default."
+}

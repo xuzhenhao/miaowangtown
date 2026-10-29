@@ -1,0 +1,102 @@
+{
+  "ok": false,
+  "stage": "M2.2_generate_complementary_sdxl",
+  "blocked": true,
+  "blocked_at": "2026-10-29 14:42:24 Asia/Shanghai",
+  "reason": "No CUDA GPU available on this box (nvidia-smi empty / torch.cuda unavailable). SDXL + ControlNet + IP-Adapter cannot run. Refusing procedural substitute.",
+  "seed": 20261029,
+  "licensed_stack": [
+    {
+      "repo": "stabilityai/stable-diffusion-xl-base-1.0",
+      "role": "base",
+      "license_model_card": "CreativeML OpenRAIL++-M",
+      "card_url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0"
+    },
+    {
+      "repo": "diffusers/controlnet-depth-sdxl-1.0",
+      "role": "controlnet_depth",
+      "license_model_card": "CreativeML OpenRAIL++-M",
+      "card_url": "https://huggingface.co/diffusers/controlnet-depth-sdxl-1.0"
+    },
+    {
+      "repo": "xinsir/controlnet-union-sdxl-1.0",
+      "role": "controlnet_union_depth_normal",
+      "license_model_card": "Apache-2.0",
+      "card_url": "https://huggingface.co/xinsir/controlnet-union-sdxl-1.0"
+    },
+    {
+      "repo": "h94/IP-Adapter",
+      "file": "ip-adapter-plus_sdxl_vit-h.bin",
+      "role": "ip_adapter_plus_sdxl",
+      "license_model_card": "Apache-2.0",
+      "card_url": "https://huggingface.co/h94/IP-Adapter",
+      "note": "IP-Adapter locks fur-flow look to d045 unlit anchor"
+    }
+  ],
+  "forbidden": [
+    "FLUX.1-dev family",
+    "any non-commercial weight",
+    "procedural fur / tangent clumps / Gaussian blobs as default delivery"
+  ],
+  "environment": {
+    "python": "3.13.5",
+    "cuda_visible_devices": null,
+    "nvidia_smi": null,
+    "torch_installed": false,
+    "torch_version": null,
+    "cuda_available": false,
+    "gpu_name": null,
+    "diffusers_installed": false,
+    "transformers_installed": false,
+    "control_maps_present": {
+      "d000": {
+        "depth_768": true,
+        "normal_768": true
+      },
+      "d090": {
+        "depth_768": true,
+        "normal_768": true
+      },
+      "d180": {
+        "depth_768": true,
+        "normal_768": true
+      },
+      "d270": {
+        "depth_768": true,
+        "normal_768": true
+      },
+      "d135": {
+        "depth_768": true,
+        "normal_768": true
+      },
+      "d225": {
+        "depth_768": true,
+        "normal_768": true
+      },
+      "d315": {
+        "depth_768": true,
+        "normal_768": true
+      }
+    },
+    "anchor_present": true,
+    "torch_error": "No module named 'torch'"
+  },
+  "prompt": "orthographic unlit cat fur albedo, soft tabby calico fur clumps, no directional lighting, no cast shadows, flat ambient, consistent markings, emerald eyes independent later, high frequency fur grain, game albedo texture style matching reference",
+  "negative_prompt": "harsh sunlight, rim light, studio lighting, glossy specular, plastic skin, ellipse blobs, flat vector shapes, text, watermark, deformed anatomy, extra legs, mirrored markings",
+  "how_to_unblock": [
+    "Provision a CUDA GPU box with >=12GB VRAM (24GB preferred for SDXL+2×ControlNet+IP-Adapter).",
+    "pip install torch (CUDA), diffusers, transformers, accelerate, safetensors, opencv-python, Pillow.",
+    "huggingface-cli login if gated; download the four locked repos listed above.",
+    "Re-run: python3 pipeline/texture/generate_complementary_sdxl.py --run",
+    "Each view must pass 4x fur-flow + five-marking gate BEFORE UV projection."
+  ],
+  "outputs_expected_when_unblocked": {
+    "d000": "cats/miemie/identity_v1/complementary_albedos/d000_unlit_albedo.png",
+    "d090": "cats/miemie/identity_v1/complementary_albedos/d090_unlit_albedo.png",
+    "d180": "cats/miemie/identity_v1/complementary_albedos/d180_unlit_albedo.png",
+    "d270": "cats/miemie/identity_v1/complementary_albedos/d270_unlit_albedo.png",
+    "d135": "cats/miemie/identity_v1/complementary_albedos/d135_unlit_albedo.png",
+    "d225": "cats/miemie/identity_v1/complementary_albedos/d225_unlit_albedo.png",
+    "d315": "cats/miemie/identity_v1/complementary_albedos/d315_unlit_albedo.png"
+  }
+}

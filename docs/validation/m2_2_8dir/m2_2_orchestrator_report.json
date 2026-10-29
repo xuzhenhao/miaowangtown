@@ -1,0 +1,28 @@
+{
+  "stage": "M2.2",
+  "ok": false,
+  "incomplete": true,
+  "blocker": "no_cuda_gpu",
+  "steps": {
+    "export_control_views": {
+      "rc": 0,
+      "ok": true
+    },
+    "generate_complementary_sdxl": {
+      "rc": 2,
+      "blocked": true
+    },
+    "fuse_8dir_albedo": {
+      "rc": 2,
+      "blocked": true,
+      "fur_albedo_unchanged": true
+    },
+    "run_m2_2_review": {
+      "rc": 0,
+      "incomplete_boards": true
+    }
+  },
+  "uv_hash_unchanged": true,
+  "git_push": false,
+  "note": "Pipeline reproducible; licenses declared; no procedural default; coverage gates FAIL pending GPU."
+}

@@ -1,0 +1,50 @@
+{
+  "ok": false,
+  "incomplete": true,
+  "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
+  "uv_hash_unchanged": true,
+  "honesty": {
+    "d045_silhouette": "M1 Alpha lock inherited for geometry; not new M2.2 silhouette evidence",
+    "complementary_views": "SEED midtone from M2.1 genome fill — NOT AI fur. Do not treat as pass.",
+    "authority": "4x eyeball for fur-flow and markings; auto zones soft"
+  },
+  "directions": {
+    "d000": {
+      "yaw_deg": 0.0,
+      "incomplete_seed": true
+    },
+    "d045": {
+      "yaw_deg": -45.0,
+      "incomplete_seed": false
+    },
+    "d090": {
+      "yaw_deg": -90.0,
+      "incomplete_seed": true
+    },
+    "d135": {
+      "yaw_deg": -135.0,
+      "incomplete_seed": true
+    },
+    "d180": {
+      "yaw_deg": 180.0,
+      "incomplete_seed": true
+    },
+    "d225": {
+      "yaw_deg": 135.0,
+      "incomplete_seed": true
+    },
+    "d270": {
+      "yaw_deg": 90.0,
+      "incomplete_seed": true
+    },
+    "d315": {
+      "yaw_deg": 45.0,
+      "incomplete_seed": true
+    }
+  },
+  "outputs": {
+    "identity_review": "docs/validation/m2_2_8dir/identity_review.png",
+    "layer_a_sheet": "docs/validation/m2_2_8dir/identity_review_layer_a.png",
+    "layer_b_sheet": "docs/validation/m2_2_8dir/identity_review_layer_b.png"
+  }
+}

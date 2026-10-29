@@ -1,0 +1,29 @@
+{
+  "ok": false,
+  "stage": "M2.2_fuse_8dir",
+  "views_used": [
+    "d045"
+  ],
+  "views_skipped": {
+    "d000": "gate_not_passed_or_missing",
+    "d090": "gate_not_passed_or_missing",
+    "d135": "gate_not_passed_or_missing",
+    "d180": "gate_not_passed_or_missing",
+    "d225": "gate_not_passed_or_missing",
+    "d270": "gate_not_passed_or_missing",
+    "d315": "gate_not_passed_or_missing"
+  },
+  "uv_hash_expected": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
+  "blocked": true,
+  "reason": "Only d045 available. Complementary SDXL views not generated/gated. Refusing to fill with procedural fur. Keeping M2.1 fur_albedo as-is.",
+  "coverage": {
+    "uv_island_texels": 1003851,
+    "direct_plus_graze": 306840,
+    "direct_plus_graze_over_island": 0.3057,
+    "unseen_over_island": 0.6739,
+    "gate_high_freq_green_yellow_ge_0_92": false,
+    "gate_red_blind_le_0_20": false,
+    "note": "M2.1 d045-only coverage retained; M2.2 fusion blocked pending GPU generation."
+  },
+  "fur_albedo_unchanged": true
+}
