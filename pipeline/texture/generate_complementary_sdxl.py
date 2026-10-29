@@ -10,7 +10,7 @@ Locked Hugging Face repos + model-card licenses (from DEVELOPMENT_PLAN v1.3):
 
 FORBIDDEN: FLUX.1-dev family; any non-commercial weight; procedural fur as default fill.
 
-This script refuses to invent fur when CUDA GPU or weights are unavailable.
+This script refuses to invent fur when neither CUDA nor Apple MPS GPU is available, or weights are missing.
 It writes an honest blocker JSON and exits non-zero instead of substituting junk.
 """
 from __future__ import annotations
@@ -23,7 +23,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path("/workspace/miaowangtown")
+ROOT = Path(os.environ.get("MIAOWANGTOWN_ROOT", "/workspace/miaowangtown")).resolve()
 CTRL = ROOT / "cats" / "miemie" / "identity_v1" / "control_views"
 OUT_ALB = ROOT / "cats" / "miemie" / "identity_v1" / "complementary_albedos"
 VAL = ROOT / "docs" / "validation" / "m2_2_8dir" / "generated"
@@ -116,14 +116,24 @@ def detect_environment() -> dict:
     except (FileNotFoundError, subprocess.TimeoutExpired):
         info["nvidia_smi"] = None
 
+    info["mps_available"] = False
+    info["compute_device"] = None
     try:
         import torch
 
         info["torch_installed"] = True
         info["torch_version"] = torch.__version__
         info["cuda_available"] = bool(torch.cuda.is_available())
+        info["mps_available"] = bool(
+            getattr(torch.backends, "mps", None) is not None
+            and torch.backends.mps.is_available()
+        )
         if info["cuda_available"]:
             info["gpu_name"] = torch.cuda.get_device_name(0)
+            info["compute_device"] = "cuda"
+        elif info["mps_available"]:
+            info["gpu_name"] = "Apple MPS"
+            info["compute_device"] = "mps"
     except Exception as exc:  # noqa: BLE001
         info["torch_error"] = str(exc)
 
@@ -170,8 +180,8 @@ def write_blocker(reason: str, env: dict) -> Path:
         "prompt": PROMPT,
         "negative_prompt": NEGATIVE,
         "how_to_unblock": [
-            "Provision a CUDA GPU box with >=12GB VRAM (24GB preferred for SDXL+2×ControlNet+IP-Adapter).",
-            "pip install torch (CUDA), diffusers, transformers, accelerate, safetensors, opencv-python, Pillow.",
+            "Provision a CUDA GPU (>=12GB VRAM) or Apple Silicon Mac with MPS (16GB+ unified memory preferred).",
+            "pip install torch (CUDA or Mac MPS), diffusers, transformers, accelerate, safetensors, opencv-python, Pillow.",
             "huggingface-cli login if gated; download the four locked repos listed above.",
             "Re-run: python3 pipeline/texture/generate_complementary_sdxl.py --run",
             "Each view must pass 4x fur-flow + five-marking gate BEFORE UV projection.",
@@ -218,7 +228,7 @@ def write_blocker(reason: str, env: dict) -> Path:
 
 
 def try_generate(env: dict) -> int:
-    """Real generation path — only when CUDA + deps present."""
+    """Real generation path — only when CUDA or MPS + deps present."""
     import torch
     from diffusers import (
         ControlNetModel,
@@ -231,8 +241,9 @@ def try_generate(env: dict) -> int:
     OUT_ALB.mkdir(parents=True, exist_ok=True)
     VAL.mkdir(parents=True, exist_ok=True)
 
-    dtype = torch.float16
-    device = "cuda"
+    device = env.get("compute_device") or ("cuda" if env.get("cuda_available") else "mps")
+    # MPS float16 is supported on modern Apple Silicon; fall back to float32 if needed.
+    dtype = torch.float16 if device in ("cuda", "mps") else torch.float32
     # Prefer Union ControlNet for depth+normal; fall back to depth-only if union fails.
     controlnets = []
     try:
@@ -256,6 +267,16 @@ def try_generate(env: dict) -> int:
         variant="fp16",
         use_safetensors=True,
     ).to(device)
+    if device == "mps":
+        try:
+            pipe.enable_attention_slicing()
+        except Exception:
+            pass
+        # Keep VAE in float32 on MPS to avoid NaNs in some builds.
+        try:
+            pipe.vae.to(dtype=torch.float32)
+        except Exception:
+            pass
 
     # IP-Adapter
     try:
@@ -271,7 +292,15 @@ def try_generate(env: dict) -> int:
         ip_ok = False
 
     anchor = Image.open(ANCHOR).convert("RGB").resize((1024, 1024), Image.Resampling.LANCZOS)
-    results = {"ok": True, "use_union": use_union, "ip_adapter": ip_ok, "views": {}}
+    results = {
+        "ok": True,
+        "device": device,
+        "dtype": str(dtype),
+        "use_union": use_union,
+        "ip_adapter": ip_ok,
+        "views": {},
+        "root": str(ROOT),
+    }
 
     for dname in COMPLEMENTARY:
         depth = Image.open(CTRL / dname / "depth_768.png").convert("RGB").resize(
@@ -280,7 +309,8 @@ def try_generate(env: dict) -> int:
         normal = Image.open(CTRL / dname / "normal_768.png").convert("RGB").resize(
             (1024, 1024), Image.Resampling.LANCZOS
         )
-        generator = torch.Generator(device=device).manual_seed(SEED + hash(dname) % 1000)
+        gen_device = "cpu" if device == "mps" else device
+        generator = torch.Generator(device=gen_device).manual_seed(SEED + hash(dname) % 1000)
         kwargs = dict(
             prompt=PROMPT + f", view {dname}",
             negative_prompt=NEGATIVE,
@@ -353,19 +383,19 @@ def main() -> int:
         print("BLOCKED:", path)
         return 2
 
-    if not env.get("cuda_available") or not env.get("nvidia_smi"):
+    if not env.get("compute_device"):
         path = write_blocker(
-            "No CUDA GPU available on this box (nvidia-smi empty / torch.cuda unavailable). "
+            "No CUDA or Apple MPS GPU available (nvidia-smi empty / torch.cuda and torch.backends.mps unavailable). "
             "SDXL + ControlNet + IP-Adapter cannot run. Refusing procedural substitute.",
             env,
         )
         print("BLOCKED:", path)
-        print(json.dumps({"blocked": True, "reason": "no_cuda_gpu", "report": str(path)}, indent=2))
+        print(json.dumps({"blocked": True, "reason": "no_cuda_or_mps", "report": str(path)}, indent=2))
         return 2
 
     if not env["torch_installed"] or not env["diffusers_installed"]:
         path = write_blocker(
-            "CUDA present but torch/diffusers not installed. Install deps then re-run --run.",
+            "GPU device detected but torch/diffusers not installed. Install deps then re-run --run.",
             env,
         )
         print("BLOCKED:", path)

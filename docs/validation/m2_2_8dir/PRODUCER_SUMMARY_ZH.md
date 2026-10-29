@@ -23,11 +23,16 @@
 | `xinsir/controlnet-union-sdxl-1.0` | Apache-2.0 |
 | `h94/IP-Adapter`（`ip-adapter-plus_sdxl_vit-h.bin`） | Apache-2.0 |
 
-解阻：备 ≥12GB VRAM CUDA 机 → 装 `torch/diffusers` →  
-`python3 pipeline/texture/generate_complementary_sdxl.py --run` →  
-每视角 `gate_complementary_view.py --human-pass` →  
+解阻（二选一）：
+1. **Apple Silicon Mac（MPS）**：克隆/同步本仓库 → `pip install torch diffusers transformers accelerate safetensors opencv-python Pillow` →  
+   `export MIAOWANGTOWN_ROOT=<repo>` → `python3 pipeline/texture/generate_complementary_sdxl.py --run`
+2. **CUDA ≥12GB VRAM**：同上装 CUDA 版 torch 后 `--run`  
+
+之后每视角 `gate_complementary_view.py --human-pass` →  
 `blender -b --python pipeline/texture/fuse_8dir_albedo.py` →  
 `blender -b --python pipeline/bake/run_m2_2_review.py`。
+
+脚本已支持 CUDA 与 Apple MPS；本 bot 电脑仍无 GPU，生成须在授权机上跑。
 
 ## 已交付（本机可复跑）
 
@@ -68,4 +73,4 @@
 ## 制作人拍板建议
 
 - **不通过冻结 `fur_albedo`**。  
-- 通过「管线骨架 + 控制图 + 许可证声明」后，转 GPU 机跑生成；或明确授权租用 GPU 后再开下一刀。
+- 通过「管线骨架 + 控制图 + 许可证声明」后，请用户拍板：本机 Mac MPS 自跑，或授权租用 CUDA；未授权前不跑生成、不冻 fur_albedo。
