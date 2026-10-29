@@ -23,7 +23,48 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(os.environ.get("MIAOWANGTOWN_ROOT", "/workspace/miaowangtown")).resolve()
+
+def _load_dotenv_file(path: Path) -> None:
+    """Minimal KEY=VALUE loader. Does not override already-set env vars."""
+    if not path.is_file():
+        return
+    for raw in path.read_text().splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, val = line.partition("=")
+        key = key.strip()
+        val = val.strip().strip("'").strip('"')
+        if key and key not in os.environ:
+            os.environ[key] = val
+
+
+def _bootstrap_m22_env() -> Path:
+    """Load .env.m22 then resolve repo root. HF_HOME must land before hub imports."""
+    here = Path(__file__).resolve()
+    script_root = here.parents[2]  # pipeline/texture/ -> repo root
+    candidates = []
+    if os.environ.get("MIAOWANGTOWN_ROOT"):
+        candidates.append(Path(os.environ["MIAOWANGTOWN_ROOT"]).expanduser())
+    candidates.append(script_root)
+    candidates.append(Path.cwd())
+    env_file = None
+    for c in candidates:
+        p = (c / ".env.m22").resolve()
+        if p.is_file():
+            env_file = p
+            break
+    if env_file is not None:
+        _load_dotenv_file(env_file)
+    root = Path(
+        os.environ.get("MIAOWANGTOWN_ROOT", str(script_root))
+    ).expanduser().resolve()
+    # Prefer repo-local .env.m22 once root is known (in case cwd differed).
+    _load_dotenv_file(root / ".env.m22")
+    return root
+
+
+ROOT = _bootstrap_m22_env()
 CTRL = ROOT / "cats" / "miemie" / "identity_v1" / "control_views"
 OUT_ALB = ROOT / "cats" / "miemie" / "identity_v1" / "complementary_albedos"
 VAL = ROOT / "docs" / "validation" / "m2_2_8dir" / "generated"
@@ -101,6 +142,9 @@ def detect_environment() -> dict:
         "transformers_installed": False,
         "control_maps_present": {},
         "anchor_present": ANCHOR.is_file(),
+        "hf_home": os.environ.get("HF_HOME"),
+        "miaowangtown_root": str(ROOT),
+        "env_m22_loaded": (ROOT / ".env.m22").is_file(),
     }
     try:
         smi = subprocess.run(
@@ -181,8 +225,9 @@ def write_blocker(reason: str, env: dict) -> Path:
         "negative_prompt": NEGATIVE,
         "how_to_unblock": [
             "Provision a CUDA GPU (>=12GB VRAM) or Apple Silicon Mac with MPS (16GB+ unified memory preferred).",
+            "Copy .env.m22.example to .env.m22; set HF_HOME (Mac: /Users/cloud/dev/models/huggingface) and MIAOWANGTOWN_ROOT.",
             "pip install torch (CUDA or Mac MPS), diffusers, transformers, accelerate, safetensors, opencv-python, Pillow.",
-            "huggingface-cli login if gated; download the four locked repos listed above.",
+            "huggingface-cli login if gated; weights land under HF_HOME (not ~/.cache/huggingface).",
             "Re-run: python3 pipeline/texture/generate_complementary_sdxl.py --run",
             "Each view must pass 4x fur-flow + five-marking gate BEFORE UV projection.",
         ],
