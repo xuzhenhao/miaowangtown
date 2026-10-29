@@ -1,0 +1,41 @@
+{
+  "ok": true,
+  "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
+  "uv_hash_unchanged": true,
+  "anchor": "docs/validation/route_a_v4_1_ultimate/route_a_v4_1_unlit_albedo_anchor_hi.png",
+  "camera": {
+    "yaw_deg": -45.0,
+    "pitch_deg": 35.0,
+    "scale_m_per_logical_px": 0.004,
+    "origin_logical_px": [
+      52.7,
+      94.0
+    ],
+    "edge_erode_hi_px": 10,
+    "ndotv_direct": 0.5,
+    "ndotv_graze": 0.2
+  },
+  "stats": {
+    "triangles": 5112,
+    "texels_direct_written": 283994,
+    "texels_edge_stripped": 43318,
+    "triangles_backface_or_graze_skip": 3295,
+    "texels_after_extrapolate": 313122,
+    "coverage_direct_texels": 222495,
+    "coverage_graze_texels": 104817,
+    "coverage_unseen_texels": 3866992
+  },
+  "coverage": {
+    "uv_island_texels": 1003672,
+    "direct_controlled": 222495,
+    "grazing_interpolated": 104817,
+    "unseen_inpainted_or_seed": 676539,
+    "direct_plus_graze_over_island": 0.3261,
+    "unseen_over_island": 0.6741,
+    "note": "M2.1 is d045-only; unseen back/underside expected until M2.2. Seed uses genome base midtone."
+  },
+  "outputs": {
+    "fur_albedo": "cats/miemie/identity_v1/fur_albedo.png",
+    "coverage": "cats/miemie/identity_v1/coverage.png"
+  }
+}

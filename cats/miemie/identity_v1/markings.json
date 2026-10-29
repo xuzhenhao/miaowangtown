@@ -1,0 +1,536 @@
+{
+  "uv_version": 1,
+  "identity_version": 1,
+  "cat_id": "miemie",
+  "anatomical_lr_convention": {
+    "left_suffix": "_L",
+    "left_x": "<0",
+    "right_suffix": "_R",
+    "right_x": ">0",
+    "note": "永远以猫自身解剖学左右为准，不以屏幕左右为准。焦糖花生斑在 _R/X>0（正面看在画面左侧）；左肋白云在 _L/X<0。"
+  },
+  "markers": [
+    {
+      "id": "mark_01_muzzle_peanut",
+      "name": "阴阳花生嘴套（右满暖焦糖 / 左浅奶油白）",
+      "semantic_part": "head_muzzle",
+      "anatomical_side": "asymmetric_LR",
+      "space": "uv",
+      "components": [
+        {
+          "id": "mark_01_caramel_R",
+          "side": "_R",
+          "x_sign": ">0",
+          "uv_region": "A3_muzzle_chin",
+          "polygon": [
+            [
+              0.58,
+              0.86
+            ],
+            [
+              0.64,
+              0.9
+            ],
+            [
+              0.62,
+              0.94
+            ],
+            [
+              0.56,
+              0.91
+            ]
+          ],
+          "color": "#8E7F66",
+          "note": "猫右嘴套暖焦糖花生斑；正面/d045 画面偏左"
+        },
+        {
+          "id": "mark_01_cream_L",
+          "side": "_L",
+          "x_sign": "<0",
+          "uv_region": "A3_muzzle_chin",
+          "polygon": [
+            [
+              0.66,
+              0.85
+            ],
+            [
+              0.72,
+              0.88
+            ],
+            [
+              0.7,
+              0.93
+            ],
+            [
+              0.64,
+              0.9
+            ]
+          ],
+          "color": "#D6D1C6",
+          "note": "猫左脸颊奶油白；正面/d045 画面偏右"
+        }
+      ],
+      "color": "#8E7F66",
+      "edge_color": "#796852",
+      "source_type": "observed",
+      "confidence": 0.98,
+      "crosses_uv_seam": false,
+      "source_photos": [
+        {
+          "slot": "muzzle_closeup",
+          "file": "reference_muzzle_closeup.jpg"
+        },
+        {
+          "slot": "asymmetry",
+          "file": "photo_07_closeup_asymmetry.jpg"
+        },
+        {
+          "slot": "v4_1_anchor",
+          "file": "docs/validation/route_a_v4_1_ultimate/route_a_v4_1_unlit_albedo_anchor_hi.png",
+          "role": "stylized_evidence"
+        }
+      ],
+      "user_confirmed": true
+    },
+    {
+      "id": "mark_02_chest_bib_and_left_cloud",
+      "name": "胸前白围脖连左肋白云",
+      "semantic_part": "torso_front+torso_L",
+      "anatomical_side": "_L",
+      "space": "uv",
+      "components": [
+        {
+          "id": "mark_02_chest_bib",
+          "side": "C",
+          "uv_region": "B4_torso_belly",
+          "polygon": [
+            [
+              0.82,
+              0.58
+            ],
+            [
+              0.92,
+              0.58
+            ],
+            [
+              0.92,
+              0.68
+            ],
+            [
+              0.82,
+              0.68
+            ]
+          ],
+          "color": "#D6D1C6"
+        },
+        {
+          "id": "mark_02_left_flank_cloud",
+          "side": "_L",
+          "x_sign": "<0",
+          "uv_region": "B1_torso_L",
+          "polygon": [
+            [
+              0.06,
+              0.56
+            ],
+            [
+              0.18,
+              0.56
+            ],
+            [
+              0.18,
+              0.68
+            ],
+            [
+              0.06,
+              0.68
+            ]
+          ],
+          "color": "#DCD8CB",
+          "note": "左肋腹向上漫延白云；d045 画面偏右下腹侧"
+        }
+      ],
+      "color": "#DCD8CB",
+      "edge_color": "#796852",
+      "source_type": "observed",
+      "confidence": 0.97,
+      "crosses_uv_seam": true,
+      "source_photos": [
+        {
+          "slot": "left_flank",
+          "file": "miemie_ref_02_left_flank_white_patch.jpg"
+        },
+        {
+          "slot": "front_sofa",
+          "file": "miemie_ref_03_front_sofa_bell.jpg"
+        }
+      ],
+      "user_confirmed": true
+    },
+    {
+      "id": "mark_03_belly_orange_transition",
+      "name": "左腹缘暖杏橘过渡",
+      "semantic_part": "torso_L_belly_edge",
+      "anatomical_side": "_L",
+      "space": "uv",
+      "components": [
+        {
+          "id": "mark_03_apricot_L",
+          "side": "_L",
+          "x_sign": "<0",
+          "uv_region": "B1_torso_L",
+          "polygon": [
+            [
+              0.14,
+              0.54
+            ],
+            [
+              0.22,
+              0.54
+            ],
+            [
+              0.22,
+              0.62
+            ],
+            [
+              0.14,
+              0.62
+            ]
+          ],
+          "color": "#8F8068"
+        }
+      ],
+      "color": "#8F8068",
+      "edge_color": "#796852",
+      "source_type": "observed",
+      "confidence": 0.94,
+      "crosses_uv_seam": false,
+      "source_photos": [
+        {
+          "slot": "orange_belly",
+          "file": "miemie_ref_08_left_side_orange_belly.jpg"
+        }
+      ],
+      "user_confirmed": true
+    },
+    {
+      "id": "mark_04_asymmetric_white_socks",
+      "name": "前高后低四白袜（右前腕内侧小焦糖）",
+      "semantic_part": "leg_FL/FR/BL/BR",
+      "anatomical_side": "asymmetric_LR",
+      "space": "uv",
+      "components": [
+        {
+          "id": "sock_FL",
+          "side": "_L",
+          "uv_region": "C1_leg_FL",
+          "height": "over_wrist",
+          "polygon": [
+            [
+              0.06,
+              0.28
+            ],
+            [
+              0.18,
+              0.28
+            ],
+            [
+              0.18,
+              0.4
+            ],
+            [
+              0.06,
+              0.4
+            ]
+          ],
+          "color": "#D6D1C6"
+        },
+        {
+          "id": "sock_FR",
+          "side": "_R",
+          "uv_region": "C2_leg_FR",
+          "height": "over_wrist",
+          "polygon": [
+            [
+              0.32,
+              0.28
+            ],
+            [
+              0.44,
+              0.28
+            ],
+            [
+              0.44,
+              0.4
+            ],
+            [
+              0.32,
+              0.4
+            ]
+          ],
+          "color": "#D6D1C6",
+          "inner_caramel_hint": "#8E7F66"
+        },
+        {
+          "id": "sock_BL",
+          "side": "_L",
+          "uv_region": "C3_leg_BL",
+          "height": "ankle_short",
+          "polygon": [
+            [
+              0.56,
+              0.28
+            ],
+            [
+              0.68,
+              0.28
+            ],
+            [
+              0.68,
+              0.36
+            ],
+            [
+              0.56,
+              0.36
+            ]
+          ],
+          "color": "#D6D1C6"
+        },
+        {
+          "id": "sock_BR",
+          "side": "_R",
+          "uv_region": "C4_leg_BR",
+          "height": "ankle_short",
+          "polygon": [
+            [
+              0.82,
+              0.28
+            ],
+            [
+              0.94,
+              0.28
+            ],
+            [
+              0.94,
+              0.36
+            ],
+            [
+              0.82,
+              0.36
+            ]
+          ],
+          "color": "#D6D1C6"
+        }
+      ],
+      "color": "#D6D1C6",
+      "edge_color": "#796852",
+      "source_type": "observed",
+      "confidence": 0.96,
+      "crosses_uv_seam": false,
+      "source_photos": [
+        {
+          "slot": "front45",
+          "file": "miemie_ref_01_front45_loaf.jpg"
+        },
+        {
+          "slot": "belly_legs",
+          "file": "miemie_ref_06_belly_and_leg_spots.jpg"
+        }
+      ],
+      "user_confirmed": true
+    },
+    {
+      "id": "mark_05_tabby_and_ringed_tail",
+      "name": "背部鲭鱼虎斑与环纹黑尾尖",
+      "semantic_part": "torso_back+tail",
+      "anatomical_side": "C",
+      "space": "uv",
+      "components": [
+        {
+          "id": "mark_05_back_stripes",
+          "side": "C",
+          "uv_region": "B3_torso_back",
+          "polygon": [
+            [
+              0.56,
+              0.56
+            ],
+            [
+              0.7,
+              0.56
+            ],
+            [
+              0.7,
+              0.7
+            ],
+            [
+              0.56,
+              0.7
+            ]
+          ],
+          "color": "#3A2F25"
+        },
+        {
+          "id": "mark_05_tail_rings",
+          "side": "C",
+          "uv_region": "D1_tail",
+          "polygon": [
+            [
+              0.06,
+              0.06
+            ],
+            [
+              0.2,
+              0.06
+            ],
+            [
+              0.2,
+              0.2
+            ],
+            [
+              0.06,
+              0.2
+            ]
+          ],
+          "color": "#3A2F25"
+        }
+      ],
+      "color": "#3A2F25",
+      "edge_color": "#796852",
+      "source_type": "observed",
+      "confidence": 0.95,
+      "crosses_uv_seam": false,
+      "source_photos": [
+        {
+          "slot": "top_stripes",
+          "file": "miemie_ref_05_top_front_back_stripes.jpg"
+        }
+      ],
+      "user_confirmed": true
+    }
+  ],
+  "lab_color_sources": {
+    "base_tabby": {
+      "srgb": "#796852",
+      "rgb": [
+        120.68,
+        104.34,
+        82.25
+      ],
+      "lab": [
+        45.12,
+        2.86,
+        14.85
+      ],
+      "sample_count": 117394,
+      "drop_highlights_shadows_pct": 15
+    },
+    "stripe_dark": {
+      "srgb": "#3A2F25",
+      "rgb": [
+        58.43,
+        47.1,
+        37.15
+      ],
+      "lab": [
+        20.39,
+        3.34,
+        8.33
+      ],
+      "sample_count": 132793,
+      "drop_highlights_shadows_pct": 5
+    },
+    "white_cream": {
+      "srgb": "#D6D1C6",
+      "rgb": [
+        213.63,
+        208.87,
+        198.22
+      ],
+      "lab": [
+        83.9,
+        -0.22,
+        5.86
+      ],
+      "sample_count": 44545,
+      "drop_highlights_shadows_pct": 8
+    },
+    "white_flank_cloud": {
+      "srgb": "#DCD8CB",
+      "rgb": [
+        220.26,
+        215.77,
+        202.8
+      ],
+      "lab": [
+        86.28,
+        -0.71,
+        6.94
+      ],
+      "sample_count": 131433,
+      "drop_highlights_shadows_pct": 8
+    },
+    "caramel_peanut_R": {
+      "srgb": "#8E7F66",
+      "rgb": [
+        141.9,
+        127.43,
+        101.72
+      ],
+      "lab": [
+        54.01,
+        1.3,
+        16.0
+      ],
+      "sample_count": 11631,
+      "drop_highlights_shadows_pct": 12
+    },
+    "apricot_belly_edge": {
+      "srgb": "#8F8068",
+      "rgb": [
+        143.45,
+        128.11,
+        104.49
+      ],
+      "lab": [
+        54.4,
+        1.96,
+        14.97
+      ],
+      "sample_count": 184465,
+      "drop_highlights_shadows_pct": 12
+    },
+    "eye_emerald": {
+      "srgb": "#6B8464",
+      "rgb": [
+        107.05,
+        132.29,
+        100.37
+      ],
+      "lab": [
+        52.55,
+        -15.56,
+        14.32
+      ],
+      "sample_count": 4959,
+      "drop_highlights_shadows_pct": 10
+    },
+    "nose_brick": {
+      "srgb": "#8D785E",
+      "rgb": [
+        141.08,
+        119.55,
+        94.44
+      ],
+      "lab": [
+        51.63,
+        4.42,
+        16.92
+      ],
+      "sample_count": 6267,
+      "drop_highlights_shadows_pct": 10
+    }
+  },
+  "frozen_at": "2026-10-29T13:44:22+08:00",
+  "frozen_by": "m2_1_manual"
+}

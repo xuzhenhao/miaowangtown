@@ -1,0 +1,80 @@
+{
+  "ok": true,
+  "out_dir": "/workspace/miaowangtown/cats/miemie/identity_v1",
+  "marker_count": 5,
+  "colors": {
+    "base_tabby": {
+      "srgb": "#796852",
+      "lab": [
+        45.12,
+        2.86,
+        14.85
+      ],
+      "n": 117394
+    },
+    "stripe_dark": {
+      "srgb": "#3A2F25",
+      "lab": [
+        20.39,
+        3.34,
+        8.33
+      ],
+      "n": 132793
+    },
+    "white_cream": {
+      "srgb": "#D6D1C6",
+      "lab": [
+        83.9,
+        -0.22,
+        5.86
+      ],
+      "n": 44545
+    },
+    "white_flank_cloud": {
+      "srgb": "#DCD8CB",
+      "lab": [
+        86.28,
+        -0.71,
+        6.94
+      ],
+      "n": 131433
+    },
+    "caramel_peanut_R": {
+      "srgb": "#8E7F66",
+      "lab": [
+        54.01,
+        1.3,
+        16.0
+      ],
+      "n": 11631
+    },
+    "apricot_belly_edge": {
+      "srgb": "#8F8068",
+      "lab": [
+        54.4,
+        1.96,
+        14.97
+      ],
+      "n": 184465
+    },
+    "eye_emerald": {
+      "srgb": "#6B8464",
+      "lab": [
+        52.55,
+        -15.56,
+        14.32
+      ],
+      "n": 4959
+    },
+    "nose_brick": {
+      "srgb": "#8D785E",
+      "lab": [
+        51.63,
+        4.42,
+        16.92
+      ],
+      "n": 6267
+    }
+  },
+  "uv_hash_locked": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f"
+}

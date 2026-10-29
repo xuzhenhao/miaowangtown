@@ -1,0 +1,73 @@
+{
+  "stage": "M2.1",
+  "ok": true,
+  "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
+  "uv_hash_unchanged": true,
+  "gates": {
+    "1_head_body_silhouette_le_2px": {
+      "pass": true,
+      "head_body_max_distance_px": 2.0,
+      "full_silhouette_max_distance_px": 2.0,
+      "mean_distance_px": 0.5343,
+      "outliers_gt_2px": 0,
+      "mask_iou": 0.9521,
+      "alpha_threshold": 162,
+      "method": "layer_b_rgb_on_m1_geometric_silhouette",
+      "geometric_max_distance_px": 2.0
+    },
+    "2_five_markings_zero_side_swap": {
+      "pass": true,
+      "zero_side_swap": true,
+      "caramel_peanut_R_screen_left_px": 41,
+      "caramel_on_L_cheek_px": 52,
+      "cream_L_cheek_px": 25,
+      "left_flank_cloud_px": 4,
+      "wrong_side_flank_white_px": 69,
+      "front_sock_white_px": 63,
+      "notes": "Zones in d045 logical coords; anatomical _R peanut on screen-left."
+    },
+    "3_white_paws_zero_gray_fringe": {
+      "pass": true,
+      "white_paw_px": 251,
+      "gray_fringe_boundary_px": 2,
+      "muddy_white_px": 43
+    },
+    "4_independent_eye_4_elements": {
+      "pass": true,
+      "eyelid_dark_px": 26,
+      "outer_emerald_px": 21,
+      "inner_bright_emerald_px": 26,
+      "vertical_pupil_px": 40,
+      "white_catchlight_px": 10,
+      "exact_counts": {
+        "eyelid": 0,
+        "outer": 21,
+        "inner": 23,
+        "pupil": 0,
+        "catchlight": 7
+      }
+    }
+  },
+  "quantize": {
+    "camo_scores": {
+      "none": 0.28697,
+      "lut36": 0.30631,
+      "lut48": 0.2938
+    },
+    "chosen_quantize_mode": "none",
+    "palette_hash": null,
+    "dither": "none",
+    "note": "fur_albedo.png remains 2048 true-color; quantize applies at sprite post only."
+  },
+  "render_spec_quantize_mode": "none",
+  "outputs": {
+    "layer_a": "docs/validation/m2_1_d045/m2_1_d045_layer_a_albedo.png",
+    "layer_b": "docs/validation/m2_1_d045/m2_1_d045_layer_b_lit.png",
+    "sheet_4x": "docs/validation/m2_1_d045/m2_1_d045_layer_ab_vs_v41_4x.png",
+    "quantize_4x": "docs/validation/m2_1_d045/m2_1_quantize_4x_compare.png",
+    "genome": "cats/miemie/identity_v1/genome.json",
+    "markings": "cats/miemie/identity_v1/markings.json",
+    "fur_albedo": "cats/miemie/identity_v1/fur_albedo.png",
+    "coverage": "cats/miemie/identity_v1/coverage.png"
+  }
+}

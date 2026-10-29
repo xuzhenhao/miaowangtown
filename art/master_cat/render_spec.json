@@ -22,7 +22,7 @@
   "normal_space": "camera_opengl",
   "downsample": "area_box_unsharp",
   "dither": "none",
-  "quantize_mode": "pending_m2_1_experiment",
+  "quantize_mode": "none",
   "d045_calibration": {
     "scale_m_per_logical_px": 0.004,
     "origin_logical_px": [
@@ -30,5 +30,15 @@
       94.0
     ],
     "head_turn_yaw_deg": 24.0
+  },
+  "m2_1_quantize_experiment": {
+    "camo_scores": {
+      "none": 0.28697,
+      "lut36": 0.30631,
+      "lut48": 0.2938
+    },
+    "chosen": "none",
+    "dither": "none",
+    "sheet": "docs/validation/m2_1_d045/m2_1_quantize_4x_compare.png"
   }
 }

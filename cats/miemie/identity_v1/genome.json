@@ -1,0 +1,273 @@
+{
+  "schema_version": 1,
+  "cat_id": "miemie",
+  "display_name": "咩咩",
+  "identity_version": 1,
+  "master": {
+    "mesh": "master_cat",
+    "mesh_version": 1,
+    "uv_version": 1,
+    "rig_version": 1,
+    "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f"
+  },
+  "identity_shape": {
+    "id_body_fat": 0.42,
+    "id_belly": 0.38,
+    "id_leg_len": 0.45,
+    "id_neck_len": 0.48,
+    "id_face_round": 0.62,
+    "id_muzzle_len": 0.46,
+    "id_ear_size": 0.52,
+    "id_ear_fold": 0.0,
+    "tail_len": 0.95,
+    "tail_bob": 0.0
+  },
+  "style_shape": {
+    "sty_head_enlarge": 0.0,
+    "sty_leg_shorten": 0.0,
+    "sty_eye_enlarge": 0.0,
+    "sty_face_chibi_cheek": 0.0,
+    "sty_paw_round": 0.0,
+    "note": "M1 原生微 Q Basis 已含 40%~43% 头高；M2.1 冻结时 sty_* 全 0，不二次放大头。"
+  },
+  "coat": {
+    "pattern": "tabby_mackerel",
+    "fur_length": "short",
+    "colors": {
+      "base": "#796852",
+      "secondary": "#3A2F25",
+      "tertiary": "#8F8068",
+      "white": "#D6D1C6",
+      "caramel_peanut": "#8E7F66"
+    },
+    "colors_lab": {
+      "base": [
+        45.12,
+        2.86,
+        14.85
+      ],
+      "secondary": [
+        20.39,
+        3.34,
+        8.33
+      ],
+      "tertiary": [
+        54.4,
+        1.96,
+        14.97
+      ],
+      "white": [
+        83.9,
+        -0.22,
+        5.86
+      ],
+      "caramel_peanut": [
+        54.01,
+        1.3,
+        16.0
+      ]
+    },
+    "white_regions": {
+      "chin": 1.0,
+      "chest": 0.85,
+      "paw_FL": 1.0,
+      "paw_FR": 1.0,
+      "paw_BL": 0.45,
+      "paw_BR": 0.45
+    },
+    "pattern_params": {
+      "density": 0.55,
+      "contrast": 0.68,
+      "seed": 45045
+    }
+  },
+  "eyes": {
+    "left": {
+      "srgb": "#6B8464",
+      "lab": [
+        52.55,
+        -15.56,
+        14.32
+      ],
+      "source": "photo_lab_midtone"
+    },
+    "right": {
+      "srgb": "#6B8464",
+      "lab": [
+        52.55,
+        -15.56,
+        14.32
+      ],
+      "source": "photo_lab_midtone"
+    },
+    "render_lock_emerald_layers": {
+      "outer": "#2B7A3D",
+      "inner_bright": "#68C864",
+      "pupil": "#121C16",
+      "eyelid": "#1B100A",
+      "catchlight": "#FCF8F0",
+      "note": "独立眼材质四要素渲染锁色（与 M1/validate_master 参数一致）；genome.eyes.*.lab 保留生活照实测。"
+    }
+  },
+  "nose": "#8D785E",
+  "nose_lab": [
+    51.63,
+    4.42,
+    16.92
+  ],
+  "pads": "#6B5555",
+  "markers_ref": "markings.json",
+  "texture": {
+    "uv_version": 1,
+    "size": 2048,
+    "albedo": "fur_albedo.png",
+    "coverage": "coverage.png"
+  },
+  "personality": {
+    "clingy": 0.85,
+    "brave": 0.35,
+    "greedy": 0.55,
+    "active": 0.45
+  },
+  "approval": {
+    "status": "pending_m2_1_producer_review",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "provenance": {
+    "capture_version": 1,
+    "extraction": "pipeline/texture/extract_genome.py",
+    "method": "manual_freeze_markings + Lab midtone (drop 5% hi/lo) from reference/miemie_photos",
+    "automatic_fields": [
+      "coat.colors",
+      "coat.colors_lab",
+      "eyes.left",
+      "eyes.right",
+      "nose"
+    ],
+    "user_edited_fields": [],
+    "lab_samples": {
+      "base_tabby": {
+        "srgb": "#796852",
+        "rgb": [
+          120.68,
+          104.34,
+          82.25
+        ],
+        "lab": [
+          45.12,
+          2.86,
+          14.85
+        ],
+        "sample_count": 117394,
+        "drop_highlights_shadows_pct": 15
+      },
+      "stripe_dark": {
+        "srgb": "#3A2F25",
+        "rgb": [
+          58.43,
+          47.1,
+          37.15
+        ],
+        "lab": [
+          20.39,
+          3.34,
+          8.33
+        ],
+        "sample_count": 132793,
+        "drop_highlights_shadows_pct": 5
+      },
+      "white_cream": {
+        "srgb": "#D6D1C6",
+        "rgb": [
+          213.63,
+          208.87,
+          198.22
+        ],
+        "lab": [
+          83.9,
+          -0.22,
+          5.86
+        ],
+        "sample_count": 44545,
+        "drop_highlights_shadows_pct": 8
+      },
+      "white_flank_cloud": {
+        "srgb": "#DCD8CB",
+        "rgb": [
+          220.26,
+          215.77,
+          202.8
+        ],
+        "lab": [
+          86.28,
+          -0.71,
+          6.94
+        ],
+        "sample_count": 131433,
+        "drop_highlights_shadows_pct": 8
+      },
+      "caramel_peanut_R": {
+        "srgb": "#8E7F66",
+        "rgb": [
+          141.9,
+          127.43,
+          101.72
+        ],
+        "lab": [
+          54.01,
+          1.3,
+          16.0
+        ],
+        "sample_count": 11631,
+        "drop_highlights_shadows_pct": 12
+      },
+      "apricot_belly_edge": {
+        "srgb": "#8F8068",
+        "rgb": [
+          143.45,
+          128.11,
+          104.49
+        ],
+        "lab": [
+          54.4,
+          1.96,
+          14.97
+        ],
+        "sample_count": 184465,
+        "drop_highlights_shadows_pct": 12
+      },
+      "eye_emerald": {
+        "srgb": "#6B8464",
+        "rgb": [
+          107.05,
+          132.29,
+          100.37
+        ],
+        "lab": [
+          52.55,
+          -15.56,
+          14.32
+        ],
+        "sample_count": 4959,
+        "drop_highlights_shadows_pct": 10
+      },
+      "nose_brick": {
+        "srgb": "#8D785E",
+        "rgb": [
+          141.08,
+          119.55,
+          94.44
+        ],
+        "lab": [
+          51.63,
+          4.42,
+          16.92
+        ],
+        "sample_count": 6267,
+        "drop_highlights_shadows_pct": 10
+      }
+    },
+    "extracted_at": "2026-10-29T13:44:22+08:00"
+  }
+}
