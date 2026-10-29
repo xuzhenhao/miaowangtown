@@ -615,10 +615,6 @@ def render_d045_master_sprite_and_eyes():
       - Eyes via D2 UV parametric emerald shader (no vertex relocation, no ref RGB paste)
       - Body display color = soft test fur shaded from real mesh normals/UVs
     """
-    for name in ["CAT_BODY", "CAT_EYE_L", "CAT_EYE_R"]:
-        obj = bpy.data.objects[name]
-        if obj.data.shape_keys and "cal_d045_v4_1" in obj.data.shape_keys.key_blocks:
-            obj.data.shape_keys.key_blocks["cal_d045_v4_1"].value = 1.0
     bpy.context.view_layer.update()
     depsgraph = bpy.context.evaluated_depsgraph_get()
 
@@ -828,10 +824,6 @@ def render_d045_master_sprite_and_eyes():
     pupil = int((eye_mask_low & (r == 18) & (g == 28) & (b == 22)).sum())
     catch = int((eye_mask_low & (r > 230) & (g > 230) & (b > 220)).sum())
 
-    for name in ["CAT_BODY", "CAT_EYE_L", "CAT_EYE_R"]:
-        obj = bpy.data.objects[name]
-        if obj.data.shape_keys and "cal_d045_v4_1" in obj.data.shape_keys.key_blocks:
-            obj.data.shape_keys.key_blocks["cal_d045_v4_1"].value = 0.0
     bpy.context.view_layer.update()
 
     metrics = {

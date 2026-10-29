@@ -543,9 +543,9 @@
     ]
   },
   "proportions_basis": {
-    "total_height_m": 0.4471,
-    "chin_height_m": 0.26,
-    "head_height_ratio": 0.4185
+    "total_height_m": 0.5028,
+    "chin_height_m": 0.2926,
+    "head_height_ratio": 0.418
   },
-  "uv_hash": "sha256:71e162bec7adafa5fe9df6ecff2d28d75d699e908da4c30d49d69ed138da2617"
+  "uv_hash": "sha256:d4f2fd66315581aac5ff80404b5883ebb731e41f9912969f0f58659a02a67982"
 }

@@ -28,7 +28,7 @@ def evaluate_shaped_vertices(obj_body) -> np.ndarray:
     basis = np.array([[kb["Basis"].data[i].co.x, kb["Basis"].data[i].co.y, kb["Basis"].data[i].co.z] for i in range(n_verts)], dtype=np.float64)
     out = basis.copy()
     for block in kb:
-        if block.name in ("Basis", "cal_d045_v4_1") or abs(block.value) < 1e-7:
+        if block.name == "Basis" or abs(block.value) < 1e-7:
             continue
         pts = np.array([[block.data[i].co.x, block.data[i].co.y, block.data[i].co.z] for i in range(n_verts)], dtype=np.float64)
         out += float(block.value) * (pts - basis)

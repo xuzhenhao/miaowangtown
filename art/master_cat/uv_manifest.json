@@ -26,7 +26,7 @@
         110,
         95
       ],
-      "triangle_count": 272
+      "triangle_count": 258
     },
     "A2_head_back": {
       "grid": [
@@ -68,7 +68,7 @@
         195,
         85
       ],
-      "triangle_count": 130
+      "triangle_count": 145
     },
     "A4_ears_LR": {
       "grid": [
@@ -89,7 +89,7 @@
         215,
         95
       ],
-      "triangle_count": 142
+      "triangle_count": 140
     },
     "B1_torso_L": {
       "grid": [
@@ -110,7 +110,7 @@
         195,
         145
       ],
-      "triangle_count": 455
+      "triangle_count": 469
     },
     "B2_torso_R": {
       "grid": [
@@ -131,7 +131,7 @@
         185,
         215
       ],
-      "triangle_count": 455
+      "triangle_count": 477
     },
     "B3_torso_back": {
       "grid": [
@@ -152,7 +152,7 @@
         145,
         235
       ],
-      "triangle_count": 40
+      "triangle_count": 46
     },
     "B4_torso_belly": {
       "grid": [
@@ -173,7 +173,7 @@
         125,
         235
       ],
-      "triangle_count": 382
+      "triangle_count": 398
     },
     "C1_leg_FL": {
       "grid": [
@@ -194,7 +194,7 @@
         115,
         205
       ],
-      "triangle_count": 350
+      "triangle_count": 377
     },
     "C2_leg_FR": {
       "grid": [
@@ -215,7 +215,7 @@
         115,
         155
       ],
-      "triangle_count": 346
+      "triangle_count": 355
     },
     "C3_leg_BL": {
       "grid": [
@@ -236,7 +236,7 @@
         145,
         115
       ],
-      "triangle_count": 526
+      "triangle_count": 528
     },
     "C4_leg_BR": {
       "grid": [
@@ -257,7 +257,7 @@
         175,
         135
       ],
-      "triangle_count": 520
+      "triangle_count": 496
     },
     "D1_tail": {
       "grid": [
@@ -278,7 +278,7 @@
         175,
         195
       ],
-      "triangle_count": 320
+      "triangle_count": 344
     },
     "D2_eyes_LR": {
       "grid": [
@@ -299,7 +299,7 @@
         210,
         135
       ],
-      "triangle_count": 12
+      "triangle_count": 19
     },
     "D3_nose_pads_tongue": {
       "grid": [
@@ -320,7 +320,7 @@
         140,
         150
       ],
-      "triangle_count": 260
+      "triangle_count": 118
     },
     "D4_reserved": {
       "grid": [
@@ -341,8 +341,8 @@
         135,
         145
       ],
-      "triangle_count": 30
+      "triangle_count": 70
     }
   },
-  "uv_hash": "sha256:71e162bec7adafa5fe9df6ecff2d28d75d699e908da4c30d49d69ed138da2617"
+  "uv_hash": "sha256:d4f2fd66315581aac5ff80404b5883ebb731e41f9912969f0f58659a02a67982"
 }

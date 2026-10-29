@@ -2,10 +2,11 @@
   "milestone": "M1",
   "overall_status": "PASS",
   "passed_checks": "13/13",
-  "uv_hash": "sha256:71e162bec7adafa5fe9df6ecff2d28d75d699e908da4c30d49d69ed138da2617",
+  "uv_hash": "sha256:d4f2fd66315581aac5ff80404b5883ebb731e41f9912969f0f58659a02a67982",
+  "pure_basis_rest_mesh_evaluated": true,
   "full_silhouette_max_distance_px": 2.0,
   "head_body_max_distance_px": 2.0,
-  "mask_iou": 0.9523,
+  "mask_iou": 0.9521,
   "eye_4_elements_readable": true,
   "checks": {
     "01_manifold_and_watertight": {
@@ -21,24 +22,24 @@
         },
         "CAT_EYE_L": {
           "exists": true,
-          "vertices": 72,
-          "triangles": 140,
+          "vertices": 110,
+          "triangles": 216,
           "non_manifold_edges": 0,
           "boundary_edges": 0,
           "zero_area_faces": 0
         },
         "CAT_EYE_R": {
           "exists": true,
-          "vertices": 72,
-          "triangles": 140,
+          "vertices": 110,
+          "triangles": 216,
           "non_manifold_edges": 0,
           "boundary_edges": 0,
           "zero_area_faces": 0
         },
         "CAT_TONGUE": {
           "exists": true,
-          "vertices": 72,
-          "triangles": 140,
+          "vertices": 110,
+          "triangles": 216,
           "non_manifold_edges": 0,
           "boundary_edges": 0,
           "zero_area_faces": 0
@@ -49,19 +50,19 @@
       "pass": true,
       "details": {
         "CAT_BODY": {
-          "signed_volume_m3": 0.0047347,
+          "signed_volume_m3": 0.0042048,
           "flipped_faces": 0
         },
         "CAT_EYE_L": {
-          "signed_volume_m3": 9.5e-06,
+          "signed_volume_m3": 1.35e-05,
           "flipped_faces": 0
         },
         "CAT_EYE_R": {
-          "signed_volume_m3": 9.5e-06,
+          "signed_volume_m3": 1.35e-05,
           "flipped_faces": 0
         },
         "CAT_TONGUE": {
-          "signed_volume_m3": 1.6e-06,
+          "signed_volume_m3": 1.7e-06,
           "flipped_faces": 0
         }
       }
@@ -100,6 +101,7 @@
       "identity_keys_count": 8,
       "style_keys_count": 5,
       "face_keys_count": 5,
+      "unauthorized_or_cal_keys": [],
       "missing_keys": [],
       "nan_keys": [],
       "range_errors": [],
@@ -109,7 +111,7 @@
       "pass": true,
       "uv_min": [
         0.012244,
-        0.01252
+        0.01244
       ],
       "uv_max": [
         0.98781,
@@ -121,8 +123,8 @@
     },
     "06_uv_hash_matches_manifest": {
       "pass": true,
-      "measured_uv_hash": "sha256:71e162bec7adafa5fe9df6ecff2d28d75d699e908da4c30d49d69ed138da2617",
-      "manifest_uv_hash": "sha256:71e162bec7adafa5fe9df6ecff2d28d75d699e908da4c30d49d69ed138da2617"
+      "measured_uv_hash": "sha256:d4f2fd66315581aac5ff80404b5883ebb731e41f9912969f0f58659a02a67982",
+      "manifest_uv_hash": "sha256:d4f2fd66315581aac5ff80404b5883ebb731e41f9912969f0f58659a02a67982"
     },
     "07_40_bones_hierarchy": {
       "pass": true,
@@ -162,7 +164,7 @@
         "foot_BL": 0.0,
         "foot_BR": 0.0
       },
-      "deformed_head_height_ratio": 0.4221,
+      "deformed_head_height_ratio": 0.4202,
       "tongue_shift_hard_limit_mm": 1.0
     },
     "12_clean_master_no_identity_textures": {
@@ -172,6 +174,9 @@
     },
     "13_d045_full_silhouette_and_eye_4_elements": {
       "pass": true,
+      "pure_basis_rest_mesh_evaluated": true,
+      "cal_shape_keys_found": [],
+      "non_zero_shape_keys_during_eval": [],
       "logical_grid": [
         114,
         104
@@ -180,14 +185,14 @@
       "full_silhouette_max_distance_px": 2.0,
       "inner_full_silhouette_max_distance_px": 2.0,
       "full_silhouette_p95_distance_px": 1.2278,
-      "full_silhouette_mean_distance_px": 0.5473,
+      "full_silhouette_mean_distance_px": 0.5494,
       "full_silhouette_outliers_gt_2px": 0,
       "head_body_max_distance_px": 2.0,
-      "mask_iou": 0.9523,
-      "eyelid_dark_px_count": 11,
-      "outer_emerald_px_count": 15,
-      "inner_bright_emerald_px_count": 37,
-      "vertical_pupil_px_count": 6,
+      "mask_iou": 0.9521,
+      "eyelid_dark_px_count": 26,
+      "outer_emerald_px_count": 21,
+      "inner_bright_emerald_px_count": 29,
+      "vertical_pupil_px_count": 8,
       "white_catchlight_px_count": 7,
       "eye_4_elements_readable": true
     }

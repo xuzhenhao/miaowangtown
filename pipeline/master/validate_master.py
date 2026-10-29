@@ -2,11 +2,12 @@
 """
 Stage M1 — 13-Item Industrial Master Cat Automated Gate (`pipeline/master/validate_master.py`)
 Validates `art/master_cat/master_cat.blend` against all 12 structural criteria in `DEVELOPMENT_PLAN.md` v1.3
-(both before and after applying `id_*` + `sty_*` Shape Keys + `adapt_rest.py`, including tongue shift < 1mm)
+(both before and after applying `id_*` + `sty_*` Shape Keys + `adapt_rest.py`, including tongue shift < 1mm,
+and verifying zero `cal_*` or unauthorized shape keys exist on any mesh)
 PLUS Check 13: Real `d045` `114x104` Full Silhouette Bidirectional Distance (`<= 2.0 px` including all 4 legs
 and tail, zero `> 2.0 px` outliers) and Real Measured 4-Element Emerald Eye Pixel Counts rendered directly
-from the evaluated `CAT_BODY` + `CAT_EYE_L` + `CAT_EYE_R` 3D meshes in `master_cat.blend` without any script
-vertex relocation or benchmark pixel copy-paste.
+from the pure Rest (`Basis`, all shape key values == 0.0) `CAT_BODY` + `CAT_EYE_L` + `CAT_EYE_R` 3D meshes
+in `master_cat.blend` without any calibration shape keys, script vertex relocation, or benchmark pixel copy-paste.
 Writes `docs/validation/m1_master_validation/validation_report.json`.
 """
 import hashlib
@@ -69,19 +70,26 @@ def get_4conn_boundary(mask: np.ndarray) -> np.ndarray:
 
 def evaluate_d045_silhouette_and_eyes() -> dict:
     """
-    Evaluate `CAT_BODY`, `CAT_EYE_L`, `CAT_EYE_R` directly from `master_cat.blend` with `cal_d045_v4_1 = 1.0`
-    (zero external vertex tampering, zero benchmark pixel copy-paste), render at 4x supersampling (456x416),
-    downsample via `post_v4_1` Box/Area integration to `114x104` (`Alpha > 162`), and measure:
+    Evaluate `CAT_BODY`, `CAT_EYE_L`, `CAT_EYE_R` directly from `master_cat.blend` in 100% pure Rest (`Basis`)
+    state (asserting all shape key values == 0.0 and zero `cal_*` keys exist anywhere), render at 4x supersampling
+    (456x416), downsample via `post_v4_1` Box/Area integration to `114x104` (`Alpha > 162`), and measure:
       - `full_silhouette_max_distance_px` (including all 4 legs and tail)
       - `head_body_max_distance_px`
       - `full_silhouette_outliers_gt_2px`
       - `mask_iou`
       - Real pixel counts of the 4 eye elements inside `CAT_EYE_L` and `CAT_EYE_R` on the `114x104` grid.
     """
-    for name in ["CAT_BODY", "CAT_EYE_L", "CAT_EYE_R"]:
+    non_zero_shape_keys = []
+    cal_shape_keys = []
+    for name in ["CAT_BODY", "CAT_EYE_L", "CAT_EYE_R", "CAT_TONGUE"]:
         obj = bpy.data.objects[name]
-        if obj.data.shape_keys and "cal_d045_v4_1" in obj.data.shape_keys.key_blocks:
-            obj.data.shape_keys.key_blocks["cal_d045_v4_1"].value = 1.0
+        if obj.data.shape_keys:
+            for kb in obj.data.shape_keys.key_blocks:
+                if kb.name.startswith("cal_"):
+                    cal_shape_keys.append(f"{name}:{kb.name}")
+                if kb.name != "Basis" and abs(kb.value) > 1e-7:
+                    non_zero_shape_keys.append(f"{name}:{kb.name}={kb.value}")
+
     bpy.context.view_layer.update()
     depsgraph = bpy.context.evaluated_depsgraph_get()
 
@@ -92,7 +100,7 @@ def evaluate_d045_silhouette_and_eyes() -> dict:
     ss = 4
     hi_w, hi_h = gw * ss, gh * ss
 
-    # 1. Rasterize evaluated CAT_BODY 4x supersampled silhouette mask
+    # 1. Rasterize evaluated CAT_BODY 4x supersampled silhouette mask (100% pure Basis mesh)
     ev_body = bpy.data.objects["CAT_BODY"].evaluated_get(depsgraph)
     m_body = ev_body.to_mesh()
     m_body.calc_loop_triangles()
@@ -244,28 +252,28 @@ def evaluate_d045_silhouette_and_eyes() -> dict:
     white_catchlight_px = int((eye_mask_low & (r > 230) & (g > 230) & (b > 220)).sum())
 
     eye_4_elements_readable = bool(
-        eyelid_dark_px > 0
-        and outer_emerald_px > 0
-        and inner_bright_emerald_px > 0
-        and vertical_pupil_px > 0
-        and white_catchlight_px > 0
+        eyelid_dark_px >= 6
+        and outer_emerald_px >= 8
+        and inner_bright_emerald_px >= 6
+        and vertical_pupil_px >= 4
+        and white_catchlight_px >= 2
     )
 
-    for name in ["CAT_BODY", "CAT_EYE_L", "CAT_EYE_R"]:
-        obj = bpy.data.objects[name]
-        if obj.data.shape_keys and "cal_d045_v4_1" in obj.data.shape_keys.key_blocks:
-            obj.data.shape_keys.key_blocks["cal_d045_v4_1"].value = 0.0
-    bpy.context.view_layer.update()
-
     gate_pass = (
-        full_max_d <= 2.0
+        len(cal_shape_keys) == 0
+        and len(non_zero_shape_keys) == 0
+        and full_max_d <= 2.0
         and inner_full_max_d <= 2.0
         and hb_max_d <= 2.0
         and full_outliers == 0
+        and iou >= 0.93
         and eye_4_elements_readable
     )
     return {
         "pass": gate_pass,
+        "pure_basis_rest_mesh_evaluated": (len(cal_shape_keys) == 0 and len(non_zero_shape_keys) == 0),
+        "cal_shape_keys_found": cal_shape_keys,
+        "non_zero_shape_keys_during_eval": non_zero_shape_keys,
         "logical_grid": [gw, gh],
         "alpha_threshold": 162,
         "full_silhouette_max_distance_px": round(full_max_d, 4),
@@ -402,7 +410,8 @@ def run_validation() -> dict:
     }
 
     # =========================================================================
-    # Check 4: Shape Keys (`id_*`, `sty_*`, `face`) Stability, Range [0, 1], No NaN
+    # Check 4: Shape Keys (`id_*`, `sty_*`, `face`) Stability, Range [0, 1],
+    #          No NaN, and ZERO `cal_*` or unauthorized keys on any mesh!
     # =========================================================================
     obj_body = bpy.data.objects["CAT_BODY"]
     sk_blocks = obj_body.data.shape_keys.key_blocks if obj_body.data.shape_keys else {}
@@ -410,6 +419,18 @@ def run_validation() -> dict:
     req_sty_keys = master_spec["shape_keys"]["style"]
     req_face_keys = master_spec["shape_keys"]["face"]
     all_req_keys = req_id_keys + req_sty_keys + req_face_keys
+    allowed_body_keys = set(["Basis"] + all_req_keys)
+
+    unauthorized_keys = []
+    for m_name in req_meshes:
+        m_obj = bpy.data.objects[m_name]
+        if m_obj.data.shape_keys:
+            for kb in m_obj.data.shape_keys.key_blocks:
+                if m_name == "CAT_BODY":
+                    if kb.name not in allowed_body_keys or kb.name.startswith("cal_"):
+                        unauthorized_keys.append(f"{m_name}:{kb.name}")
+                else:
+                    unauthorized_keys.append(f"{m_name}:{kb.name}")
 
     missing_keys = [k for k in all_req_keys if k not in sk_blocks]
     nan_keys = []
@@ -429,12 +450,19 @@ def run_validation() -> dict:
         if max_delta < 1e-4:
             zero_delta_keys.append(k)
 
-    c4_pass = (len(missing_keys) == 0 and len(nan_keys) == 0 and len(range_errors) == 0 and len(zero_delta_keys) == 0)
+    c4_pass = (
+        len(unauthorized_keys) == 0
+        and len(missing_keys) == 0
+        and len(nan_keys) == 0
+        and len(range_errors) == 0
+        and len(zero_delta_keys) == 0
+    )
     checks["04_shape_keys_valid_and_separated"] = {
         "pass": c4_pass,
         "identity_keys_count": len(req_id_keys),
         "style_keys_count": len(req_sty_keys),
         "face_keys_count": len(req_face_keys),
+        "unauthorized_or_cal_keys": unauthorized_keys,
         "missing_keys": missing_keys,
         "nan_keys": nan_keys,
         "range_errors": range_errors,
@@ -611,7 +639,7 @@ def run_validation() -> dict:
     # =========================================================================
     # Check 11: `adapt_rest.py` Consistency —
     #   Rest AND deformed tongue_01 shift both < 1.0mm (hard gate),
-    #   4 feet grounded at Z=0 (< 0.5mm), deformed head ratio in [40%, 43.5%]
+    #   4 feet grounded at Z=0 (< 0.5mm), deformed head ratio in [40%, 43%]
     # =========================================================================
     rest_adapt_report = adapt_rest_rig(landmarks_path=MASTER_DIR / "landmark_vertices.json")
     rest_tongue_shift_mm = rest_adapt_report["tongue_01_shift_mm"]
@@ -642,7 +670,7 @@ def run_validation() -> dict:
         (rest_tongue_shift_mm < 1.0)
         and (deformed_tongue_shift_mm < 1.0)
         and (max_foot_err_after_mm < 0.5)
-        and (0.40 <= head_ratio_after <= 0.435)
+        and (0.40 <= head_ratio_after <= 0.43)
     )
     checks["11_adapt_rest_after_shapekeys_ground_and_ratio"] = {
         "pass": c11_pass,
@@ -670,6 +698,7 @@ def run_validation() -> dict:
     # =========================================================================
     # Check 13: Real `d045` `114x104` Full Silhouette Distance (`<= 2.0 px` including
     #           all 4 legs and tail) & Real Measured 4-Element Emerald Eye Readability
+    #           on 100% Pure Static Rest Mesh (`Basis`, all ShapeKey values == 0.0)
     # =========================================================================
     d045_gate = evaluate_d045_silhouette_and_eyes()
     checks["13_d045_full_silhouette_and_eye_4_elements"] = d045_gate
@@ -681,6 +710,7 @@ def run_validation() -> dict:
         "overall_status": "PASS" if all_passed else "FAIL",
         "passed_checks": f"{passed_count}/{len(checks)}",
         "uv_hash": measured_hash,
+        "pure_basis_rest_mesh_evaluated": d045_gate["pure_basis_rest_mesh_evaluated"],
         "full_silhouette_max_distance_px": d045_gate["full_silhouette_max_distance_px"],
         "head_body_max_distance_px": d045_gate["head_body_max_distance_px"],
         "mask_iou": d045_gate["mask_iou"],
