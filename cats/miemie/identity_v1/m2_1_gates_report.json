@@ -1,6 +1,7 @@
 {
   "stage": "M2.1",
   "ok": true,
+  "honesty_revision": "2026-10-29-gates-honest",
   "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
   "uv_hash_unchanged": true,
   "gates": {
@@ -13,18 +14,28 @@
       "mask_iou": 0.9521,
       "alpha_threshold": 162,
       "method": "layer_b_rgb_on_m1_geometric_silhouette",
-      "geometric_max_distance_px": 2.0
+      "geometric_max_distance_px": 2.0,
+      "independent_m21_contour_evidence": false,
+      "evidence": "m1_geometry_lock_inherited",
+      "notes": "Alpha is locked to the frozen M1 geometric silhouette; M2.1 only replaces RGB. max_d/IoU therefore match M1 by construction and are NOT new M2.1 contour proof."
     },
     "2_five_markings_zero_side_swap": {
       "pass": true,
       "zero_side_swap": true,
       "caramel_peanut_R_screen_left_px": 41,
       "caramel_on_L_cheek_px": 52,
+      "caramel_peanut_R_v41_px": 40,
+      "caramel_on_L_cheek_v41_px": 57,
       "cream_L_cheek_px": 25,
       "left_flank_cloud_px": 4,
+      "left_flank_cloud_v41_px": 12,
+      "chest_bib_box_white_px": 69,
+      "chest_bib_box_white_v41_px": 40,
       "wrong_side_flank_white_px": 69,
       "front_sock_white_px": 63,
-      "notes": "Zones in d045 logical coords; anatomical _R peanut on screen-left."
+      "heuristic_reliability": "soft",
+      "authority": "visual_4x_sheet",
+      "notes": "Zone pixel counts are soft; chest_bib_box white is expected (bib), not LR swap. Swap judged vs v4.1 peanut/flank presence. 4x sheet is final authority."
     },
     "3_white_paws_zero_gray_fringe": {
       "pass": true,
@@ -34,18 +45,34 @@
     },
     "4_independent_eye_4_elements": {
       "pass": true,
+      "counted_on": "layer_a_pure_albedo",
       "eyelid_dark_px": 26,
       "outer_emerald_px": 21,
       "inner_bright_emerald_px": 26,
       "vertical_pupil_px": 40,
       "white_catchlight_px": 10,
-      "exact_counts": {
-        "eyelid": 0,
+      "exact_counts_layer_a": {
+        "eyelid": 25,
         "outer": 21,
         "inner": 23,
-        "pupil": 0,
+        "pupil": 7,
         "catchlight": 7
-      }
+      },
+      "fuzzy_counts_layer_b": {
+        "eyelid_dark_px": 26,
+        "outer_emerald_px": 21,
+        "inner_bright_emerald_px": 26,
+        "vertical_pupil_px": 40,
+        "white_catchlight_px": 10,
+        "exact_counts": {
+          "eyelid": 0,
+          "outer": 21,
+          "inner": 23,
+          "pupil": 0,
+          "catchlight": 7
+        }
+      },
+      "notes": "Gate 4 primary counts are Layer A; Layer B exact pupil/lid may hit 0 after lantern shift."
     }
   },
   "quantize": {
@@ -69,5 +96,12 @@
     "markings": "cats/miemie/identity_v1/markings.json",
     "fur_albedo": "cats/miemie/identity_v1/fur_albedo.png",
     "coverage": "cats/miemie/identity_v1/coverage.png"
+  },
+  "producer_notes": {
+    "silhouette": "NOT new M2.1 evidence — Alpha locked to M1 geom",
+    "markings": "chest_bib_box white is expected; swap judged vs v4.1; 4x visual is authority",
+    "eyes": "primary counts on Layer A; do not fail on Layer B exact_counts pupil=0",
+    "coverage": "d045 single view ~33% island fill expected; back empty until M2.2",
+    "freeze_fur_albedo": false
   }
 }

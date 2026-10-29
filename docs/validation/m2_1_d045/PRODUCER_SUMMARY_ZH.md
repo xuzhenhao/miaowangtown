@@ -1,24 +1,32 @@
-# M2.1 制作人自审摘要
+# M2.1 制作人自审摘要（诚实修订版）
 
 ## 结论
-M2.1 本地已跑通，**四条门禁全 PASS**，色板定案 **`quantize_mode=none`**。未 push，请过目三张主检视板后拍板是否进 M2.2。
+**本视角（d045）视觉可进互补方向**；`quantize_mode=none` 仍成立。  
+**整张 `fur_albedo.png` 尚未冻结**（背侧 / 对面斜前仍空，留给 M2.2）。
+
+## 三个数字不是新证据（请以 4x 对照板为准）
+
+1. **剪影 max_d 2.0 / IoU 0.9521**  
+   Alpha 锁死为 **M1 几何剪影**；M2.1 只换 RGB。轮廓数字与 M1 相同是构造结果，**不是**本阶段新剪影证明。
+
+2. **五印记自动分区**  
+   嘴套焦糖 `_R` 41 / 左颊焦糖 52、左肋白云 4、胸前 bib 盒白 69——分区启发式偏软；bib 盒白在 v4.1 也有（约 40），**不能**当成换侧失败。换侧改为相对 v4.1 的花生斑 / 左肋云是否消失。最终以 4x 板肉眼为准。
+
+3. **眼睛 exact 计数**  
+   门禁主计数改在 **Layer A（纯 Albedo）**：睑 26 / 外 21 / 内 26 / 瞳 40 / 高光 10。  
+   Layer B 叠灯笼光后 exact 瞳孔/睑可到 0，属色相偏移，**不作为否决**。
+
+## 仍成立的验收
+
+| 项 | 结果 |
+|---|---|
+| 观感 vs v4.1（4x） | 斑纹 / 白围脖 / 白爪 / 绿眼同位，像同一只猫 |
+| 白爪灰边 | fringe **2**（≤6） |
+| 色板 | **`quantize_mode=none`**（真彩 camo 最优） |
+| M1 `uv_hash` | 未变 |
+| coverage | 单视角岛内绿+黄 ≈33%，红未见留给 M2.2（预期） |
 
 ## 路径
-- 基因/印记：`cats/miemie/identity_v1/{genome,markings}.json`
-- 反照率/覆盖：`cats/miemie/identity_v1/{fur_albedo,coverage}.png`
-- 门禁报告：`docs/validation/m2_1_d045/m2_1_gates_report.json`
-- 渲染规格：`art/master_cat/render_spec.json`（`quantize_mode` 已非 `pending_m2_1_experiment`）
-
-## 四条门禁数值
-1. 头身剪影 max_d **2.0** px / outliers **0** / IoU **0.9521**
-2. 五印记零换侧 **PASS**（`_R` 焦糖画面左；`_L` 白云侧未互换）
-3. 白爪灰边 **2** px（阈值宽松通过）
-4. 眼 睑**26** / 外翠**21** / 内亮**26** / 瞳**40** / 高光**10**
-
-## 色板定案
-`none`（真彩）优于 lut36/lut48；`dither=none`；2048 `fur_albedo` 不量化。
-
-## 制作人自审备注
-- Layer B 与 v4.1 同机位观感接近；灯笼暖光 + 腹底 AO 只加一次。
-- d045 单视角 coverage 绿+黄约占岛内 32.6%，红未见留给 M2.2 互补视角，符合计划。
-- M1 拓扑 / `uv_hash` 未动。
+- `cats/miemie/identity_v1/{genome,markings,fur_albedo,coverage}.*`
+- `docs/validation/m2_1_d045/` 检视板与 `m2_1_gates_report.json`（含 `honesty_revision`）
+- `art/master_cat/render_spec.json` → `quantize_mode=none`

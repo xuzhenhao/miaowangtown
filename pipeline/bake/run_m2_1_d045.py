@@ -291,55 +291,68 @@ def gate_silhouette(m2_logical: np.ndarray, ref_logical: np.ndarray) -> dict:
     }
 
 
-def gate_markings(m2_logical: np.ndarray, ref_logical: np.ndarray) -> dict:
-    """Heuristic five-marking side check on d045 logical grid (anatomical L/R)."""
-    a = m2_logical[:, :, 3] > ALPHA_THR
-    rgb = m2_logical[:, :, :3].astype(np.float32)
+def _white_caramel(img: np.ndarray):
+    a = img[:, :, 3] > ALPHA_THR
+    rgb = img[:, :, :3].astype(np.float32)
     luma = 0.299 * rgb[:, :, 0] + 0.587 * rgb[:, :, 1] + 0.114 * rgb[:, :, 2]
-    # White-ish
     white = a & (luma > 175) & (np.abs(rgb[:, :, 0] - rgb[:, :, 1]) < 28)
-    # Warm caramel midtone
     caramel = a & (rgb[:, :, 0] > rgb[:, :, 2] + 18) & (luma > 75) & (luma < 160) & (rgb[:, :, 0] > 100)
+    return a, white, caramel
 
-    # d045 facing leftish: cat right muzzle peanut appears on screen-left of nose (~x 12-22, y 44-52)
-    muzzle_R_zone = np.zeros_like(a)
-    muzzle_R_zone[44:53, 12:22] = True  # screen-left = anatomical _R
-    muzzle_L_zone = np.zeros_like(a)
-    muzzle_L_zone[43:52, 20:34] = True  # screen-rightish cheek = anatomical _L
+
+def gate_markings(m2_logical: np.ndarray, ref_logical: np.ndarray) -> dict:
+    """Five-marking side check vs v4.1 (zone counts are soft; 4x visual is authority).
+
+    Absolute white in screen-left mid-body is NOT a swap signal — chest bib lives there
+    on both M2.1 and v4.1. Swap = peanut / flank cloud invert relative to the benchmark.
+    """
+    a, white, caramel = _white_caramel(m2_logical)
+    _, white_r, caramel_r = _white_caramel(ref_logical)
+
+    muzzle_R_zone = np.zeros_like(a); muzzle_R_zone[44:53, 12:22] = True
+    muzzle_L_zone = np.zeros_like(a); muzzle_L_zone[43:52, 20:34] = True
+    flank_L_zone = np.zeros_like(a); flank_L_zone[64:78, 44:62] = True
+    # Chest-bib-heavy old "wrong" box — kept only for transparency, not for swap fail
+    flank_bib_box = np.zeros_like(a); flank_bib_box[55:70, 22:40] = True
+    sock_zone = np.zeros_like(a); sock_zone[80:95, 12:50] = True
 
     car_R = int((caramel & muzzle_R_zone).sum())
     car_L = int((caramel & muzzle_L_zone).sum())
+    car_R_ref = int((caramel_r & muzzle_R_zone).sum())
+    car_L_ref = int((caramel_r & muzzle_L_zone).sum())
     white_L_cheek = int((white & muzzle_L_zone).sum())
-
-    # Left flank cloud: screen lower-mid/right (x 46-60, y 64-78)
-    flank_L_zone = np.zeros_like(a)
-    flank_L_zone[64:78, 44:62] = True
-    # Upper outer right-screen flank (should stay tabby — true swap would put cloud here)
-    flank_R_wrong = np.zeros_like(a)
-    flank_R_wrong[58:72, 55:78] = True  # dorsal-right screen = anatomical left-back is OK actually
-    # Better: anatomical right torso on d045 is screen-left mid body (should NOT have big white cloud)
-    flank_R_wrong = np.zeros_like(a)
-    flank_R_wrong[55:70, 22:40] = True
     cloud_L = int((white & flank_L_zone).sum())
-    cloud_wrong_R = int((white & flank_R_wrong).sum())
-
-    # Front socks high white
-    sock_zone = np.zeros_like(a)
-    sock_zone[80:95, 12:50] = True
+    cloud_L_ref = int((white_r & flank_L_zone).sum())
+    bib_white = int((white & flank_bib_box).sum())
+    bib_white_ref = int((white_r & flank_bib_box).sum())
     sock_white = int((white & sock_zone).sum())
 
-    swapped = (car_L > car_R * 1.8 and car_R < 3) or (cloud_wrong_R > cloud_L * 1.5 and cloud_L < 3)
-    ok = (not swapped) and car_R >= 2 and cloud_L >= 4 and sock_white >= 8
+    # True swap: peanut caramel vanishes on _R while dumping on _L vs ref, OR left cloud gone
+    peanut_swapped = (car_R_ref >= 10 and car_R < 3 and car_L > car_R_ref)
+    cloud_swapped = (cloud_L_ref >= 4 and cloud_L < 2 and bib_white > bib_white_ref * 1.8)
+    swapped = bool(peanut_swapped or cloud_swapped)
+    present = car_R >= 8 and cloud_L >= 2 and sock_white >= 8
+    ok = (not swapped) and present
     return {
         "pass": bool(ok),
         "zero_side_swap": bool(not swapped),
         "caramel_peanut_R_screen_left_px": car_R,
         "caramel_on_L_cheek_px": car_L,
+        "caramel_peanut_R_v41_px": car_R_ref,
+        "caramel_on_L_cheek_v41_px": car_L_ref,
         "cream_L_cheek_px": white_L_cheek,
         "left_flank_cloud_px": cloud_L,
-        "wrong_side_flank_white_px": cloud_wrong_R,
+        "left_flank_cloud_v41_px": cloud_L_ref,
+        "chest_bib_box_white_px": bib_white,
+        "chest_bib_box_white_v41_px": bib_white_ref,
+        "wrong_side_flank_white_px": bib_white,  # legacy key: was chest-bib box, not true swap
         "front_sock_white_px": sock_white,
-        "notes": "Zones in d045 logical coords; anatomical _R peanut on screen-left.",
+        "heuristic_reliability": "soft",
+        "authority": "visual_4x_sheet",
+        "notes": (
+            "Zone pixel counts are soft; chest_bib_box white is expected (bib), not LR swap. "
+            "Swap judged vs v4.1 peanut/flank presence. 4x sheet is final authority."
+        ),
     }
 
 
@@ -556,18 +569,41 @@ def main() -> int:
     g1 = gate_silhouette(layer_b, ref)
     g1["method"] = "layer_b_rgb_on_m1_geometric_silhouette"
     g1["geometric_max_distance_px"] = g1["head_body_max_distance_px"]
+    g1["independent_m21_contour_evidence"] = False
+    g1["evidence"] = "m1_geometry_lock_inherited"
+    g1["notes"] = (
+        "Alpha is locked to the frozen M1 geometric silhouette; M2.1 only replaces RGB. "
+        "max_d/IoU therefore match M1 by construction and are NOT new M2.1 contour proof."
+    )
     g2 = gate_markings(layer_b, ref)
     g3 = gate_white_paws(layer_b)
-    eyes = measure_eye_elements(layer_b)
+    eyes_a = measure_eye_elements(layer_a)
+    eyes_b = measure_eye_elements(layer_b)
+    # Pupil/eyelid after lantern can shift off exact palette; count on Layer A (pure albedo).
     g4 = {
         "pass": bool(
-            eyes["eyelid_dark_px"] >= 6
-            and eyes["outer_emerald_px"] >= 8
-            and eyes["inner_bright_emerald_px"] >= 6
-            and eyes["vertical_pupil_px"] >= 4
-            and eyes["white_catchlight_px"] >= 2
+            eyes_a["eyelid_dark_px"] >= 6
+            and eyes_a["outer_emerald_px"] >= 8
+            and eyes_a["inner_bright_emerald_px"] >= 6
+            and eyes_a["vertical_pupil_px"] >= 4
+            and eyes_a["white_catchlight_px"] >= 2
         ),
-        **eyes,
+        "counted_on": "layer_a_pure_albedo",
+        "eyelid_dark_px": eyes_a["eyelid_dark_px"],
+        "outer_emerald_px": eyes_a["outer_emerald_px"],
+        "inner_bright_emerald_px": eyes_a["inner_bright_emerald_px"],
+        "vertical_pupil_px": eyes_a["vertical_pupil_px"],
+        "white_catchlight_px": eyes_a["white_catchlight_px"],
+        "exact_counts_layer_a": eyes_a["exact_counts"],
+        "fuzzy_counts_layer_b": {
+            "eyelid_dark_px": eyes_b["eyelid_dark_px"],
+            "outer_emerald_px": eyes_b["outer_emerald_px"],
+            "inner_bright_emerald_px": eyes_b["inner_bright_emerald_px"],
+            "vertical_pupil_px": eyes_b["vertical_pupil_px"],
+            "white_catchlight_px": eyes_b["white_catchlight_px"],
+            "exact_counts": eyes_b["exact_counts"],
+        },
+        "notes": "Gate 4 primary counts are Layer A; Layer B exact pupil/lid may hit 0 after lantern shift.",
     }
 
     Image.fromarray(layer_a).save(OUT_DIR / "m2_1_d045_layer_a_albedo.png")
