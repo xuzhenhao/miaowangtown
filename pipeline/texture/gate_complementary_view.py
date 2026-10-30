@@ -48,7 +48,7 @@ def main() -> int:
     for i, box in enumerate(boxes):
         c = im.crop(box).resize((280, 280), Image.Resampling.NEAREST)
         sheet.paste(c, (10 + i * 295, 30))
-    dr.text((10, 6), f"{args.view} 4x fur-flow crops — producer authority", fill=(230, 230, 240))
+    dr.text((10, 6), f"{args.view} 4x fur-flow crops - producer authority", fill=(230, 230, 240))
     sheet.save(VAL / f"gates_preview_{args.view}_4x.png")
 
     passed = bool(args.human_pass) and not args.human_fail
