@@ -416,12 +416,14 @@ def try_generate(env: dict) -> int:
         print("IP-Adapter load failed:", exc)
         ip_ok = False
 
-    # Attention slicing AFTER IP-Adapter; enabling it first breaks IP attn processors on MPS.
-    if device == "mps":
+    # Attention slicing conflicts with IP-Adapter attn processors on MPS (tuple encoder_hidden_states).
+    if device == "mps" and not ip_ok:
         try:
             pipe.enable_attention_slicing()
         except Exception as exc:
             print("enable_attention_slicing skipped:", exc)
+    elif device == "mps" and ip_ok:
+        print("MPS: skip attention slicing because IP-Adapter is active")
 
     anchor = Image.open(ANCHOR).convert("RGB").resize((1024, 1024), Image.Resampling.LANCZOS)
     results = {
