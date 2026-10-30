@@ -1,0 +1,306 @@
+{
+  "stage": "HOLD_diag",
+  "notes": [
+    "scipy hole fill failed: No module named 'scipy'",
+    "scipy hole fill failed: No module named 'scipy'",
+    "scipy hole fill failed: No module named 'scipy'"
+  ],
+  "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
+  "uv_hash_ok": true,
+  "pose": {
+    "n_nonrest_after_reset": 0,
+    "action": null,
+    "frame": 1
+  },
+  "eyes": {
+    "CAT_EYE_L": {
+      "material": "MAT_EYE_L",
+      "node_types": [
+        "BSDF_PRINCIPLED",
+        "OUTPUT_MATERIAL"
+      ],
+      "parent_bone": "",
+      "has_armature_mod": true
+    },
+    "CAT_EYE_R": {
+      "material": "MAT_EYE_R",
+      "node_types": [
+        "BSDF_PRINCIPLED",
+        "OUTPUT_MATERIAL"
+      ],
+      "parent_bone": "",
+      "has_armature_mod": true
+    }
+  },
+  "camera": {
+    "same_for_all_yaw": true,
+    "pitch_deg": 35.0,
+    "S_LOG": 0.004,
+    "ORIG_LOG": [
+      52.7,
+      94.0
+    ],
+    "GW": 114,
+    "GH": 104,
+    "SS": 4,
+    "projection": "custom orthographic-like software raster (no FOV, no near-clip)",
+    "backface_cull": true,
+    "MSAA": false,
+    "supersample": "SS=4 then downsample_to_logical",
+    "alpha": "binary coverage of front-facing triangles (no texture alpha used for body coverage)",
+    "eyes": "parametric UV paint on CAT_EYE_* meshes after body; not Emission material",
+    "d045_vs_d090": "identical params except yaw -45 vs -90"
+  },
+  "fur_alpha": {
+    "unique": [
+      0,
+      255
+    ],
+    "island_alpha0": 1,
+    "island_alpha_lt255": 1,
+    "near_black_in_green_yellow": 13,
+    "coverage_green": 612562,
+    "coverage_yellow": 93944,
+    "coverage_red": 297565,
+    "gy_ratio": 0.7036414755530236,
+    "red_ratio": 0.29635852444697636
+  },
+  "d090_frontface_centroid_coverage": {
+    "n": 2422,
+    "green": 2108,
+    "yellow": 232,
+    "red": 79,
+    "red_frac": 0.032617671345995046
+  },
+  "per_view": {
+    "d045": {
+      "stats_clay": {
+        "n_front": 2350,
+        "n_back": 2762,
+        "n_drawn": 1801,
+        "eye_pix_hi": 1474,
+        "opaque_hi": 78436,
+        "mean_ndotv_opaque": 0.7504854681917845
+      },
+      "stats_albedo": {
+        "n_front": 2350,
+        "n_back": 2762,
+        "n_drawn": 1801,
+        "eye_pix_hi": 1474,
+        "opaque_hi": 78436,
+        "mean_ndotv_opaque": 0.7504854681917845
+      },
+      "stats_clay_nocull": {
+        "n_front": 2350,
+        "n_back": 2762,
+        "n_drawn": 3271,
+        "eye_pix_hi": 0,
+        "opaque_hi": 78436,
+        "mean_ndotv_opaque": 0.7435901809602871
+      },
+      "silhouette_holes_clay": -1,
+      "silhouette_holes_albedo": -1,
+      "silhouette_holes_clay_nocull": -1,
+      "dark_opaque_albedo": 0,
+      "bbox_clay": {
+        "x0": 7,
+        "x1": 112,
+        "y0": 1,
+        "y1": 103,
+        "w": 106,
+        "h": 103,
+        "aspect_w_over_h": 1.029126213592233
+      },
+      "bbox_albedo": {
+        "x0": 7,
+        "x1": 112,
+        "y0": 1,
+        "y1": 103,
+        "w": 106,
+        "h": 103,
+        "aspect_w_over_h": 1.029126213592233
+      },
+      "opaque_clay": 5280,
+      "opaque_albedo": 5280,
+      "opaque_clay_nocull": 5280,
+      "opaque_clay_noeye": 5280,
+      "alpha_only_in_albedo_vs_clay_body": 0,
+      "alpha_only_in_clay_body_vs_albedo": 0,
+      "mean_ndotv_clay": 0.7504854681917845
+    },
+    "d090": {
+      "stats_clay": {
+        "n_front": 2422,
+        "n_back": 2690,
+        "n_drawn": 2026,
+        "eye_pix_hi": 1350,
+        "opaque_hi": 61142,
+        "mean_ndotv_opaque": 0.6324945885257762
+      },
+      "stats_albedo": {
+        "n_front": 2422,
+        "n_back": 2690,
+        "n_drawn": 2026,
+        "eye_pix_hi": 1350,
+        "opaque_hi": 61142,
+        "mean_ndotv_opaque": 0.6324945885257762
+      },
+      "stats_clay_nocull": {
+        "n_front": 2422,
+        "n_back": 2690,
+        "n_drawn": 3646,
+        "eye_pix_hi": 0,
+        "opaque_hi": 59912,
+        "mean_ndotv_opaque": 0.6760812192873342
+      },
+      "silhouette_holes_clay": -1,
+      "silhouette_holes_albedo": -1,
+      "silhouette_holes_clay_nocull": -1,
+      "dark_opaque_albedo": 18,
+      "bbox_clay": {
+        "x0": 0,
+        "x1": 113,
+        "y0": 0,
+        "y1": 103,
+        "w": 114,
+        "h": 104,
+        "aspect_w_over_h": 1.0961538461538463
+      },
+      "bbox_albedo": {
+        "x0": 0,
+        "x1": 113,
+        "y0": 0,
+        "y1": 103,
+        "w": 114,
+        "h": 104,
+        "aspect_w_over_h": 1.0961538461538463
+      },
+      "opaque_clay": 4211,
+      "opaque_albedo": 4211,
+      "opaque_clay_nocull": 4113,
+      "opaque_clay_noeye": 4112,
+      "alpha_only_in_albedo_vs_clay_body": 99,
+      "alpha_only_in_clay_body_vs_albedo": 0,
+      "mean_ndotv_clay": 0.6324945885257762
+    },
+    "d270": {
+      "stats_clay": {
+        "n_front": 2530,
+        "n_back": 2582,
+        "n_drawn": 1885,
+        "eye_pix_hi": 1354,
+        "opaque_hi": 59147,
+        "mean_ndotv_opaque": 0.600933219092243
+      },
+      "stats_albedo": {
+        "n_front": 2530,
+        "n_back": 2582,
+        "n_drawn": 1885,
+        "eye_pix_hi": 1354,
+        "opaque_hi": 59147,
+        "mean_ndotv_opaque": 0.600933219092243
+      },
+      "stats_clay_nocull": {
+        "n_front": 2530,
+        "n_back": 2582,
+        "n_drawn": 2812,
+        "eye_pix_hi": 0,
+        "opaque_hi": 57966,
+        "mean_ndotv_opaque": 0.6164766353128857
+      },
+      "silhouette_holes_clay": -1,
+      "silhouette_holes_albedo": -1,
+      "silhouette_holes_clay_nocull": -1,
+      "dark_opaque_albedo": 16,
+      "bbox_clay": {
+        "x0": 0,
+        "x1": 113,
+        "y0": 0,
+        "y1": 103,
+        "w": 114,
+        "h": 104,
+        "aspect_w_over_h": 1.0961538461538463
+      },
+      "bbox_albedo": {
+        "x0": 0,
+        "x1": 113,
+        "y0": 0,
+        "y1": 103,
+        "w": 114,
+        "h": 104,
+        "aspect_w_over_h": 1.0961538461538463
+      },
+      "opaque_clay": 4087,
+      "opaque_albedo": 4087,
+      "opaque_clay_nocull": 3988,
+      "opaque_clay_noeye": 3988,
+      "alpha_only_in_albedo_vs_clay_body": 99,
+      "alpha_only_in_clay_body_vs_albedo": 0,
+      "mean_ndotv_clay": 0.600933219092243
+    }
+  },
+  "root_cause_hypotheses": [
+    "fur_albedo alpha almost fully opaque in island → reject transparent-texel theory",
+    "pose is pure Basis rest → reject wrong animation frame for neck stretch",
+    "coverage red 29.64% FAIL — fuse left large unseen; side views sample more grazing/thin faces"
+  ],
+  "classification": {
+    "a_clay_vs_albedo_torso_hollow": {
+      "clay_enclosed_silhouette_holes": 0,
+      "albedo_enclosed_silhouette_holes": 0,
+      "alpha_identical": true,
+      "clay_moth_eaten_look": false,
+      "albedo_moth_eaten_look": true,
+      "verdict": "NOT_MESH_HOLE — clay solid fill; albedo false-hollow from opaque dark/noisy RGB on black canvas",
+      "rejected": [
+        "mesh open wound as primary",
+        "non-Basis pose as primary",
+        "fur_albedo alpha holes"
+      ]
+    },
+    "b_fur_alpha_vs_coverage_red": {
+      "island_alpha_values": [
+        0,
+        255
+      ],
+      "island_alpha0_texels": 1,
+      "red_region_all_opaque_midtone_seed": true,
+      "red_mean_rgb": [
+        121,
+        104,
+        82
+      ],
+      "red_ratio": 0.2964,
+      "verdict": "RED = opaque genome/midtone seed, NOT alpha holes; coverage FAIL separate from side hollow look"
+    },
+    "c_eyes": {
+      "independent_meshes": true,
+      "names": [
+        "CAT_EYE_L",
+        "CAT_EYE_R"
+      ],
+      "emission_nodes": false,
+      "review_path": "parametric UV paint after body z-buffer in run_m2_2_review.render_hi",
+      "pose_rest": true,
+      "d045_eye_pixels_outside_body": 0,
+      "d090_eye_pixels_outside_body": 99,
+      "d090_eye_to_body_dist_mean_px": 3.11,
+      "verdict": "FLOAT at profile because independent eye spheres protrude outside head silhouette; not unbound animation"
+    },
+    "d_neck": {
+      "present_in_clay": true,
+      "armature_nonrest_bones": 0,
+      "action": null,
+      "shapekey_id_neck_len": 0.0,
+      "verdict": "side-view + pitch35 orthographic read of rest mesh — NOT wrong anim frame"
+    },
+    "coverage_priority": "补盲 AFTER side-view false-hollow addressed; do not freeze",
+    "d090_gate_semantics": "PASS_WITH_HOLD / 合拢否决向 — complementary 2D fur-flow PASS does not clear fused reprojection HOLD"
+  },
+  "suggested_fix_order": [
+    "1) Side-view false-hollow: audit fuse weights for d090/d270 grazing (EDGE_ERODE / N·V); optional对照 lower d090 weight re-fuse without deleting archived candidate",
+    "2) Eyes: in review raster, depth-test eyes against head more strictly or hide contralateral eye at |yaw|≈90; verify eye rest mesh sits in sockets",
+    "3) Neck: no pose fix needed; if still unread at profile after (1), treat as micro-Q silhouette acceptance — not fuse",
+    "4) Only then coverage 补盲 (red 29.65% midtone seed) toward ≥92% green+yellow"
+  ]
+}
