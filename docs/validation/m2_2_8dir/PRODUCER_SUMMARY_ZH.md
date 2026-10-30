@@ -1,23 +1,25 @@
 # M2.2 制作人自审摘要（诚实版）
 
-**时间**：2026-10-30（Asia/Shanghai）· 合拢板制作人 4x  
-**结论**：**互补 7/7 PASS 且已 fuse 出候选**（tip `dff7e17`），但制作人对合拢板自审为 **CONDITIONAL HOLD · 不建议冻结 `fur_albedo`**。coverage 硬门未过；侧向合拢重投影有透空/眼球游离。**未开 M3**。
+**时间**：2026-10-30（Asia/Shanghai）· opus 纠偏后  
+**结论**：**CONDITIONAL HOLD · 禁止交用户冻结拍板**。2D 互补门禁里 d090 曾标 PASS，但合拢重投影否决更权威 → d090 = **PASS_WITH_HOLD / 合拢否决向**。**2D PASS ≠ 合拢过门**。coverage 硬门 FAIL。**未冻 fur_albedo、未开 M3**。
 
-## 制作人合拢自审（authority=4x/8x）
+## 状态总表
 
-| 项 | 结论 |
+| 项 | 状态 |
 |---|---|
-| 互补 7 向 2D 门禁 | **7/7 PASS**（此前已锁） |
-| `uv_hash` | 未变 `bbbc4394…c27f` |
-| coverage 绿+黄 | **70.35%**（门 ≥92%）→ **FAIL** |
-| coverage 红盲区 | **29.65%**（门 ≤20%）→ **FAIL** |
-| d045 Layer A 8x | 可读微 Q 猫、绿眼、虎斑 — **OK** |
-| d090 Layer A 8x | 颈拉长、眼珠游离、躯干透空 — **HOLD** |
-| d270 Layer A 8x | 剪影连续但眼点游离、质感碎 — **弱** |
-| d180 Layer A 8x | 背向灰底占比高、形可读性差 — **弱** |
-| 冻结 | **否**（候选 `fur_albedo` sha `4cfd0663…`，status=CANDIDATE_UNFROZEN） |
+| 互补 2D 门禁 | d000/d135/d180/d225/d270/d315 **PASS**；**d090 = PASS_WITH_HOLD**（合拢板否决） |
+| fuse 候选 | tip `dff7e17`，fur_albedo sha `4cfd0663…`，`CANDIDATE_UNFROZEN` |
+| coverage 绿+黄 | **70.35%**（≥92% FAIL） |
+| coverage 红盲区 | **29.65%**（≤20% FAIL） |
+| 合拢板 4x/8x | d045 OK；d090 颈拉长+眼游离+躯干透空 → **HOLD** |
+| 冻结 / M3 | **否** |
 
-**下一步（制作人）**：不冻、不开 M3；优先诊断侧向透空是 114×104 薄面采样还是 UV 盲区透底，再考虑补盲/加重投影；coverage 未达硬门前不交「冻结拍板」。
+## 诊断进行中（opus 优先级）
+a. clay vs 合拢重投影同机位  
+b. fur_albedo alpha 与 coverage 红区  
+c. 眼网格绑定  
+d. 必要时降 d090 权重对照 fuse（不删归档）  
+侧向不透空之前不做程序化补盲冲 92%。
 
 ---
 
