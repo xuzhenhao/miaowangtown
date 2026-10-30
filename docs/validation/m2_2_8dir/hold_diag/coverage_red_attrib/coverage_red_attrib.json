@@ -1,0 +1,398 @@
+{
+  "stage": "coverage_red_blind_attribution_readonly",
+  "time_asia_shanghai": "2026-10-30 13:39",
+  "fur_file_sha256": "46e56675a577390d70724e803a37c39b8cc79e070a5434c336a042da502a08dd",
+  "coverage_sha256": "347ca029da640ce55d8b6c9e937774780cb1fba49e5f9e4a0992a4fc1a28521f",
+  "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
+  "constants": {
+    "NDOTV_GRAZE": 0.2,
+    "NDOTV_DIRECT": 0.5,
+    "PITCH": 35.0,
+    "SEAM_DILATE": 3,
+    "note": "read-only; did not mutate fur/coverage/EDGE/graze/weights"
+  },
+  "baseline_coverage": {
+    "island": 1004071,
+    "green": 612337,
+    "yellow": 93767,
+    "red": 297967,
+    "GY_ratio": 0.7032,
+    "red_ratio": 0.2968
+  },
+  "class_counts": {
+    "true_camera_blind_backface": {
+      "n": 88009,
+      "pct_of_red": 29.54
+    },
+    "threshold_strict_0_le_ndotv_lt_graze": {
+      "n": 68744,
+      "pct_of_red": 23.07
+    },
+    "anomaly_ndotv_ge_graze_but_red": {
+      "n": 6933,
+      "pct_of_red": 2.33,
+      "note": "fuse should have marked GY if same mesh/params; likely UV packing fringe or raster diverge"
+    },
+    "seam_raster_fringe_bary_miss": {
+      "n": 134281,
+      "pct_of_red": 45.07,
+      "note": "PIL uv_occ island edge vs barycentric miss; 接缝/光栅边缘"
+    },
+    "packing_hole_bary_miss_interior": {
+      "n": 0,
+      "pct_of_red": 0.0
+    },
+    "other_residual": {
+      "n": 0,
+      "pct_of_red": 0.0
+    },
+    "seam_band_overlap_any_class": {
+      "n": 235483,
+      "pct_of_red": 79.03,
+      "dilate_px": 3
+    },
+    "bary_miss_total": {
+      "n": 134281,
+      "pct_of_red": 45.07
+    }
+  },
+  "bucket_stats_ranked": [
+    {
+      "bucket": "legs",
+      "n_red": 97034,
+      "pct_of_red": 32.57,
+      "regions": [
+        "C1_leg_FL",
+        "C2_leg_FR",
+        "C3_leg_BL",
+        "C4_leg_BR"
+      ],
+      "n_island": 266558,
+      "red_over_island_in_bucket": 0.364
+    },
+    {
+      "bucket": "face_detail",
+      "n_red": 56736,
+      "pct_of_red": 19.04,
+      "regions": [
+        "D2_eyes_LR",
+        "D3_nose_pads_tongue"
+      ],
+      "n_island": 118989,
+      "red_over_island_in_bucket": 0.4768
+    },
+    {
+      "bucket": "head",
+      "n_red": 51564,
+      "pct_of_red": 17.31,
+      "regions": [
+        "A1_head_front",
+        "A2_head_back",
+        "A3_muzzle_chin",
+        "A4_ears_LR"
+      ],
+      "n_island": 244980,
+      "red_over_island_in_bucket": 0.2105
+    },
+    {
+      "bucket": "belly",
+      "n_red": 43992,
+      "pct_of_red": 14.76,
+      "regions": [
+        "B4_torso_belly"
+      ],
+      "n_island": 62731,
+      "red_over_island_in_bucket": 0.7013
+    },
+    {
+      "bucket": "torso_side",
+      "n_red": 21952,
+      "pct_of_red": 7.37,
+      "regions": [
+        "B1_torso_L",
+        "B2_torso_R"
+      ],
+      "n_island": 129625,
+      "red_over_island_in_bucket": 0.1694
+    },
+    {
+      "bucket": "tail",
+      "n_red": 18535,
+      "pct_of_red": 6.22,
+      "regions": [
+        "D1_tail"
+      ],
+      "n_island": 59473,
+      "red_over_island_in_bucket": 0.3117
+    },
+    {
+      "bucket": "reserved",
+      "n_red": 5042,
+      "pct_of_red": 1.69,
+      "regions": [
+        "D4_reserved"
+      ],
+      "n_island": 62988,
+      "red_over_island_in_bucket": 0.08
+    },
+    {
+      "bucket": "torso_back",
+      "n_red": 3112,
+      "pct_of_red": 1.04,
+      "regions": [
+        "B3_torso_back"
+      ],
+      "n_island": 58727,
+      "red_over_island_in_bucket": 0.053
+    }
+  ],
+  "region_stats_ranked": [
+    {
+      "region": "D3_nose_pads_tongue",
+      "n_red": 50957,
+      "pct_of_red": 17.1,
+      "pct_of_island_region": 83.14,
+      "n_island_in_region": 61290
+    },
+    {
+      "region": "B4_torso_belly",
+      "n_red": 43992,
+      "pct_of_red": 14.76,
+      "pct_of_island_region": 70.13,
+      "n_island_in_region": 62731
+    },
+    {
+      "region": "C4_leg_BR",
+      "n_red": 31920,
+      "pct_of_red": 10.71,
+      "pct_of_island_region": 45.67,
+      "n_island_in_region": 69894
+    },
+    {
+      "region": "C3_leg_BL",
+      "n_red": 29458,
+      "pct_of_red": 9.89,
+      "pct_of_island_region": 41.97,
+      "n_island_in_region": 70187
+    },
+    {
+      "region": "C1_leg_FL",
+      "n_red": 21234,
+      "pct_of_red": 7.13,
+      "pct_of_island_region": 34.43,
+      "n_island_in_region": 61672
+    },
+    {
+      "region": "D1_tail",
+      "n_red": 18535,
+      "pct_of_red": 6.22,
+      "pct_of_island_region": 31.17,
+      "n_island_in_region": 59473
+    },
+    {
+      "region": "A3_muzzle_chin",
+      "n_red": 17193,
+      "pct_of_red": 5.77,
+      "pct_of_island_region": 27.89,
+      "n_island_in_region": 61644
+    },
+    {
+      "region": "A2_head_back",
+      "n_red": 16845,
+      "pct_of_red": 5.65,
+      "pct_of_island_region": 25.55,
+      "n_island_in_region": 65935
+    },
+    {
+      "region": "C2_leg_FR",
+      "n_red": 14422,
+      "pct_of_red": 4.84,
+      "pct_of_island_region": 22.25,
+      "n_island_in_region": 64805
+    },
+    {
+      "region": "A1_head_front",
+      "n_red": 12003,
+      "pct_of_red": 4.03,
+      "pct_of_island_region": 19.0,
+      "n_island_in_region": 63170
+    },
+    {
+      "region": "B2_torso_R",
+      "n_red": 11266,
+      "pct_of_red": 3.78,
+      "pct_of_island_region": 17.15,
+      "n_island_in_region": 65679
+    },
+    {
+      "region": "B1_torso_L",
+      "n_red": 10686,
+      "pct_of_red": 3.59,
+      "pct_of_island_region": 16.71,
+      "n_island_in_region": 63946
+    },
+    {
+      "region": "D2_eyes_LR",
+      "n_red": 5779,
+      "pct_of_red": 1.94,
+      "pct_of_island_region": 10.02,
+      "n_island_in_region": 57699
+    },
+    {
+      "region": "A4_ears_LR",
+      "n_red": 5523,
+      "pct_of_red": 1.85,
+      "pct_of_island_region": 10.18,
+      "n_island_in_region": 54231
+    },
+    {
+      "region": "D4_reserved",
+      "n_red": 5042,
+      "pct_of_red": 1.69,
+      "pct_of_island_region": 8.0,
+      "n_island_in_region": 62988
+    },
+    {
+      "region": "B3_torso_back",
+      "n_red": 3112,
+      "pct_of_red": 1.04,
+      "pct_of_island_region": 5.3,
+      "n_island_in_region": 58727
+    }
+  ],
+  "view_reach_on_red": {
+    "d000": {
+      "yaw_deg": 0.0,
+      "n_red_ndotv_ge_0": 21121,
+      "n_red_ndotv_ge_graze_0_20": 1235,
+      "n_red_ndotv_ge_direct_0_50": 741,
+      "n_red_if_graze_0_05": 13973,
+      "n_red_if_graze_0_00": 21121,
+      "pct_red_ndotv_ge_0": 7.09,
+      "pct_red_ndotv_ge_graze": 0.41,
+      "mean_ndotv_on_red_where_best_and_facing": 0.1288,
+      "sum_weight_sq_on_red_where_best_facing": 520.21,
+      "n_red_where_best_facing": 13562,
+      "note_raise_view_weight": "view_weight only scales color accum; coverage class uses N·V only → 升权不能吃红"
+    },
+    "d045": {
+      "yaw_deg": -45.0,
+      "n_red_ndotv_ge_0": 26788,
+      "n_red_ndotv_ge_graze_0_20": 2167,
+      "n_red_ndotv_ge_direct_0_50": 443,
+      "n_red_if_graze_0_05": 12533,
+      "n_red_if_graze_0_00": 26788,
+      "pct_red_ndotv_ge_0": 8.99,
+      "pct_red_ndotv_ge_graze": 0.73,
+      "mean_ndotv_on_red_where_best_and_facing": 0.0865,
+      "sum_weight_sq_on_red_where_best_facing": 381.91,
+      "n_red_where_best_facing": 17646,
+      "note_raise_view_weight": "view_weight only scales color accum; coverage class uses N·V only → 升权不能吃红"
+    },
+    "d090": {
+      "yaw_deg": -90.0,
+      "n_red_ndotv_ge_0": 11279,
+      "n_red_ndotv_ge_graze_0_20": 1920,
+      "n_red_ndotv_ge_direct_0_50": 89,
+      "n_red_if_graze_0_05": 8130,
+      "n_red_if_graze_0_00": 11279,
+      "pct_red_ndotv_ge_0": 3.79,
+      "pct_red_ndotv_ge_graze": 0.64,
+      "mean_ndotv_on_red_where_best_and_facing": 0.1286,
+      "sum_weight_sq_on_red_where_best_facing": 210.95,
+      "n_red_where_best_facing": 7020,
+      "note_raise_view_weight": "view_weight only scales color accum; coverage class uses N·V only → 升权不能吃红"
+    },
+    "d135": {
+      "yaw_deg": -135.0,
+      "n_red_ndotv_ge_0": 8554,
+      "n_red_ndotv_ge_graze_0_20": 547,
+      "n_red_ndotv_ge_direct_0_50": 52,
+      "n_red_if_graze_0_05": 5934,
+      "n_red_if_graze_0_00": 8554,
+      "pct_red_ndotv_ge_0": 2.87,
+      "pct_red_ndotv_ge_graze": 0.18,
+      "mean_ndotv_on_red_where_best_and_facing": 0.1152,
+      "sum_weight_sq_on_red_where_best_facing": 82.25,
+      "n_red_where_best_facing": 4433,
+      "note_raise_view_weight": "view_weight only scales color accum; coverage class uses N·V only → 升权不能吃红"
+    },
+    "d180": {
+      "yaw_deg": 180.0,
+      "n_red_ndotv_ge_0": 13219,
+      "n_red_ndotv_ge_graze_0_20": 712,
+      "n_red_ndotv_ge_direct_0_50": 168,
+      "n_red_if_graze_0_05": 10067,
+      "n_red_if_graze_0_00": 13219,
+      "pct_red_ndotv_ge_0": 4.44,
+      "pct_red_ndotv_ge_graze": 0.24,
+      "mean_ndotv_on_red_where_best_and_facing": 0.1183,
+      "sum_weight_sq_on_red_where_best_facing": 200.69,
+      "n_red_where_best_facing": 9555,
+      "note_raise_view_weight": "view_weight only scales color accum; coverage class uses N·V only → 升权不能吃红"
+    },
+    "d225": {
+      "yaw_deg": 135.0,
+      "n_red_ndotv_ge_0": 14307,
+      "n_red_ndotv_ge_graze_0_20": 1672,
+      "n_red_ndotv_ge_direct_0_50": 414,
+      "n_red_if_graze_0_05": 10106,
+      "n_red_if_graze_0_00": 14307,
+      "pct_red_ndotv_ge_0": 4.8,
+      "pct_red_ndotv_ge_graze": 0.56,
+      "mean_ndotv_on_red_where_best_and_facing": 0.1406,
+      "sum_weight_sq_on_red_where_best_facing": 210.53,
+      "n_red_where_best_facing": 5605,
+      "note_raise_view_weight": "view_weight only scales color accum; coverage class uses N·V only → 升权不能吃红"
+    },
+    "d270": {
+      "yaw_deg": 90.0,
+      "n_red_ndotv_ge_0": 16257,
+      "n_red_ndotv_ge_graze_0_20": 2471,
+      "n_red_ndotv_ge_direct_0_50": 302,
+      "n_red_if_graze_0_05": 13079,
+      "n_red_if_graze_0_00": 16257,
+      "pct_red_ndotv_ge_0": 5.46,
+      "pct_red_ndotv_ge_graze": 0.83,
+      "mean_ndotv_on_red_where_best_and_facing": 0.1504,
+      "sum_weight_sq_on_red_where_best_facing": 393.67,
+      "n_red_where_best_facing": 10217,
+      "note_raise_view_weight": "view_weight only scales color accum; coverage class uses N·V only → 升权不能吃红"
+    },
+    "d315": {
+      "yaw_deg": 45.0,
+      "n_red_ndotv_ge_0": 15620,
+      "n_red_ndotv_ge_graze_0_20": 1048,
+      "n_red_ndotv_ge_direct_0_50": 398,
+      "n_red_if_graze_0_05": 12444,
+      "n_red_if_graze_0_00": 15620,
+      "pct_red_ndotv_ge_0": 5.24,
+      "pct_red_ndotv_ge_graze": 0.35,
+      "mean_ndotv_on_red_where_best_and_facing": 0.1093,
+      "sum_weight_sq_on_red_where_best_facing": 122.11,
+      "n_red_where_best_facing": 7639,
+      "note_raise_view_weight": "view_weight only scales color accum; coverage class uses N·V only → 升权不能吃红"
+    }
+  },
+  "theory_if_lower_graze": {
+    "convert_red_if_graze_0_05": 48560,
+    "convert_red_if_graze_0_00": 68744,
+    "pct_convert_if_0_05": 16.3,
+    "pct_convert_if_0_00": 23.07,
+    "still_blind_or_uncovered_if_graze_0": 222290,
+    "pct_still_blind_if_graze_0": 74.6,
+    "raise_view_weight_eats_red": false,
+    "raise_view_weight_reason": "coverage class = f(best N·V); view_weight only multiplies accum_rgb"
+  },
+  "one_liner_next": "红盲主因是几何+接缝（背向 29.54% + 岛边光栅 45.07%），部件顶 legs（32.57%）；升权/降 graze 吃不掉大头；下一刀应加视角或改投影（腹底/低 pitch/腿内侧），禁假绿填红。",
+  "outputs": [
+    "coverage_red_overlay_512.png",
+    "red_class_map_512.png",
+    "red_class_map_2048.png",
+    "red_best_ndotv_heat_512.png",
+    "red_by_part_512.png",
+    "red_attrib_board_512.png",
+    "coverage_red_attrib.json",
+    "COVERAGE_RED_ATTRIB.md"
+  ]
+}

@@ -30,3 +30,7 @@
 | d045 | 1005 | 67 | 15 |
 
 UV 旧相对暗 ROI 上 abs+CC=0 → 合拢贴图岛内无大块真近黑假洞。
+
+## 红盲归因（2026-10-30 13:40）
+
+假透空口径已解；整体 HOLD=红盲。详见 `coverage_red_attrib/COVERAGE_RED_ATTRIB.md`。

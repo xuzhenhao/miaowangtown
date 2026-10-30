@@ -229,3 +229,7 @@
 - M1 `uv_hash` 未变。
 - 未见 UV：**仅 genome 底色 seed**，禁止程序化毛流充数冲 92%。
 
+## 红盲归因（2026-10-30 13:40 Asia/Shanghai）
+
+假透空口径（abs&lt;40+CC≥12）**已解**；**整体 HOLD = coverage 红盲**（GY 70.32% / 红 29.68% FAIL）。
+只读归因见 `hold_diag/coverage_red_attrib/COVERAGE_RED_ATTRIB.md`：部件顶 **legs 32.6%** / face_detail 19.0% / head 17.3% / belly 14.8%；类型：**几何背向 29.5% + 岛边光栅 45.1% + 阈值 23.1%**；升权吃不到红。下一刀：加视角/改投影（腹底·低 pitch·腿内侧），不拧 EDGE/graze、禁假绿。
