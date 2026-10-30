@@ -1,0 +1,215 @@
+{
+  "dark_opaque_logical": {
+    "d090": {
+      "before": {
+        "logical_hw": [
+          104,
+          114
+        ],
+        "body_px": 4211,
+        "dark_opaque_lum_lt_40": 511,
+        "dark_opaque_lum_lt_25": 504,
+        "body_lum_p05": 17.666666666666668,
+        "body_lum_p50": 109.66666666666667
+      },
+      "after": {
+        "logical_hw": [
+          104,
+          114
+        ],
+        "body_px": 4162,
+        "dark_opaque_lum_lt_40": 489,
+        "dark_opaque_lum_lt_25": 481,
+        "body_lum_p05": 17.666666666666668,
+        "body_lum_p50": 106.33333333333333
+      }
+    },
+    "d045": {
+      "before": {
+        "logical_hw": [
+          104,
+          114
+        ],
+        "body_px": 5280,
+        "dark_opaque_lum_lt_40": 509,
+        "dark_opaque_lum_lt_25": 504,
+        "body_lum_p05": 17.666666666666668,
+        "body_lum_p50": 116.33333333333333
+      },
+      "after": {
+        "logical_hw": [
+          104,
+          114
+        ],
+        "body_px": 5280,
+        "dark_opaque_lum_lt_40": 510,
+        "dark_opaque_lum_lt_25": 504,
+        "body_lum_p05": 17.666666666666668,
+        "body_lum_p50": 115.0
+      }
+    },
+    "d270": {
+      "before": {
+        "logical_hw": [
+          104,
+          114
+        ],
+        "body_px": 4087,
+        "dark_opaque_lum_lt_40": 515,
+        "dark_opaque_lum_lt_25": 509,
+        "body_lum_p05": 17.666666666666668,
+        "body_lum_p50": 109.0
+      },
+      "after": {
+        "logical_hw": [
+          104,
+          114
+        ],
+        "body_px": 4037,
+        "dark_opaque_lum_lt_40": 486,
+        "dark_opaque_lum_lt_25": 483,
+        "body_lum_p05": 17.666666666666668,
+        "body_lum_p50": 113.0
+      }
+    }
+  },
+  "fur_sha": {
+    "old": "4cfd06637c9e3ccdc237ba685f5baf61e18755c189719a0251f177eba15a962e",
+    "new": "46e56675a577390d70724e803a37c39b8cc79e070a5434c336a042da502a08dd",
+    "old_short": "4cfd06637c9e",
+    "new_short": "46e56675a577"
+  },
+  "coverage": {
+    "old": {
+      "green_yellow_ratio": 0.7036,
+      "red_ratio": 0.2964,
+      "island": 1004071,
+      "gy": 706506,
+      "red": 297565,
+      "sha256": "6059749eaccadac0070fff0ed0e21549d2af56eda9a59eb53cc44a1cef3ec858"
+    },
+    "new": {
+      "green_yellow_ratio": 0.7032,
+      "red_ratio": 0.2968,
+      "island": 1004071,
+      "gy": 706104,
+      "red": 297967,
+      "sha256": "347ca029da640ce55d8b6c9e937774780cb1fba49e5f9e4a0992a4fc1a28521f"
+    }
+  },
+  "source_albedo_precheck": {
+    "d090_source": {
+      "path": "cats/miemie/identity_v1/complementary_albedos/d090_unlit_albedo.png",
+      "depth_mask_body_dark_lt25_frac": 0.0007,
+      "torso_dark_lt40_frac": 0.0129,
+      "torso_lum_p05": 104.7,
+      "verdict": "源图近黑碎斑轻微，不足以单独解释合拢假透空；降权对照可做但不宣称根治。"
+    },
+    "d270_source": {
+      "path": "cats/miemie/identity_v1/complementary_albedos/d270_unlit_albedo.png",
+      "depth_mask_body_dark_lt25_frac": 0.0126,
+      "torso_dark_lt40_frac": 0.0617,
+      "torso_lum_p05": 37.0,
+      "verdict": "源图躯干近黑/过暗更明显 -> 对称降权不够，需重生 d270；对照 fuse 不宣称根治。"
+    }
+  },
+  "knobs": {
+    "view_weight": {
+      "d090": 0.4,
+      "d270": 0.4,
+      "others": 1.0
+    },
+    "dark_reject_lum_on_downweighted": 40.0,
+    "hide_contralateral_eye": true,
+    "note": "CONTRAST ONLY — still HOLD / no freeze / no M3 / no procedural red fill"
+  },
+  "compare_boards": [
+    "docs/validation/m2_2_8dir/hold_diag/low_d090_weight/compare_layer_a_d090_d045_d270_gray.png",
+    "docs/validation/m2_2_8dir/hold_diag/low_d090_weight/compare_layer_a_d090_d045_d270_black.png",
+    "docs/validation/m2_2_8dir/hold_diag/low_d090_weight/compare_d090_d270_4x_gray.png",
+    "docs/validation/m2_2_8dir/hold_diag/low_d090_weight/compare_d090_d270_4x_black.png"
+  ],
+  "paths": {
+    "archive": "cats/miemie/identity_v1/archive/pre_low_d090_weight_20261030_123200/",
+    "before_d090_4x": "docs/validation/m2_2_8dir/hold_diag/low_d090_weight/before/m2_2_d090_layer_a_4x_crop.png",
+    "after_d090_4x": "docs/validation/m2_2_8dir/hold_diag/low_d090_weight/after/m2_2_d090_layer_a_4x_crop.png"
+  },
+  "verdict": "STILL_CONDITIONAL_HOLD",
+  "scipy_honesty": "hold_diag_report silhouette_holes_*=-1 means scipy unavailable/incompatible at diag time; closed-hole count used numpy/PIL flood-fill fallback — do NOT install scipy to reinterpret as verified 0.",
+  "dark_opaque_bodyonly_logical_114x104": {
+    "method": "body_only_no_eyes_same_review_raster",
+    "note": "fair dark_opaque; eyes excluded so hide-contra does not confound",
+    "before": {
+      "d090": {
+        "logical_hw": [
+          104,
+          114
+        ],
+        "body_px": 4112,
+        "dark_opaque_lum_lt_40": 455,
+        "dark_opaque_lum_lt_25": 454
+      },
+      "d045": {
+        "logical_hw": [
+          104,
+          114
+        ],
+        "body_px": 5280,
+        "dark_opaque_lum_lt_40": 476,
+        "dark_opaque_lum_lt_25": 472
+      },
+      "d270": {
+        "logical_hw": [
+          104,
+          114
+        ],
+        "body_px": 3988,
+        "dark_opaque_lum_lt_40": 455,
+        "dark_opaque_lum_lt_25": 455
+      }
+    },
+    "after": {
+      "d090": {
+        "logical_hw": [
+          104,
+          114
+        ],
+        "body_px": 4112,
+        "dark_opaque_lum_lt_40": 457,
+        "dark_opaque_lum_lt_25": 454
+      },
+      "d045": {
+        "logical_hw": [
+          104,
+          114
+        ],
+        "body_px": 5280,
+        "dark_opaque_lum_lt_40": 477,
+        "dark_opaque_lum_lt_25": 472
+      },
+      "d270": {
+        "logical_hw": [
+          104,
+          114
+        ],
+        "body_px": 3988,
+        "dark_opaque_lum_lt_40": 455,
+        "dark_opaque_lum_lt_25": 455
+      }
+    }
+  },
+  "dark_opaque_note": "Authoritative for this contrast: body-only (no eyes) logical 114x104. Layer-A boards with eyes confound pupil darkness + hide-contra. hold_diag dark_opaque=18 used a stricter torso-speckle classifier — different metric.",
+  "false_hollow_delta": {
+    "d090_lt40": {
+      "before": 455,
+      "after": 457,
+      "delta": 2
+    },
+    "d270_lt40": {
+      "before": 455,
+      "after": 455,
+      "delta": 0
+    }
+  },
+  "producer_read": "假透空几乎未减轻（body-only dark_opaque 基本持平）。coverage 仍 ~70.3%/红~29.7% FAIL。降权对照失败于「根治」；d270 源图更脏需重生；d090 源图碎斑轻但合拢仍 HOLD。仍 CONDITIONAL HOLD；不冻；不开 M3；不程序化填红。灰底仅减假阳性，不单独清 HOLD。"
+}

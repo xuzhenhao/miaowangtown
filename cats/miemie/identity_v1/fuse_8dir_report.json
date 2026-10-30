@@ -13,62 +13,91 @@
   ],
   "views_skipped": {},
   "uv_hash_expected": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
+  "contrast_experiment": {
+    "tag": "low_d090_weight_0.4",
+    "view_weight_mult": {
+      "d000": 1.0,
+      "d045": 1.0,
+      "d090": 0.4,
+      "d135": 1.0,
+      "d180": 1.0,
+      "d225": 1.0,
+      "d270": 0.4,
+      "d315": 1.0
+    },
+    "dark_reject_lum": 40.0,
+    "note": "CONTRAST ONLY — lowering weak side-view weights / rejecting near-black samples. Not a freeze; does not procedural-fill red coverage."
+  },
   "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
   "uv_hash_unchanged": true,
   "view_stats": {
     "d000": {
       "texels_weighted": 275010,
-      "yaw_deg": 0.0
+      "yaw_deg": 0.0,
+      "view_weight_mult": 1.0,
+      "dark_reject_lum_applied": 0.0
     },
     "d045": {
       "texels_weighted": 283994,
-      "yaw_deg": -45.0
+      "yaw_deg": -45.0,
+      "view_weight_mult": 1.0,
+      "dark_reject_lum_applied": 0.0
     },
     "d090": {
-      "texels_weighted": 296876,
-      "yaw_deg": -90.0
+      "texels_weighted": 292444,
+      "yaw_deg": -90.0,
+      "view_weight_mult": 0.4,
+      "dark_reject_lum_applied": 40.0
     },
     "d135": {
       "texels_weighted": 286013,
-      "yaw_deg": -135.0
+      "yaw_deg": -135.0,
+      "view_weight_mult": 1.0,
+      "dark_reject_lum_applied": 0.0
     },
     "d180": {
       "texels_weighted": 330820,
-      "yaw_deg": 180.0
+      "yaw_deg": 180.0,
+      "view_weight_mult": 1.0,
+      "dark_reject_lum_applied": 0.0
     },
     "d225": {
       "texels_weighted": 314203,
-      "yaw_deg": 135.0
+      "yaw_deg": 135.0,
+      "view_weight_mult": 1.0,
+      "dark_reject_lum_applied": 0.0
     },
     "d270": {
-      "texels_weighted": 298636,
-      "yaw_deg": 90.0
+      "texels_weighted": 288213,
+      "yaw_deg": 90.0,
+      "view_weight_mult": 0.4,
+      "dark_reject_lum_applied": 40.0
     },
     "d315": {
       "texels_weighted": 283221,
-      "yaw_deg": 45.0
+      "yaw_deg": 45.0,
+      "view_weight_mult": 1.0,
+      "dark_reject_lum_applied": 0.0
     }
   },
   "coverage": {
     "uv_island_texels": 1003672,
-    "direct_controlled": 612562,
-    "grazing_interpolated": 93944,
-    "unseen_inpainted_or_seed": 297565,
+    "direct_controlled": 612337,
+    "grazing_interpolated": 93767,
+    "unseen_inpainted_or_seed": 297967,
     "high_freq_texels": 1003672,
-    "high_freq_green_yellow": 706107,
-    "high_freq_green_yellow_ratio": 0.7035,
-    "unseen_over_island": 0.2965,
+    "high_freq_green_yellow": 705705,
+    "high_freq_green_yellow_ratio": 0.7031,
+    "unseen_over_island": 0.2969,
     "gate_high_freq_green_yellow_ge_0_92": false,
     "gate_red_blind_le_0_20": false
   },
-  "fur_albedo_status": "CANDIDATE_UNFROZEN",
+  "fur_albedo_status": "CANDIDATE_UNFROZEN_CONTRAST",
   "frozen": false,
   "m3_started": false,
-  "awaiting": "producer_4x_fused_board_eyeball_then_user_freeze",
-  "archive_pre_fuse_m21": "cats/miemie/identity_v1/archive/pre_fuse_m21_d045_20261030_122319/",
-  "fur_albedo_sha256_old_m21": "f9294ff916e586f09b39f0581ba65e88d74e298741001b21377ae23aa0ca76e4",
-  "fur_albedo_sha256_new_candidate": "4cfd06637c9e3ccdc237ba685f5baf61e18755c189719a0251f177eba15a962e",
-  "coverage_sha256_new": "6059749eaccadac0070fff0ed0e21549d2af56eda9a59eb53cc44a1cef3ec858",
-  "fused_at": "2026-10-30 12:23 Asia/Shanghai",
-  "complementary_albedos_unchanged": true
+  "contrast_parent_archive": "cats/miemie/identity_v1/archive/pre_low_d090_weight_20261030_123200/",
+  "fur_albedo_sha256_old_candidate": "4cfd06637c9e3ccdc237ba685f5baf61e18755c189719a0251f177eba15a962e",
+  "fur_albedo_sha256_new_contrast": "46e56675a577390d70724e803a37c39b8cc79e070a5434c336a042da502a08dd",
+  "coverage_sha256_new": "347ca029da640ce55d8b6c9e937774780cb1fba49e5f9e4a0992a4fc1a28521f",
+  "awaiting": "producer_eyeball_contrast_still_HOLD"
 }

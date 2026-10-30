@@ -10,6 +10,7 @@ Honesty:
 from __future__ import annotations
 
 import hashlib
+import os
 import json
 import math
 import sys
@@ -71,7 +72,27 @@ def compute_uv_hash(mesh) -> str:
     ).hexdigest()
 
 
-def render_hi(fur_rgba: np.ndarray, yaw_deg: float) -> np.ndarray:
+def contralateral_eye_to_hide(yaw_deg: float) -> str | None:
+    """For near-side views (±90°), hide the far (contralateral) eye mesh.
+
+    Camera look uses e_w after yaw about Z. Character left eye = CAT_EYE_L.
+    yaw≈-90 (d090): camera on character +X / right → hide L (far).
+    yaw≈+90 (d270): camera on character -X / left → hide R (far).
+    Small review-only tweak; does not edit the blend.
+    """
+    y = ((yaw_deg + 180.0) % 360.0) - 180.0
+    if abs(y + 90.0) <= 25.0:  # d090-ish
+        return "CAT_EYE_L"
+    if abs(y - 90.0) <= 25.0:  # d270-ish
+        return "CAT_EYE_R"
+    return None
+
+
+def render_hi(
+    fur_rgba: np.ndarray,
+    yaw_deg: float,
+    hide_eye: str | None = None,
+) -> np.ndarray:
     bpy.context.view_layer.update()
     depsgraph = bpy.context.evaluated_depsgraph_get()
     e_u, e_v, e_w = get_camera_basis(yaw_deg)
@@ -135,8 +156,10 @@ def render_hi(fur_rgba: np.ndarray, yaw_deg: float) -> np.ndarray:
         alpha[ymin : ymax + 1, xmin : xmax + 1][vis] = True
     ev.to_mesh_clear()
 
-    # Eyes (parametric) — same as M2.1
+    # Eyes (parametric) — same as M2.1; optional hide contralateral on side views
     for name, u_b in [("CAT_EYE_L", (0.265, 0.365)), ("CAT_EYE_R", (0.385, 0.485))]:
+        if hide_eye and name == hide_eye:
+            continue
         ev = bpy.data.objects[name].evaluated_get(depsgraph)
         mesh = ev.to_mesh()
         mesh.calc_loop_triangles()
@@ -232,9 +255,16 @@ def main() -> int:
     cells_a = []
     cells_b = []
     per_dir = {}
+    hide_contra = os.environ.get("M22_HIDE_CONTRA_EYE", "1").strip() not in (
+        "0",
+        "false",
+        "False",
+        "",
+    )
     for dname, yaw in DIRECTIONS:
         print(f"review {dname}", flush=True)
-        hi = render_hi(fur, yaw)
+        hide = contralateral_eye_to_hide(yaw) if hide_contra else None
+        hi = render_hi(fur, yaw, hide_eye=hide)
         logical = downsample_to_logical(hi, GW, GH)
         layer_a = logical.copy()
         lit = apply_lantern_ao(logical[:, :, :3], logical[:, :, 3] > ALPHA_THR)
@@ -267,7 +297,11 @@ def main() -> int:
                 (280, 280), Image.Resampling.NEAREST
             )
             crop.save(OUT_DIR / f"m2_2_{dname}_layer_a_4x_crop.png")
-        per_dir[dname] = {"yaw_deg": yaw, "incomplete_seed": incomplete and dname != "d045"}
+        per_dir[dname] = {
+            "yaw_deg": yaw,
+            "incomplete_seed": incomplete and dname != "d045",
+            "hide_contralateral_eye": hide,
+        }
 
     def make_sheet(cells, title, path):
         sheet = Image.new("RGBA", (240 * 4 + 20, 240 * 2 + 50), (18, 20, 26, 255))

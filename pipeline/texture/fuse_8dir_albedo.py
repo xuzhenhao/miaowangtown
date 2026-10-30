@@ -15,7 +15,9 @@ Hard rules:
 """
 from __future__ import annotations
 
+import argparse
 import hashlib
+import os
 import json
 import math
 import sys
@@ -47,6 +49,17 @@ PITCH = 35.0
 EDGE_ERODE = 10
 NDOTV_DIRECT = 0.50
 NDOTV_GRAZE = 0.20
+
+# --- CONTRAST EXPERIMENT ONLY (not a freeze path) ---
+# Per-view multipliers on FUSED §4.2 weight max(N·V,0)^2.
+# Default all 1.0. Low-d090-weight A/B test uses e.g. d090=d270=0.4.
+# Env: M22_VIEW_WEIGHT_JSON='{"d090":0.4,"d270":0.4}' or CLI --view-weight d090=0.4
+# Optional: reject samples darker than DARK_REJECT_LUM from down-weighted views
+# (env M22_DARK_REJECT_LUM, default 0=off). Does NOT invent fur / fill red.
+DEFAULT_VIEW_WEIGHT = {d: 1.0 for d in (
+    "d000", "d045", "d090", "d135", "d180", "d225", "d270", "d315"
+)}
+DARK_REJECT_LUM = 0.0  # mean RGB; 0 disables
 
 DIRECTIONS = {
     "d000": 0.0,
@@ -163,6 +176,8 @@ def project_view_into_accum(
     accum_w,
     best_ndotv,
     coverage_best,
+    view_weight: float = 1.0,
+    dark_reject_lum: float = 0.0,
 ):
     """Accumulate one view into UV buffers. Returns texels written."""
     ah, aw = anchor_rgba.shape[:2]
@@ -219,14 +234,19 @@ def project_view_into_accum(
                 sub_n[face] = ndotv
             continue
         sampled = anchor_rgba[ay, ax].astype(np.float64)
-        # FUSED §4.2 weight: max(N·V,0)^2
-        w_face = max(0.0, ndotv) ** 2
+        # FUSED §4.2 weight: max(N·V,0)^2 * per-view contrast multiplier
+        w_face = (max(0.0, ndotv) ** 2) * float(view_weight)
+        if w_face <= 0.0:
+            continue
         sub_a = accum_rgb[ymin : ymax + 1, xmin : xmax + 1]
         sub_w = accum_w[ymin : ymax + 1, xmin : xmax + 1]
         sub_n = best_ndotv[ymin : ymax + 1, xmin : xmax + 1]
         # alpha of sample
         sa = sampled[:, :, 3] > 128
         use = vis & sa
+        if dark_reject_lum > 0.0:
+            lum = sampled[:, :, :3].mean(axis=2)
+            use = use & (lum >= dark_reject_lum)
         if not np.any(use):
             continue
         sub_a[use] += sampled[use, :3] * w_face
@@ -272,9 +292,62 @@ def frequency_preserving_modulate(rgb: np.ndarray, mask: np.ndarray) -> tuple[np
     return before, np.clip(after, 0, 255)
 
 
+def parse_view_weights(cli_pairs: list[str] | None = None) -> dict[str, float]:
+    """Merge DEFAULT ← env JSON ← CLI dXXX=float. Contrast experiment only."""
+    weights = dict(DEFAULT_VIEW_WEIGHT)
+    env = os.environ.get("M22_VIEW_WEIGHT_JSON", "").strip()
+    if env:
+        weights.update({k: float(v) for k, v in json.loads(env).items()})
+    for pair in cli_pairs or []:
+        k, v = pair.split("=", 1)
+        weights[k.strip()] = float(v)
+    return weights
+
+
+def parse_dark_reject() -> float:
+    env = os.environ.get("M22_DARK_REJECT_LUM", "").strip()
+    if env:
+        return float(env)
+    return float(DARK_REJECT_LUM)
+
+
 def main() -> int:
+    # Blender passes script args after "--"
+    argv = sys.argv
+    if "--" in argv:
+        argv = argv[argv.index("--") + 1 :]
+    else:
+        argv = []
+    ap = argparse.ArgumentParser(description="M2.2 fuse 8-dir albedo (contrast knobs optional)")
+    ap.add_argument(
+        "--view-weight",
+        action="append",
+        default=[],
+        help="Contrast only: d090=0.4 (repeatable). Not a freeze path.",
+    )
+    ap.add_argument(
+        "--dark-reject-lum",
+        type=float,
+        default=None,
+        help="Contrast only: skip samples with mean RGB < this on down-weighted views (0=off).",
+    )
+    ap.add_argument(
+        "--contrast-tag",
+        default="",
+        help="Label written into fuse report (e.g. low_d090_weight).",
+    )
+    args = ap.parse_args(argv)
+
     VAL_DIR.mkdir(parents=True, exist_ok=True)
     ID_DIR.mkdir(parents=True, exist_ok=True)
+
+    view_weights = parse_view_weights(args.view_weight)
+    dark_reject = (
+        float(args.dark_reject_lum)
+        if args.dark_reject_lum is not None
+        else parse_dark_reject()
+    )
+    contrast_tag = args.contrast_tag or os.environ.get("M22_CONTRAST_TAG", "")
 
     views_to_use = []
     skip = {}
@@ -294,6 +367,15 @@ def main() -> int:
         "views_used": views_to_use,
         "views_skipped": skip,
         "uv_hash_expected": EXPECTED_UV,
+        "contrast_experiment": {
+            "tag": contrast_tag or None,
+            "view_weight_mult": view_weights,
+            "dark_reject_lum": dark_reject,
+            "note": (
+                "CONTRAST ONLY — lowering weak side-view weights / rejecting near-black "
+                "samples. Not a freeze; does not procedural-fill red coverage."
+            ),
+        },
     }
 
     if "d045" not in views_to_use:
@@ -407,6 +489,9 @@ def main() -> int:
             np.array(im_a.resize((aw, ah), Image.Resampling.BILINEAR), dtype=np.float32) > 128
         )
         edge_ok = build_edge_ok(anchor, body_mask)
+        vw = float(view_weights.get(dname, 1.0))
+        # Only apply dark-reject on down-weighted views (protect d045 etc.)
+        dr = dark_reject if vw < 0.999 else 0.0
         wcount = project_view_into_accum(
             tris_uv,
             tris_nrm,
@@ -420,8 +505,15 @@ def main() -> int:
             accum_w,
             best_ndotv,
             coverage,
+            view_weight=vw,
+            dark_reject_lum=dr,
         )
-        view_stats[dname] = {"texels_weighted": int(wcount), "yaw_deg": yaw}
+        view_stats[dname] = {
+            "texels_weighted": int(wcount),
+            "yaw_deg": yaw,
+            "view_weight_mult": vw,
+            "dark_reject_lum_applied": dr,
+        }
         print(f"fused {dname}: {wcount} texels", flush=True)
 
     # Normalize

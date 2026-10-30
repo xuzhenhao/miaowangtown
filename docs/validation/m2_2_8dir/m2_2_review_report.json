@@ -11,35 +11,43 @@
   "directions": {
     "d000": {
       "yaw_deg": 0.0,
-      "incomplete_seed": false
+      "incomplete_seed": false,
+      "hide_contralateral_eye": null
     },
     "d045": {
       "yaw_deg": -45.0,
-      "incomplete_seed": false
+      "incomplete_seed": false,
+      "hide_contralateral_eye": null
     },
     "d090": {
       "yaw_deg": -90.0,
-      "incomplete_seed": false
+      "incomplete_seed": false,
+      "hide_contralateral_eye": "CAT_EYE_L"
     },
     "d135": {
       "yaw_deg": -135.0,
-      "incomplete_seed": false
+      "incomplete_seed": false,
+      "hide_contralateral_eye": null
     },
     "d180": {
       "yaw_deg": 180.0,
-      "incomplete_seed": false
+      "incomplete_seed": false,
+      "hide_contralateral_eye": null
     },
     "d225": {
       "yaw_deg": 135.0,
-      "incomplete_seed": false
+      "incomplete_seed": false,
+      "hide_contralateral_eye": null
     },
     "d270": {
       "yaw_deg": 90.0,
-      "incomplete_seed": false
+      "incomplete_seed": false,
+      "hide_contralateral_eye": "CAT_EYE_R"
     },
     "d315": {
       "yaw_deg": 45.0,
-      "incomplete_seed": false
+      "incomplete_seed": false,
+      "hide_contralateral_eye": null
     }
   },
   "outputs": {

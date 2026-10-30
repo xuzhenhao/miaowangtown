@@ -121,4 +121,10 @@
 
 ## 诚实注记（opus 纠偏）
 - `hold_diag_report.json` 中若 `silhouette_holes_*=-1`：表示当时环境 **无 scipy**，未跑 scipy 连通域；封闭洞计数改用 **纯 numpy/PIL flood-fill fallback**（或跳过），**不得**解读为 scipy 已验证 holes=0。
+- **不要事后安装 scipy** 并把 sentinel -1 重新解释为「已验证 holes=0」。
 - 主结论「clay 实心 / albedo 假透空」仍以 clay-vs-albedo 目视对照图与 alpha 直方图为准。
+
+## 降权对照（2026-10-30）
+
+见 `hold_diag/low_d090_weight/`：d090/d270 权重 0.4 + dark_reject=40。body-only dark_opaque(114×104) 几乎持平 → **仍 HOLD**；不冻、不开 M3。d090 源图碎斑轻；d270 源图更脏需重生。归档 `archive/pre_low_d090_weight_20261030_123200/` 保留。
+

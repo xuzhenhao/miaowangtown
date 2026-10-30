@@ -1,0 +1,62 @@
+{
+  "method": "body_only_no_eyes_same_review_raster",
+  "note": "fair dark_opaque; eyes excluded so hide-contra does not confound",
+  "before": {
+    "d090": {
+      "logical_hw": [
+        104,
+        114
+      ],
+      "body_px": 4112,
+      "dark_opaque_lum_lt_40": 455,
+      "dark_opaque_lum_lt_25": 454
+    },
+    "d045": {
+      "logical_hw": [
+        104,
+        114
+      ],
+      "body_px": 5280,
+      "dark_opaque_lum_lt_40": 476,
+      "dark_opaque_lum_lt_25": 472
+    },
+    "d270": {
+      "logical_hw": [
+        104,
+        114
+      ],
+      "body_px": 3988,
+      "dark_opaque_lum_lt_40": 455,
+      "dark_opaque_lum_lt_25": 455
+    }
+  },
+  "after": {
+    "d090": {
+      "logical_hw": [
+        104,
+        114
+      ],
+      "body_px": 4112,
+      "dark_opaque_lum_lt_40": 457,
+      "dark_opaque_lum_lt_25": 454
+    },
+    "d045": {
+      "logical_hw": [
+        104,
+        114
+      ],
+      "body_px": 5280,
+      "dark_opaque_lum_lt_40": 477,
+      "dark_opaque_lum_lt_25": 472
+    },
+    "d270": {
+      "logical_hw": [
+        104,
+        114
+      ],
+      "body_px": 3988,
+      "dark_opaque_lum_lt_40": 455,
+      "dark_opaque_lum_lt_25": 455
+    }
+  }
+}

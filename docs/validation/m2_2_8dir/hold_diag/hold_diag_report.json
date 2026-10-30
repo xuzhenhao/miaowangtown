@@ -3,7 +3,8 @@
   "notes": [
     "scipy hole fill failed: No module named 'scipy'",
     "scipy hole fill failed: No module named 'scipy'",
-    "scipy hole fill failed: No module named 'scipy'"
+    "scipy hole fill failed: No module named 'scipy'",
+    "silhouette_holes_*=-1: scipy missing/incompatible; used numpy/PIL flood-fill fallback. Do not install scipy to re-read as verified 0."
   ],
   "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
   "uv_hash_ok": true,
@@ -302,5 +303,10 @@
     "2) Eyes: in review raster, depth-test eyes against head more strictly or hide contralateral eye at |yaw|≈90; verify eye rest mesh sits in sockets",
     "3) Neck: no pose fix needed; if still unread at profile after (1), treat as micro-Q silhouette acceptance — not fuse",
     "4) Only then coverage 补盲 (red 29.65% midtone seed) toward ≥92% green+yellow"
-  ]
+  ],
+  "silhouette_holes_honesty": {
+    "silhouette_holes_sentinel": -1,
+    "meaning": "silhouette_holes_*=-1 means scipy was unavailable/incompatible in the Blender/diag Python at run time (see notes[]). Closed-hole counts used a numpy/PIL flood-fill FALLBACK — NOT a scipy-verified zero. Do NOT install scipy afterward and reinterpret -1 as proof of holes=0.",
+    "authoritative_for_mesh_solidity": "clay vs albedo eyeball boards + alpha XOR=0 + clay solid fill; not the -1 sentinel."
+  }
 }
