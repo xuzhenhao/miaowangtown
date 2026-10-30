@@ -1,19 +1,21 @@
 # M2.2 制作人自审摘要（诚实版）
 
 **时间**：2026-10-30（Asia/Shanghai）  
-**结论**：**未完成合拢**。Mac MPS（Union ControlNet + IP-Adapter）已生成互补 7 向 unlit albedo；制作人 4x 肉眼门禁 **3 PASS / 4 FAIL**，**因 4/7 FAIL 已停合拢**。`fur_albedo.png` 仍为 **M2.1 d045 单向**，整张 UV **不冻**；**未进 M3**。
+**结论**：**未完成合拢**。Mac MPS（Union ControlNet + IP-Adapter）已生成互补 7 向 unlit albedo；失败四向已按脚本 `b097819`（`--seed-offset 10007` + 分向 VIEW_TUNING + depth 灰底掩膜）重跑。制作人复审门禁现为 **4 PASS / 3 FAIL**（d000 本轮转 PASS；d090/d225/d315 仍 FAIL；既有 d135/d180/d270 PASS **未动**）。**因仍有 3/7 FAIL 继续停合拢**。`fur_albedo.png` 仍为 **M2.1 d045 单向**，整张 UV **不冻**；**未进 M3**。
 
-## 现状（2026-10-30）
+## 现状（2026-10-30 · rerun 后）
 
 | 项 | 状态 |
 |---|---|
 | 生成设备 | **Mac Apple Silicon MPS**（非 CUDA 租机） |
-| SDXL + Union ControlNet + IP-Adapter | **已跑完** 7 向；报告 `docs/validation/m2_2_8dir/generated/m2_2_generation_report.json`（本机未强制入库） |
-| 互补 albedo | `cats/miemie/identity_v1/complementary_albedos/{d000,d090,d135,d180,d225,d270,d315}_unlit_albedo.png`（本地未 commit 原图） |
+| SDXL + Union ControlNet + IP-Adapter | **已跑完** 首轮 7 向；失败四向重跑 tip/脚本 **`b097819`** |
+| 重跑参数 | `--views d000,d090,d225,d315 --seed-offset 10007 --merge-report`；log `logs/m22/rerun_fails_20261030_114820.log` |
+| 互补 albedo | `cats/miemie/identity_v1/complementary_albedos/{d000..d315}_unlit_albedo.png`（本地未 commit 原图；旧 FAIL 归档 `archive/pre_rerun_228f7d7/`） |
 | 4x 门禁 | 已写 `gates/{view}_fur_flow_gate.json` + `gates_preview_{view}_4x.png`；权威=4x 肉眼 |
-| 合拢 `fuse_8dir_albedo.py` | **未跑**（硬停） |
+| 合拢 `fuse_8dir_albedo.py` | **未跑**（硬停：d090/d225/d315 仍 FAIL） |
 | `fur_albedo` 冻结 | **未冻** |
 | M3 | **未开** |
+| CLIP77 截断风险 | **仍在**：重跑时 d000/d090/d225 的 `prompt_extra` 后半被 CLIP 77 token 截断；后续重跑需缩短 base prompt 或把关键约束提前 |
 | 旧阻塞文件 | `generation_BLOCKED.json` 已迁至 `complementary_albedos/archive/`（避免与现报告打架） |
 
 ### 已锁定可商用权重（模型卡许可证）
@@ -36,21 +38,21 @@
 | （废弃） | `/Users/cloud/dev/models/huggingface` | 旧 hub orphan blobs；齐套后删除 |
 | 禁止 | `~/.cache/huggingface` | 用户硬要求 |
 
-**补缺**：仓库根 `download_m22.sh` 已入库；权重权威根仍为 `M22_MODELS_ROOT=/Users/cloud/dev/models/m22`。
+**补缺**：仓库根 `download_m22.sh` 已入库；权重权威根仍为 `M22_MODELS_ROOT=/Users/cloud/dev/models/m22`。生成脚本分向重跑 knobs 见 tip **`b097819`**。
 
-## 4x 互补视角门禁（制作人权威 · 2026-10-30）
+## 4x 互补视角门禁（制作人权威 · 2026-10-30 rerun 复审）
 
 | view | 结果 | notes（原样） |
 |---|---|---|
-| d000 | **FAIL** | 4x:绿眼可读、白爪无明显灰边、非塑料椭圆；但五印记FAIL：阴阳花生嘴套未守恒（下半脸被整片白罩盖住，未见解剖右焦糖斑 mark_01）；毛流偏碎块尚可但不及v4.1锚点。authority=4x |
-| d090 | **FAIL** | 4x FAIL：相对 depth 剪影外出现毛流拖影/鬼影碎片（似贴图摊开），耳颈叠片；非单一干净相机视图。禁止当合拢输入。authority=4x |
-| d135 | **PASS** | 4x PASS：与 depth 同向动态姿；毛流沿体、白袜清晰、绿眼可读、未见塑料椭圆与明显灰边；侧别印记在可见面守恒。authority=4x |
-| d180 | **PASS** | 4x PASS：背向视图；背纹毛流顺 depth；未见塑料椭圆；背向不要求正脸绿眼全貌。authority=4x |
-| d225 | **FAIL** | 4x FAIL：身体部件离散/外溢（非连贯单体渲染），相对 depth leak 高；不可合拢。authority=4x |
-| d270 | **PASS** | 4x PASS：侧向绿眼/白围脖白爪可读，虎斑顺体；颈后有轻微碎边记入notes但不否决。authority=4x |
-| d315 | **FAIL** | 4x FAIL：头/耳区拉伸三角碎片几何伪影；尾形相对锚点偏短。不可合拢。authority=4x |
+| d000 | **PASS**（rerun） | rerun+seed_offset10007 后 4x：绿眼可读；白爪无大灰边；解剖右焦糖斑/花生嘴套可见（相对首轮白罩改善）；剪影外鬼影已清。CLIP77 截断仍在，风格偏碎面。authority=4x PASS |
+| d090 | **FAIL**（rerun 仍败） | rerun 后仍 FAIL：头颈拉长切片、头胸腿旁漂浮碎片/鬼影，非单一干净相机视图。authority=4x |
+| d135 | **PASS**（未动） | 4x PASS：与 depth 同向动态姿；毛流沿体、白袜清晰、绿眼可读、未见塑料椭圆与明显灰边；侧别印记在可见面守恒。authority=4x |
+| d180 | **PASS**（未动） | 4x PASS：背向视图；背纹毛流顺 depth；未见塑料椭圆；背向不要求正脸绿眼全貌。authority=4x |
+| d225 | **FAIL**（rerun 仍败） | rerun 后仍 FAIL：侧腹/爪旁三角幻影外溢、depth leak、顶部裁切。authority=4x |
+| d270 | **PASS**（未动） | 4x PASS：侧向绿眼/白围脖白爪可读，虎斑顺体；颈后有轻微碎边记入notes但不否决。authority=4x |
+| d315 | **FAIL**（rerun 仍败） | rerun 后仍 FAIL：albedo 碎三角柱/贴图爆炸，头耳与尾未对齐锚点。authority=4x |
 
-**汇总**：3 PASS（d135 / d180 / d270）· 4 FAIL（d000 / d090 / d225 / d315）→ **停合拢**。禁止程序化退回充数；可只重跑失败向，勿整批假绿。
+**汇总**：4 PASS（d000 / d135 / d180 / d270）· 3 FAIL（d090 / d225 / d315）→ **仍停合拢**。禁止程序化退回充数；可只重跑仍失败的三向，勿整批假绿；**禁止改动已 PASS 的 d135/d180/d270**。
 
 检查项口径（DEVELOPMENT_PLAN）：毛流自然 / 无塑料椭圆色块 / 五印记侧别守恒 / 白爪零灰边 / 绿眼可读（背面向看得到的印记）。剪影锁不算新轮廓证据；软启发式不得当硬证据。
 
@@ -61,7 +63,7 @@
    联络板：`control_maps/m2_2_control_depth_normal_sheet.png`
 2. **可复现脚本**  
    - `pipeline/texture/export_control_views.py`  
-   - `pipeline/texture/generate_complementary_sdxl.py`  
+   - `pipeline/texture/generate_complementary_sdxl.py`（tip `b097819`：`--views` / `--seed-offset` / `--merge-report` / VIEW_TUNING / depth bg mask）  
    - `pipeline/texture/gate_complementary_view.py`（ROOT 相对仓库根；Mac PIL 默认字体用 ASCII 标题）  
    - `pipeline/texture/fuse_8dir_albedo.py`（**尚未调用**）  
    - `pipeline/bake/run_m2_2_review.py` / `run_m2_2.py`（合拢后才重出 Layer A/B）
@@ -78,8 +80,6 @@
 |---|---|---|
 | 岛内绿+黄 | **≈30.6%** | 高频身份区 ≥92% → **FAIL** |
 | 红盲区 / 岛 | **≈67.4%** | ≤20% → **FAIL** |
-
-达标需失败向重生成并通过 4x 后再反投合拢。
 
 ## 诚实原则（继承 M2.1）
 

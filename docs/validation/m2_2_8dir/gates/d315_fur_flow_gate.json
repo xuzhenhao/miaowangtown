@@ -8,7 +8,7 @@
     "no_plastic_ellipse_blobs": false,
     "five_markings_side_correct": false,
     "white_socks_no_gray_fringe_soft": null,
-    "producer_notes": "4x FAIL：头/耳区拉伸三角碎片几何伪影；尾形相对锚点偏短。不可合拢。authority=4x"
+    "producer_notes": "rerun 后仍 FAIL：albedo 碎三角柱/贴图爆炸，头耳与尾未对齐锚点。authority=4x"
   },
   "honesty": "Auto heuristics intentionally soft; 4x human eyeball is authority.",
   "blocked_reason_if_not_passed": "Awaiting producer --human-pass after 4x review"
