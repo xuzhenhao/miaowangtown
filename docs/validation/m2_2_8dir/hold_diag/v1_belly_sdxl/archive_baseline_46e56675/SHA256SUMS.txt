@@ -1,0 +1,2 @@
+46e56675a577390d70724e803a37c39b8cc79e070a5434c336a042da502a08dd  docs/validation/m2_2_8dir/hold_diag/v1_belly_sdxl/archive_baseline_46e56675/fur_albedo.png
+347ca029da640ce55d8b6c9e937774780cb1fba49e5f9e4a0992a4fc1a28521f  docs/validation/m2_2_8dir/hold_diag/v1_belly_sdxl/archive_baseline_46e56675/coverage.png

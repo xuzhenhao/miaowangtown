@@ -1,3 +1,21 @@
+# M2.2 制作人摘要 · V1 写入工作 fur
+
+**时间**：2026-10-30 17:38:43 Asia/Shanghai  
+**状态**：**CANDIDATE_UNFROZEN**（工作 \`fur_albedo.png\` / \`coverage.png\` 已换为 V1 belly 候选）  
+**冻结 / 开 M3**：**否**
+
+| 项 | sha256 前缀 |
+|---|---|
+| 新工作 fur | `3be77787ab0f…` |
+| 新工作 coverage | `1a8dbaf08c93…` |
+| 旧 baseline（已归档） | `46e56675a577…` |
+
+归档：`hold_diag/v1_belly_sdxl/archive_baseline_46e56675/`  
+状态页：`cats/miemie/identity_v1/CANDIDATE_UNFROZEN.md`  
+下一步：V2 腿内侧控图+理论（不开 SDXL）。
+
+---
+
 # M2.2 制作人自审摘要（诚实版）
 
 **时间**：2026-10-30 13:51（Asia/Shanghai）· V1 腹底控图  
