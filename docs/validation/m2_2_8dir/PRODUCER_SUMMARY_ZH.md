@@ -3,6 +3,15 @@
 **时间**：2026-10-30 13:01（Asia/Shanghai）· d135 受控重生两次 FAIL  
 **结论**：仍 **CONDITIONAL HOLD**。**已停等 opus**（不做第三次）。d135 回滚 PASS `acabf10c…`；d180 未动；fur 保持 `46e56675…`；未 fuse；不冻、不开 M3、不交用户点2。
 
+
+## 2026-10-30 fuse ROI 软降 d135（×0.35 / ×0.15）— 回退 baseline · 仍 HOLD
+
+- 停 d135 源重生后，主路径改 fuse：**仅 ROI 内**软降 d135 写入（d180 锁死；EDGE/graze/全局权重未拧）。
+- n_dark_inner：6283 → 6228（×0.35）/ 5969（×0.15，−5%）；d135 pull-down 占比 30→23.7/22.2，但 **d180 仍 ~29% 主导**，假透空未明显减轻。
+- **工作树回退** fur `46e56675…`（CANDIDATE_UNFROZEN）。停等 opus；可请示同样软降 d180。
+- 次路径：`hold_diag/CONTROL_FRAME_MARGIN_NOTE.md`（d135/d180 顶底贴边=0；未来重渲需 ≥16px）。
+- 详情：`hold_diag/fuse_soft_d135_roi/README.md` + `contrast_report.json`
+
 ## d135 重生（本轮）
 
 | try | seed_offset | seed | sha | CLIP77 | 门禁 |

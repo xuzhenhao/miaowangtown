@@ -1,0 +1,11 @@
+{
+  "stage": "export_dark_roi_mask",
+  "fur_file_sha256": "46e56675a577390d70724e803a37c39b8cc79e070a5434c336a042da502a08dd",
+  "n_dark_uv_inner": 6283,
+  "n_d090_torso": 99511,
+  "rel_thr": 85.33333333333333,
+  "p10_d090_torso": 85.33333333333333,
+  "mask": "docs/validation/m2_2_8dir/hold_diag/d090_torso_dark_uv_inner_mask.png",
+  "expected_n_dark_inner_12a1945": 6283,
+  "match_12a1945": true
+}

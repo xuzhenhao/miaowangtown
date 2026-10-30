@@ -1,0 +1,105 @@
+{
+  "stage": "fuse_soft_d135_roi",
+  "ts_asia_shanghai": "2026-10-30 13:08:38 CST",
+  "params": {
+    "roi": "d090_torso_dark_uv_inner_mask.png (n=6283, match 12a1945)",
+    "soft_tiers": [
+      0.35,
+      0.15
+    ],
+    "d180": "LOCKED unchanged write weight",
+    "EDGE_ERODE": 10,
+    "NDOTV_GRAZE": 0.2,
+    "global_view_weight": "all 1.0 (unchanged)"
+  },
+  "fur_sha": {
+    "baseline": "46e56675a577390d70724e803a37c39b8cc79e070a5434c336a042da502a08dd",
+    "x035": "7c5292bfd1e2ad5d1d52a346cad6db80dc48544231846b5ff69f670ac5333c47",
+    "x015": "0bdade2ad2fe98705a41afa73eec9a67442d71b7f493681aa462a5665317353e",
+    "working_tree_after_decision": "46e56675a577390d70724e803a37c39b8cc79e070a5434c336a042da502a08dd",
+    "label": "CANDIDATE_UNFROZEN baseline restored"
+  },
+  "metrics": {
+    "baseline": {
+      "n_dark_inner_d090": 6283,
+      "n_dark_inner_d045": 2738,
+      "coverage_gy": 0.7031,
+      "coverage_red": 0.2969,
+      "pull_down_d135": 30.05,
+      "pull_down_d180": 30.79,
+      "weight_share_d135": 25.52,
+      "pull_down": {
+        "d000": 4.76,
+        "d045": 13.12,
+        "d090": 1.93,
+        "d135": 30.05,
+        "d180": 30.79,
+        "d225": 15.72,
+        "d270": 3.23,
+        "d315": 0.39
+      }
+    },
+    "x035": {
+      "n_dark_inner_d090": 6228,
+      "n_dark_inner_d045": 2861,
+      "coverage_gy": 0.7035,
+      "coverage_red": 0.2965,
+      "pull_down_d135": 23.7,
+      "pull_down_d180": 29.4,
+      "weight_share_d135": 22.25,
+      "pull_down": {
+        "d000": 7.08,
+        "d045": 11.81,
+        "d090": 4.01,
+        "d135": 23.7,
+        "d180": 29.4,
+        "d225": 15.8,
+        "d270": 7.62,
+        "d315": 0.59
+      },
+      "delta_n_dark_d090": -55,
+      "rel_improve_dark": 0.0088,
+      "delta_d135_pull_pp": -6.35
+    },
+    "x015": {
+      "n_dark_inner_d090": 5969,
+      "n_dark_inner_d045": 2678,
+      "coverage_gy": 0.7035,
+      "coverage_red": 0.2965,
+      "pull_down_d135": 22.23,
+      "pull_down_d180": 29.15,
+      "weight_share_d135": 21.73,
+      "pull_down": {
+        "d000": 7.47,
+        "d045": 11.97,
+        "d090": 4.24,
+        "d135": 22.23,
+        "d180": 29.15,
+        "d225": 16.62,
+        "d270": 7.71,
+        "d315": 0.62
+      },
+      "delta_n_dark_d090": -314,
+      "rel_improve_dark": 0.05,
+      "delta_d135_pull_pp": -7.82
+    }
+  },
+  "verdict": {
+    "still_HOLD": true,
+    "keep": "baseline",
+    "rollback_to_baseline": true,
+    "reason": "两档 n_dark_inner 仅微降（x035 -55, x015 -314 / baseline 6283，相对改善 0.88% / 5.00% < 8%），假透空几乎不变；d135 pull-down 占比虽降（30.05→23.7/22.23）但 d180 仍主导。按规则回退 baseline；停等 opus（可请示是否同样软降 d180）。",
+    "may_ask_soft_d180": true,
+    "ask_soft_d180_note": "暗带几乎不缩，d180 仍主导 pull-down；可请示是否同样 ROI 软降 d180（本轮未动）。停等 opus。",
+    "CANDIDATE_UNFROZEN": true,
+    "no_freeze_no_M3_no_user_point2": true
+  },
+  "paths": {
+    "experiment": "docs/validation/m2_2_8dir/hold_diag/fuse_soft_d135_roi",
+    "mask": "docs/validation/m2_2_8dir/hold_diag/d090_torso_dark_uv_inner_mask.png",
+    "margin_note": "docs/validation/m2_2_8dir/hold_diag/CONTROL_FRAME_MARGIN_NOTE.md",
+    "archive_pre": "cats/miemie/identity_v1/archive/pre_fuse_soft_d135_20261030_130707",
+    "compare_x035": "docs/validation/m2_2_8dir/hold_diag/fuse_soft_d135_roi/x035/compare_layer_a_d090_d045_4x_black.png",
+    "compare_x015": "docs/validation/m2_2_8dir/hold_diag/fuse_soft_d135_roi/x015/compare_layer_a_d090_d045_4x_black.png"
+  }
+}

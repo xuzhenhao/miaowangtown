@@ -60,6 +60,10 @@ NDOTV_GRAZE = 0.20
 #   --ndotv-graze / M22_NDOTV_GRAZE  (default 0.20)
 #   --edge-erode  / M22_EDGE_ERODE   (default 10)
 # Raising graze reduces back/oblique writes; does NOT invent fur / fill red.
+# ROI soft-down (contrast only; does NOT change default view-weight table):
+#   --roi-mask PATH / M22_ROI_MASK   UV L-mask (255=ROI), typically d090 dark-inner
+#   --roi-view-soft d135=0.35 / M22_ROI_VIEW_SOFT_JSON='{"d135":0.35}'
+#   Inside ROI only: that view's write weight *= soft; outside ROI unchanged.
 DEFAULT_VIEW_WEIGHT = {d: 1.0 for d in (
     "d000", "d045", "d090", "d135", "d180", "d225", "d270", "d315"
 )}
@@ -182,6 +186,8 @@ def project_view_into_accum(
     coverage_best,
     view_weight: float = 1.0,
     dark_reject_lum: float = 0.0,
+    roi_mask: np.ndarray | None = None,
+    roi_soft: float = 1.0,
 ):
     """Accumulate one view into UV buffers. Returns texels written."""
     ah, aw = anchor_rgba.shape[:2]
@@ -253,8 +259,16 @@ def project_view_into_accum(
             use = use & (lum >= dark_reject_lum)
         if not np.any(use):
             continue
-        sub_a[use] += sampled[use, :3] * w_face
-        sub_w[use] += w_face
+        # Optional ROI soft-down: only texels inside roi_mask get w *= roi_soft
+        if roi_mask is not None and float(roi_soft) < 0.999:
+            sub_roi = roi_mask[ymin : ymax + 1, xmin : xmax + 1]
+            w_map = np.full(use.shape, w_face, dtype=np.float64)
+            w_map[use & sub_roi] = w_face * float(roi_soft)
+            sub_a[use] += sampled[use, :3] * w_map[use, None]
+            sub_w[use] += w_map[use]
+        else:
+            sub_a[use] += sampled[use, :3] * w_face
+            sub_w[use] += w_face
         better = use & (ndotv > sub_n)
         sub_n[better] = ndotv
         written += int(use.sum())
@@ -333,6 +347,34 @@ def parse_edge_erode(cli: int | None) -> int:
     return int(EDGE_ERODE)
 
 
+def parse_roi_mask(cli: str | None) -> np.ndarray | None:
+    """Load UV L-mask (nonzero=ROI). CLI --roi-mask or env M22_ROI_MASK."""
+    path_s = (cli or "").strip() or os.environ.get("M22_ROI_MASK", "").strip()
+    if not path_s:
+        return None
+    p = Path(path_s)
+    if not p.is_file():
+        p = ROOT / path_s
+    if not p.is_file():
+        raise FileNotFoundError(f"ROI mask not found: {path_s}")
+    arr = np.array(Image.open(p).convert("L"))
+    if arr.shape != (UV_SIZE, UV_SIZE):
+        raise RuntimeError(f"ROI mask shape {arr.shape} != ({UV_SIZE},{UV_SIZE})")
+    return arr > 0
+
+
+def parse_roi_view_soft(cli_pairs: list[str] | None = None) -> dict[str, float]:
+    """Per-view soft multipliers applied ONLY inside ROI. Default empty (=1.0)."""
+    soft: dict[str, float] = {}
+    env = os.environ.get("M22_ROI_VIEW_SOFT_JSON", "").strip()
+    if env:
+        soft.update({k: float(v) for k, v in json.loads(env).items()})
+    for pair in cli_pairs or []:
+        k, v = pair.split("=", 1)
+        soft[k.strip()] = float(v)
+    return soft
+
+
 def main() -> int:
     # Blender passes script args after "--"
     argv = sys.argv
@@ -370,6 +412,17 @@ def main() -> int:
         default=None,
         help="Contrast: silhouette erode iters (default 10). Env M22_EDGE_ERODE.",
     )
+    ap.add_argument(
+        "--roi-mask",
+        default=None,
+        help="Contrast: UV L-mask path (255=ROI). Env M22_ROI_MASK. Soft applies only inside.",
+    )
+    ap.add_argument(
+        "--roi-view-soft",
+        action="append",
+        default=[],
+        help="Contrast: d135=0.35 soft mult inside ROI only (repeatable). Env M22_ROI_VIEW_SOFT_JSON.",
+    )
     args = ap.parse_args(argv)
 
     VAL_DIR.mkdir(parents=True, exist_ok=True)
@@ -385,6 +438,8 @@ def main() -> int:
     global NDOTV_GRAZE, EDGE_ERODE
     NDOTV_GRAZE = parse_ndotv_graze(args.ndotv_graze)
     EDGE_ERODE = parse_edge_erode(args.edge_erode)
+    roi_mask = parse_roi_mask(args.roi_mask)
+    roi_view_soft = parse_roi_view_soft(args.roi_view_soft)
 
     views_to_use = []
     skip = {}
@@ -411,9 +466,13 @@ def main() -> int:
             "ndotv_graze": NDOTV_GRAZE,
             "edge_erode": EDGE_ERODE,
             "ndotv_direct": NDOTV_DIRECT,
+            "roi_mask_enabled": roi_mask is not None,
+            "roi_mask_texels": int(roi_mask.sum()) if roi_mask is not None else 0,
+            "roi_view_soft": roi_view_soft or None,
             "note": (
-                "CONTRAST ONLY — view-weight / dark-reject / ndotv-graze / edge-erode knobs. "
-                "Not a freeze; does not procedural-fill red coverage."
+                "CONTRAST ONLY — view-weight / dark-reject / ndotv-graze / edge-erode / "
+                "ROI soft-down knobs. Not a freeze; does not procedural-fill red coverage. "
+                "ROI soft does not change the default global view-weight table."
             ),
         },
     }
@@ -532,6 +591,8 @@ def main() -> int:
         vw = float(view_weights.get(dname, 1.0))
         # Only apply dark-reject on down-weighted views (protect d045 etc.)
         dr = dark_reject if vw < 0.999 else 0.0
+        rs = float(roi_view_soft.get(dname, 1.0))
+        use_roi = roi_mask if (roi_mask is not None and rs < 0.999) else None
         wcount = project_view_into_accum(
             tris_uv,
             tris_nrm,
@@ -547,12 +608,16 @@ def main() -> int:
             coverage,
             view_weight=vw,
             dark_reject_lum=dr,
+            roi_mask=use_roi,
+            roi_soft=rs,
         )
         view_stats[dname] = {
             "texels_weighted": int(wcount),
             "yaw_deg": yaw,
             "view_weight_mult": vw,
             "dark_reject_lum_applied": dr,
+            "roi_soft_mult": rs if use_roi is not None else 1.0,
+            "roi_soft_active": use_roi is not None,
         }
         print(f"fused {dname}: {wcount} texels", flush=True)
 
