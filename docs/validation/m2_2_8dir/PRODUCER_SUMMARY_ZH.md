@@ -1,5 +1,12 @@
 # M2.2 制作人自审摘要（诚实版）
 
+**时间**：2026-10-30 13:30（Asia/Shanghai）· HOLD 等用户 A/B/C  
+**结论**：仍 **CONDITIONAL HOLD**。**HOLD 等用户 A/B/C**（见 `hold_diag/HOLD_OPTIONS_M22_FUSE.md`）。制作人待命，除用户/opus 新指令外不开新实验。fur 锁 baseline `46e56675…`；整条源重生停；不 fuse / 不软降 / 不二次 seed / 不冻 / 不开 M3。
+
+## 此前摘要（保留）
+
+# M2.2 制作人自审摘要（诚实版）
+
 **时间**：2026-10-30 13:27（Asia/Shanghai）· d225 受控重生 1 次 FAIL  
 **结论**：仍 **CONDITIONAL HOLD**。**整条源重生停**（禁第二次）。d225 回滚 PASS `f3ec8950…`；fur 保持 baseline `46e56675…`；未 fuse；不冻、不开 M3、不交用户点2。
 
