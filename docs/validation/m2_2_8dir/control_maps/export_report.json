@@ -309,6 +309,80 @@
         "depth_768": "cats/miemie/identity_v1/control_views/v2_leg_inner_R/depth_768.png",
         "normal_768": "cats/miemie/identity_v1/control_views/v2_leg_inner_R/normal_768.png"
       }
+    },
+    "v2b_leg_hind_inner_L": {
+      "yaw_deg": -115.0,
+      "pitch_deg": -10.0,
+      "is_complementary": false,
+      "is_extra_view": true,
+      "is_m2_1_anchor": false,
+      "visible_px": 27937,
+      "refit_margin": 0.08,
+      "culled_tris": 218,
+      "drawn_tris": 2241,
+      "scale_m_per_logical_px": 0.005883268751610954,
+      "origin_logical_px": [
+        51.25200008537796,
+        92.48910808790907
+      ],
+      "fit_info": {
+        "bbox_u": [
+          -0.18151929164945863,
+          0.24503506008724754
+        ],
+        "bbox_v": [
+          -0.016713730613108924,
+          0.497248627527624
+        ],
+        "avail_logical": [
+          95.75999999999999,
+          87.36
+        ]
+      },
+      "paths": {
+        "depth": "cats/miemie/identity_v1/control_views/v2b_leg_hind_inner_L/depth.png",
+        "normal": "cats/miemie/identity_v1/control_views/v2b_leg_hind_inner_L/normal.png",
+        "part_mask": "cats/miemie/identity_v1/control_views/v2b_leg_hind_inner_L/part_mask.png",
+        "depth_768": "cats/miemie/identity_v1/control_views/v2b_leg_hind_inner_L/depth_768.png",
+        "normal_768": "cats/miemie/identity_v1/control_views/v2b_leg_hind_inner_L/normal_768.png"
+      }
+    },
+    "v2b_leg_hind_inner_R": {
+      "yaw_deg": 115.0,
+      "pitch_deg": -10.0,
+      "is_complementary": false,
+      "is_extra_view": true,
+      "is_m2_1_anchor": false,
+      "visible_px": 40829,
+      "refit_margin": 0.08,
+      "culled_tris": 211,
+      "drawn_tris": 2190,
+      "scale_m_per_logical_px": 0.005577942102411377,
+      "origin_logical_px": [
+        64.47527244713713,
+        93.91175185290146
+      ],
+      "fit_info": {
+        "bbox_u": [
+          -0.2793427314643641,
+          0.19204489817291232
+        ],
+        "bbox_v": [
+          -0.007910906051367827,
+          0.47937811601529
+        ],
+        "avail_logical": [
+          95.75999999999999,
+          87.36
+        ]
+      },
+      "paths": {
+        "depth": "cats/miemie/identity_v1/control_views/v2b_leg_hind_inner_R/depth.png",
+        "normal": "cats/miemie/identity_v1/control_views/v2b_leg_hind_inner_R/normal.png",
+        "part_mask": "cats/miemie/identity_v1/control_views/v2b_leg_hind_inner_R/part_mask.png",
+        "depth_768": "cats/miemie/identity_v1/control_views/v2b_leg_hind_inner_R/depth_768.png",
+        "normal_768": "cats/miemie/identity_v1/control_views/v2b_leg_hind_inner_R/normal_768.png"
+      }
     }
   },
   "complementary": [
@@ -363,8 +437,8 @@
     ]
   },
   "exported_this_run": [
-    "v2_leg_inner_L",
-    "v2_leg_inner_R"
+    "v2b_leg_hind_inner_L",
+    "v2b_leg_hind_inner_R"
   ],
   "fit_margin_cli": 0.08,
   "note": "Control maps only. Complementary albedo must come from locked commercial SDXL stack; never procedural default."
