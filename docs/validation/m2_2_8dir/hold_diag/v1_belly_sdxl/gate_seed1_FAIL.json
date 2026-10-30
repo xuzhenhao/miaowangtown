@@ -1,0 +1,22 @@
+{
+  "view": "v1_belly",
+  "try": 1,
+  "seed_offset": 80011,
+  "actual_seed": 20341975,
+  "clip_tokens": 76,
+  "truncated_at_77": false,
+  "ok": false,
+  "pass": false,
+  "verdict": "FAIL",
+  "time_asia_shanghai": "2026-10-30 17:15:54 Asia/Shanghai",
+  "checklist": {
+    "一体连续躯干腹底": false,
+    "四腿完整自下可见": false,
+    "无碎块/断爪/头切": false,
+    "杏色/白围兜五印记可读": "partial_bib_ok_belly_marks_lost",
+    "无剪影外鬼影/atlas碎斑": false,
+    "像真猫腹底视角画感毛流": "upper_ok_lower_fail"
+  },
+  "producer_4x_notes": "头胸白围兜尚可；下半身漂浮棕色碎块、后腿不成肢、腹底不连续。控图 clay/depth 足端本有锯齿，SDXL 放大成 atlas 碎片。不 fuse。",
+  "next": "seed-offset 81011 exactly one more try"
+}

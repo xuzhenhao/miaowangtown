@@ -1,7 +1,7 @@
 # V1 腹底控图 + 理论 N·V 覆盖
 
 **时间**：2026-10-30 13:51（Asia/Shanghai）  
-**状态**：**控图已出 · 等 SDXL 点头**（本轮未跑 SDXL / fuse）  
+**状态**：**控图齐 · SDXL seed2 PASS · 对照 fuse 候选已出**（更新 2026-10-30 17:20:17 Asia/Shanghai）  
 **fur**：baseline `46e56675a577…`（未改）
 
 > 硬门不降。禁假绿填红 / 软降 / 拧 EDGE·graze / regen / 冻 / 开 M3。  
@@ -69,3 +69,11 @@
 - `theory_v1_belly_coverage.json`
 
 路径：`docs/validation/m2_2_8dir/hold_diag/v1_belly_control/`
+
+
+## SDXL / 对照 fuse 回写
+
+- seed1 FAIL（80011 / 20341975）；seed2 **PASS**（81011 / 20342080）
+- 对照 fuse 诚实岛 GY 0.9493 / 红 0.0507（基线 0.8117 / 0.1882）
+- baseline fur `46e56675…` **未改**；候选见 `../v1_belly_sdxl/`
+- **未冻 / 未开 M3**

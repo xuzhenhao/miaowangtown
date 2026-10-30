@@ -1,0 +1,32 @@
+{
+  "view": "v1_belly",
+  "try": 2,
+  "seed_offset": 81011,
+  "actual_seed": 20342080,
+  "clip_tokens": 76,
+  "truncated_at_77": false,
+  "ok": true,
+  "pass": true,
+  "verdict": "PASS",
+  "time_asia_shanghai": "2026-10-30 17:19:19 Asia/Shanghai",
+  "checklist": {
+    "一体连续躯干腹底": true,
+    "四腿完整自下可见": true,
+    "无碎块/断爪/头切": "residual_silhouette_jag_matches_control_clay",
+    "杏色/白围兜五印记可读": true,
+    "无剪影外鬼影/atlas碎斑": true,
+    "像真猫腹底视角画感毛流": true
+  },
+  "quant": {
+    "ghost_outside_dilated": 0,
+    "albedo_cc": 1,
+    "fg_px": 54805
+  },
+  "producer_4x_notes": "相对 seed1 下半身溶解明显改善；白围兜/杏色腹底连续；四腿可读。足端/腿侧锯齿与 clay 控图尖刺同形。允许对照 fuse；不冻 fur；不开 M3。",
+  "prior_fail": {
+    "try": 1,
+    "seed_offset": 80011,
+    "actual_seed": 20341975,
+    "verdict": "FAIL"
+  }
+}

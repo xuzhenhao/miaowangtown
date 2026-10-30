@@ -130,23 +130,44 @@
       "guidance": 5.2,
       "bg_masked_by_depth": true,
       "rerun": true
+    },
+    "v1_belly": {
+      "path": "cats/miemie/identity_v1/complementary_albedos/v1_belly_unlit_albedo.png",
+      "seed": 20342080,
+      "seed_offset": 81011,
+      "gate_status": "PASS_human_4x_seed2_81011",
+      "control_scale": [
+        1.0,
+        0.75
+      ],
+      "ip_scale": 0.65,
+      "guidance": 5.0,
+      "bg_masked_by_depth": true,
+      "rerun": true,
+      "prompt_token_info": {
+        "tokens": 76,
+        "truncated_at_77": false,
+        "method": "CLIPTokenizer"
+      },
+      "prompt_len_chars": 334,
+      "gate_json": "docs/validation/m2_2_8dir/gates/v1_belly_fur_flow_gate.json"
     }
   },
   "root": "/Users/cloud/dev/game/喵汪小镇/miaowangtown",
-  "seed_offset": 70011,
+  "seed_offset": 81011,
   "selected_views": [
-    "d225"
+    "v1_belly"
   ],
   "rerun_of_fails": true,
   "view_tuning_applied": {
-    "d225": {
-      "prompt_extra": ", flank fur readable mid gray-brown, no crushed ribs",
-      "negative_extra": ", floating shards, hard head crop, disconnected paw, plastic ellipse, flat bright wash, crushed near-black rib patches, exploded parts, floating fragments, severed limbs, atlas layout, depth leak, duplicated tails",
+    "v1_belly": {
+      "prompt_extra": ", belly underside, apricot bib visible, intact four legs",
+      "negative_extra": ", floating shards, hard crop, atlas, severed limbs, blank white belly wash, crushed near-black belly, exploded parts, disconnected paws",
       "control_scale": [
-        1.2,
-        1.0
+        1.0,
+        0.75
       ],
-      "ip_scale": 0.58,
+      "ip_scale": 0.65,
       "guidance": 5.0,
       "omit_view_style_tail": true
     }

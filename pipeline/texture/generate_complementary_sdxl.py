@@ -77,6 +77,9 @@ ANCHOR = (
 )
 SEED = 20261029
 COMPLEMENTARY = ["d000", "d090", "d180", "d270", "d135", "d225", "d315"]
+# 额外命名向（非默认 8 向全量）；须显式 --views 才跑。勿塞进默认 COMPLEMENTARY。
+EXTRA_VIEWS = ["v1_belly"]
+ALLOWED_VIEWS = COMPLEMENTARY + EXTRA_VIEWS
 
 # Canonical local snapshot root (curl download_m22.sh). HF_HOME is incidental only.
 DEFAULT_M22_MODELS = Path("/Users/cloud/dev/models/m22")
@@ -245,6 +248,21 @@ VIEW_TUNING = {
         "ip_scale": 0.62,
         "guidance": 5.2,
     },
+    # v1_belly: 腹底仰视（yaw0 pitch−30）。保守调参。
+    # CLIP 实测：须 omit_view_style_tail + 短 extra，正提示才 ≤77（HARD 已含 continuous/legs）。
+    "v1_belly": {
+        "prompt_extra": (
+            ", belly underside, apricot bib visible, intact four legs"
+        ),
+        "negative_extra": (
+            ", floating shards, hard crop, atlas, severed limbs, blank white belly wash, "
+            "crushed near-black belly, exploded parts, disconnected paws"
+        ),
+        "omit_view_style_tail": True,
+        "control_scale": [1.0, 0.75],
+        "ip_scale": 0.65,
+        "guidance": 5.0,
+    },
 }
 
 
@@ -381,7 +399,7 @@ def detect_environment() -> dict:
     except Exception:
         info["transformers_installed"] = False
 
-    for d in COMPLEMENTARY:
+    for d in ALLOWED_VIEWS:
         p = CTRL / d / "depth_768.png"
         n = CTRL / d / "normal_768.png"
         info["control_maps_present"][d] = {
@@ -722,9 +740,9 @@ def main() -> int:
 
     if args.views.strip():
         selected_views = [v.strip() for v in args.views.split(",") if v.strip()]
-        unknown = [v for v in selected_views if v not in COMPLEMENTARY]
+        unknown = [v for v in selected_views if v not in ALLOWED_VIEWS]
         if unknown:
-            print("ERROR: unknown views:", unknown, "allowed:", COMPLEMENTARY)
+            print("ERROR: unknown views:", unknown, "allowed:", ALLOWED_VIEWS)
             return 2
     else:
         selected_views = list(COMPLEMENTARY)

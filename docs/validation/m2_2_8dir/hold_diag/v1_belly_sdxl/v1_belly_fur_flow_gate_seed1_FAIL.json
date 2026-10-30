@@ -1,0 +1,15 @@
+{
+  "view": "v1_belly",
+  "albedo": "cats/miemie/identity_v1/complementary_albedos/v1_belly_unlit_albedo.png",
+  "ok": false,
+  "pass": false,
+  "checklist": {
+    "fur_flow_natural_4x": false,
+    "no_plastic_ellipse_blobs": false,
+    "five_markings_side_correct": false,
+    "white_socks_no_gray_fringe_soft": null,
+    "producer_notes": "seed1 offset=80011 actual=20341975 FAIL: 4x显示下半身碎块/漂浮片、后腿不完整、腹底躯干不连续；头胸尚可但一体性不过；禁fuse。CLIP=76。"
+  },
+  "honesty": "Auto heuristics intentionally soft; 4x human eyeball is authority.",
+  "blocked_reason_if_not_passed": "Awaiting producer --human-pass after 4x review"
+}

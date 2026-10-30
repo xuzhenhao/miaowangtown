@@ -1,0 +1,101 @@
+{
+  "stage": "v1_belly_sdxl_contrast_fuse",
+  "time_asia_shanghai": "2026-10-30 17:19:59 Asia/Shanghai",
+  "sdxl": {
+    "seed1": {
+      "offset": 80011,
+      "seed": 20341975,
+      "verdict": "FAIL"
+    },
+    "seed2": {
+      "offset": 81011,
+      "seed": 20342080,
+      "verdict": "PASS",
+      "clip_tokens": 76
+    }
+  },
+  "baseline_fur_sha256": "46e56675a577390d70724e803a37c39b8cc79e070a5434c336a042da502a08dd",
+  "baseline_restored": true,
+  "candidate_fur_sha256": "3be77787ab0f3407786c0f6fe343482708ad549630522beac71d3332f10bb57c",
+  "candidate_coverage_sha256": "1a8dbaf08c933ac24cff44343b2437c6048ffe68e66a30cc47cece3d1e0316e1",
+  "mutated_baseline_fur": false,
+  "froze": false,
+  "opened_M3": false,
+  "fuse": {
+    "island_mode": "bary",
+    "v1_belly_weight": 0.85,
+    "v1_belly_pitch": -30.0,
+    "v1_belly_texels_weighted": 327877,
+    "views_used": [
+      "d000",
+      "d045",
+      "d090",
+      "d135",
+      "d180",
+      "d225",
+      "d270",
+      "d315",
+      "v1_belly"
+    ],
+    "honest_island": {
+      "island": 869905,
+      "GY": 0.9493,
+      "red": 0.0507,
+      "n_gy": 825805,
+      "n_red": 44100,
+      "delta_GY_pp_vs_0_8117": 13.76,
+      "delta_red_pp_vs_0_1882": -13.75
+    },
+    "high_freq_GY": 0.9676,
+    "hard_gate": {
+      "GY_ge_0_92": true,
+      "red_le_0_20": true,
+      "hf_GY_ge_0_92": true,
+      "pass_both_honest_and_hf_as_reported": true
+    },
+    "campaign": {
+      "GY_ge_0_90": true,
+      "belly_back_red_down": true,
+      "face_detail_not_in_success_bar": true,
+      "pass": true
+    },
+    "region_red_delta_rgb_heuristic": [
+      {
+        "region": "B4_torso_belly",
+        "baseline_red": 43992,
+        "candidate_red": 6541,
+        "delta_red": -37451,
+        "pct_change": -85.13
+      },
+      {
+        "region": "B3_torso_back",
+        "baseline_red": 3112,
+        "candidate_red": 0,
+        "delta_red": -3112,
+        "pct_change": -100.0
+      },
+      {
+        "region": "legs",
+        "baseline_red": 97034,
+        "candidate_red": 12205,
+        "delta_red": -84829,
+        "pct_change": -87.42
+      },
+      {
+        "region": "face_detail",
+        "baseline_red": 56736,
+        "candidate_red": 13388,
+        "delta_red": -43348,
+        "pct_change": -76.4
+      },
+      {
+        "region": "whole_rgb_nonblack_approx",
+        "baseline_red": 297967,
+        "candidate_red": 44100,
+        "delta_red": -253867,
+        "pct_change": -85.2
+      }
+    ],
+    "note_region": "region red from RGB coverage paint on baseline vs candidate; island denom for GY/red uses fuse bary report"
+  }
+}

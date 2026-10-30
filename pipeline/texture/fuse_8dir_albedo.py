@@ -73,6 +73,8 @@ ISLAND_MODE = "bary"  # bary|pil
 DEFAULT_VIEW_WEIGHT = {d: 1.0 for d in (
     "d000", "d045", "d090", "d135", "d180", "d225", "d270", "d315"
 )}
+# 腹底额外向：与侧向同档略低，不程序化补盲
+DEFAULT_VIEW_WEIGHT["v1_belly"] = 0.85
 DARK_REJECT_LUM = 0.0  # mean RGB; 0 disables
 
 DIRECTIONS = {
@@ -85,6 +87,12 @@ DIRECTIONS = {
     "d270": 90.0,
     "d315": 45.0,
 }
+# 额外命名向（腹底等）。yaw/pitch 必填；s_log/origin 优先从 export_report 读。
+# 不对旧 8 向改投影内参，避免相对 baseline 漂移。
+EXTRA_VIEW_CAMERAS = {
+    "v1_belly": {"yaw_deg": 0.0, "pitch_deg": -30.0},
+}
+ALL_FUSE_VIEWS = list(DIRECTIONS.keys()) + list(EXTRA_VIEW_CAMERAS.keys())
 
 # High-frequency identity UV regions (from uv_manifest names)
 HIGH_FREQ_REGIONS = [
@@ -101,6 +109,41 @@ HIGH_FREQ_REGIONS = [
     "D1_tail",
 ]
 
+
+
+def load_export_report() -> dict:
+    p = ID_DIR / "control_views" / "export_report.json"
+    if not p.is_file():
+        return {}
+    try:
+        return json.loads(p.read_text())
+    except Exception:
+        return {}
+
+
+def resolve_view_camera(dname: str, export_report: dict | None = None):
+    """Return (yaw_deg, pitch_deg, s_log, origin_xy).
+
+    旧 8 向：固定模块 S_LOG/ORIG_LOG + PITCH（不读 refit，保 baseline 可比）。
+    EXTRA：用 EXTRA_VIEW_CAMERAS + export_report 每向 s_log/origin（缺则回退模块常量）。
+    """
+    rep = export_report if export_report is not None else load_export_report()
+    dirs = (rep or {}).get("directions") or {}
+    meta = dirs.get(dname) or {}
+    if dname in EXTRA_VIEW_CAMERAS:
+        spec = EXTRA_VIEW_CAMERAS[dname]
+        yaw = float(spec["yaw_deg"])
+        pitch = float(spec["pitch_deg"])
+        s_log = float(meta.get("scale_m_per_logical_px", S_LOG))
+        orig = meta.get("origin_logical_px")
+        if orig is None:
+            origin = (float(ORIG_LOG[0]), float(ORIG_LOG[1]))
+        else:
+            origin = (float(orig[0]), float(orig[1]))
+        return yaw, pitch, s_log, origin
+    # locked 8-dir path
+    yaw = float(DIRECTIONS[dname])
+    return yaw, float(PITCH), float(S_LOG), (float(ORIG_LOG[0]), float(ORIG_LOG[1]))
 
 def get_camera_basis(yaw_deg: float, pitch_deg: float = PITCH):
     pitch = math.radians(pitch_deg)
@@ -467,9 +510,10 @@ def main() -> int:
     global ISLAND_MODE
     ISLAND_MODE = parse_island_mode(args.island_mode)
 
+    export_report = load_export_report()
     views_to_use = []
     skip = {}
-    for dname in DIRECTIONS:
+    for dname in ALL_FUSE_VIEWS:
         if not load_gate_passed(dname):
             skip[dname] = "gate_not_passed_or_missing"
             continue
@@ -568,10 +612,10 @@ def main() -> int:
 
     view_stats = {}
     for dname in views_to_use:
-        yaw = DIRECTIONS[dname]
-        e_u, e_v, e_w = get_camera_basis(yaw)
-        px_all = ORIG_LOG[0] + (vs @ e_u) / S_LOG
-        py_all = ORIG_LOG[1] - (vs @ e_v) / S_LOG
+        yaw, pitch, s_log, origin = resolve_view_camera(dname, export_report)
+        e_u, e_v, e_w = get_camera_basis(yaw, pitch)
+        px_all = origin[0] + (vs @ e_u) / s_log
+        py_all = origin[1] - (vs @ e_v) / s_log
         pw_all = vs @ e_w
         tris_uv, tris_nrm, tris_px, tris_py, tris_pw = [], [], [], [], []
         for lt in mesh.loop_triangles:
@@ -640,6 +684,10 @@ def main() -> int:
         view_stats[dname] = {
             "texels_weighted": int(wcount),
             "yaw_deg": yaw,
+            "pitch_deg": pitch,
+            "s_log": s_log,
+            "origin_logical_px": [origin[0], origin[1]],
+            "is_extra_view": dname in EXTRA_VIEW_CAMERAS,
             "view_weight_mult": vw,
             "dark_reject_lum_applied": dr,
             "roi_soft_mult": rs if use_roi is not None else 1.0,
