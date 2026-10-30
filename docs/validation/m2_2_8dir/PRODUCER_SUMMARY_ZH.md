@@ -1,5 +1,26 @@
 # M2.2 制作人自审摘要（诚实版）
 
+**时间**：2026-10-30（Asia/Shanghai）· d270 重生 + UV 归因后  
+**结论**：**仍 CONDITIONAL HOLD · 禁止交用户冻结拍板**。d090 = **PASS_WITH_HOLD / 合拢否决向**。未冻、未开 M3、禁程序化填红、**本轮未降权 fuse、未自动 fuse 新 d270**。
+
+## 本轮里程碑
+
+| 项 | 状态 |
+|---|---|
+| d270 重生 | seed_offset=**40011** seed=**20302032**；CLIP 77 未截断硬头；**等制作人 4x**（gate pass=false） |
+| 源 torso dark&lt;40 | 旧 6.29% → 新 6.24%（lt25 2.25%→1.04%；p50 100→128） |
+| 其它六向 sha | **锁死未变**（`logs/m22/pass_sha_after_d270_regen.txt`） |
+| fuse 边缘笔记 | `hold_diag/FUSE_EDGE_SAMPLING_NOTE.md` |
+| d090 UV 归因 | 相对暗带主拉低：**d180/d135**；d090 源均亮 124.7 → **禁盲降 d090** |
+| 4x preview | `docs/validation/m2_2_8dir/gates_preview_d270_4x.png` |
+| 详状 | `hold_diag/D270_REGEN_STATUS.md` |
+
+---
+
+## 此前摘要（保留）
+
+# M2.2 制作人自审摘要（诚实版）
+
 **时间**：2026-10-30（Asia/Shanghai）· 降 d090/d270 权重对照后  
 **结论**：**仍 CONDITIONAL HOLD · 禁止交用户冻结拍板**。d090 = **PASS_WITH_HOLD / 合拢否决向**（2D PASS ≠ 合拢过门）。coverage 硬门仍 FAIL。**未冻 fur_albedo、未开 M3、未程序化填红**。
 

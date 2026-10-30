@@ -1,0 +1,41 @@
+{
+  "seed_offset": 40011,
+  "seed": 20302032,
+  "clip": {
+    "tokens": 77,
+    "truncated_at_77": false
+  },
+  "depth_masked_torso_inner2": {
+    "old": {
+      "size_bytes": 1194725,
+      "wh": [
+        1024,
+        1024
+      ],
+      "sha256": "98a8107477fd7a690fce29657ec7a682d40695a1b19f8ac20d1f345a8c9dcc44",
+      "torso_inner_px": 144155,
+      "torso_dark_lt40": 9068,
+      "torso_dark_lt40_frac": 0.06290451250390205,
+      "torso_dark_lt25": 3248,
+      "torso_dark_lt25_frac": 0.022531303111234434,
+      "torso_lum_p05": 36.666666666666664,
+      "torso_lum_p50": 100.33333333333333
+    },
+    "new": {
+      "size_bytes": 223255,
+      "wh": [
+        1024,
+        1024
+      ],
+      "sha256": "567f2b1136304e77a18b066b34bd2bb071d850275ca3b114e506edb221682dba",
+      "torso_inner_px": 144155,
+      "torso_dark_lt40": 8994,
+      "torso_dark_lt40_frac": 0.062391176164545106,
+      "torso_dark_lt25": 1497,
+      "torso_dark_lt25_frac": 0.010384655405639763,
+      "torso_lum_p05": 37.333333333333336,
+      "torso_lum_p50": 128.0
+    }
+  },
+  "note": "SOURCE albedo; torso ROI + 2px erode + depth>8. Not fuse-board metric. Authority=4x preview. Do not self-PASS."
+}

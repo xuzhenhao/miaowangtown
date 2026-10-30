@@ -1,0 +1,22 @@
+{
+  "bbox": [
+    0,
+    0,
+    1023,
+    1023
+  ],
+  "torso_box": [
+    225,
+    358,
+    797,
+    797
+  ],
+  "torso_px": 251108,
+  "torso_dark_lt40": 10576,
+  "torso_dark_lt40_frac": 0.04211733596699428,
+  "torso_dark_lt25": 4038,
+  "torso_dark_lt25_frac": 0.01608073020373704,
+  "torso_lum_p05": 43.0,
+  "torso_lum_p50": 95.66666666666667,
+  "body_dark_lt25_frac": 0.005818367004394531
+}

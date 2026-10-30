@@ -52,8 +52,23 @@
     },
     "d270": {
       "path": "cats/miemie/identity_v1/complementary_albedos/d270_unlit_albedo.png",
-      "seed": 20261754,
-      "gate_status": "pending_4x_fur_flow_and_markings"
+      "seed": 20302032,
+      "seed_offset": 40011,
+      "gate_status": "pending_4x_fur_flow_and_markings",
+      "control_scale": [
+        0.85,
+        0.65
+      ],
+      "ip_scale": 0.65,
+      "guidance": 5.0,
+      "bg_masked_by_depth": true,
+      "rerun": true,
+      "prompt_token_info": {
+        "tokens": 77,
+        "truncated_at_77": false,
+        "method": "CLIPTokenizer"
+      },
+      "prompt_len_chars": 307
     },
     "d135": {
       "path": "cats/miemie/identity_v1/complementary_albedos/d135_unlit_albedo.png",
@@ -90,20 +105,20 @@
     }
   },
   "root": "/Users/cloud/dev/game/喵汪小镇/miaowangtown",
-  "seed_offset": 30011,
+  "seed_offset": 40011,
   "selected_views": [
-    "d090"
+    "d270"
   ],
   "rerun_of_fails": true,
   "view_tuning_applied": {
-    "d090": {
-      "prompt_extra": ", right-side profile, complete silhouette, intact legs planted, no broken limbs",
-      "negative_extra": ", texture atlas, UV unwrap, duplicated body parts, floating fur patches, smeared edges outside silhouette, glitch fragments, broken limbs, severed legs",
+    "d270": {
+      "prompt_extra": "",
+      "negative_extra": "",
       "control_scale": [
-        1.25,
-        0.95
+        0.85,
+        0.65
       ],
-      "ip_scale": 0.6,
+      "ip_scale": 0.65,
       "guidance": 5.0
     }
   },
