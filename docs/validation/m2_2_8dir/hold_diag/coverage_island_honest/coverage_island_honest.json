@@ -1,0 +1,163 @@
+{
+  "stage": "coverage_island_honest_metering",
+  "time_asia_shanghai": "2026-10-30 13:44",
+  "fur_file_sha256": "46e56675a577390d70724e803a37c39b8cc79e070a5434c336a042da502a08dd",
+  "coverage_sha256": "347ca029da640ce55d8b6c9e937774780cb1fba49e5f9e4a0992a4fc1a28521f",
+  "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
+  "mutated_fur": false,
+  "mutated_coverage_png": false,
+  "fill_red": false,
+  "constants": {
+    "NDOTV_GRAZE": 0.2,
+    "GATE_GY": 0.92,
+    "GATE_RED": 0.2,
+    "island_mode_default_for_fuse": "bary",
+    "note": "OLD=PIL uv_occ island; NEW=barycentric texel-center hit. Hard gate thresholds unchanged. Seed band in fuse still uses PIL uv_occ (fur fill safety); only GY/red gate denom+numer use honest island when --island-mode bary."
+  },
+  "old_pil": {
+    "island": 1004071,
+    "green": 612337,
+    "yellow": 93767,
+    "red": 297967,
+    "GY_over_island": 0.7032,
+    "red_over_island": 0.2968,
+    "high_freq_GY_ratio": 0.7471,
+    "gate_GY_ge_0_92": false,
+    "gate_red_le_0_20": false,
+    "gates_both_pass": false
+  },
+  "new_bary_honest": {
+    "island": 869905,
+    "green": 612337,
+    "yellow": 93767,
+    "red": 163686,
+    "fringe_bary_miss_excluded": 134281,
+    "GY_over_island": 0.8117,
+    "red_over_island": 0.1882,
+    "high_freq_GY_ratio": 0.8757,
+    "gate_GY_ge_0_92": false,
+    "gate_red_le_0_20": true,
+    "gates_both_pass": false,
+    "gy_gap_to_0_92": 0.0443,
+    "red_gap_above_0_20": -0.0118
+  },
+  "delta_old_minus_new": {
+    "island_texels_removed": 134166,
+    "red_texels_removed": 134281,
+    "pct_old_red_was_fringe": 45.07,
+    "pct_old_island_was_fringe": 13.37
+  },
+  "remaining_honest_red_class": {
+    "true_camera_blind_backface": {
+      "n": 88009,
+      "pct_of_honest_red": 53.77
+    },
+    "threshold_strict_0_le_ndotv_lt_graze": {
+      "n": 68744,
+      "pct_of_honest_red": 42.0
+    },
+    "anomaly_ndotv_ge_graze_but_red": {
+      "n": 6933,
+      "pct_of_honest_red": 4.24
+    },
+    "other": {
+      "n": 0,
+      "pct_of_honest_red": 0.0
+    }
+  },
+  "remaining_honest_red_buckets_ranked": [
+    {
+      "bucket": "face_detail",
+      "n_red": 48914,
+      "pct_of_honest_red": 29.88,
+      "n_island_honest_in_bucket": 111173,
+      "red_over_honest_island_in_bucket": 0.44
+    },
+    {
+      "bucket": "legs",
+      "n_red": 47405,
+      "pct_of_honest_red": 28.96,
+      "n_island_honest_in_bucket": 216987,
+      "red_over_honest_island_in_bucket": 0.2185
+    },
+    {
+      "bucket": "belly",
+      "n_red": 35140,
+      "pct_of_honest_red": 21.47,
+      "n_island_honest_in_bucket": 53915,
+      "red_over_honest_island_in_bucket": 0.6518
+    },
+    {
+      "bucket": "head",
+      "n_red": 22533,
+      "pct_of_honest_red": 13.77,
+      "n_island_honest_in_bucket": 215961,
+      "red_over_honest_island_in_bucket": 0.1043
+    },
+    {
+      "bucket": "tail",
+      "n_red": 9328,
+      "pct_of_honest_red": 5.7,
+      "n_island_honest_in_bucket": 50269,
+      "red_over_honest_island_in_bucket": 0.1856
+    },
+    {
+      "bucket": "torso_side",
+      "n_red": 366,
+      "pct_of_honest_red": 0.22,
+      "n_island_honest_in_bucket": 108039,
+      "red_over_honest_island_in_bucket": 0.0034
+    },
+    {
+      "bucket": "torso_back",
+      "n_red": 0,
+      "pct_of_honest_red": 0.0,
+      "n_island_honest_in_bucket": 55615,
+      "red_over_honest_island_in_bucket": 0.0
+    },
+    {
+      "bucket": "reserved",
+      "n_red": 0,
+      "pct_of_honest_red": 0.0,
+      "n_island_honest_in_bucket": 57946,
+      "red_over_honest_island_in_bucket": 0.0
+    }
+  ],
+  "remaining_structure_focus": {
+    "geo_blind_n": 88009,
+    "geo_blind_pct_of_honest_red": 53.77,
+    "belly_n": 35140,
+    "belly_pct_of_honest_red": 21.47,
+    "legs_n": 47405,
+    "legs_pct_of_honest_red": 28.96
+  },
+  "verdict": {
+    "old_gates_pass": false,
+    "new_gates_pass": false,
+    "red_gate_flipped_to_pass": true,
+    "gy_still_fail": true,
+    "one_liner": "修岛后（fuse可比·整岛）：GY 0.8117 FAIL（差 0.1083）/ 红 0.1882 PASS；剔除 fringe 134281（旧红 45.07%）。真 hf 子集 GY=0.8757 仍 FAIL。剩余诚实红：背向 53.77% + legs 28.96% + belly 21.47% （face_detail 仍 29.88%）。不降硬门；见 ADD_VIEW_MIN_PLAN。",
+    "fuse_comparable_both_pass": false,
+    "fuse_comparable_red_pass": true
+  },
+  "outputs": [
+    "island_old_vs_honest_512.png",
+    "island_old_vs_honest_2048.png",
+    "honest_red_class_512.png",
+    "honest_red_by_part_512.png",
+    "island_honest_board_512.png",
+    "coverage_island_honest.json",
+    "COVERAGE_ISLAND_HONEST.md"
+  ],
+  "fuse_gate_comparable": {
+    "note": "Current fuse_8dir_report used hf≈whole-island because region_masks_from_manifest missed u_range/v_range (now fixed). Gate-comparable numbers = GY_over_island / red_over_island.",
+    "old_GY_over_island": 0.7032,
+    "old_red_over_island": 0.2968,
+    "new_GY_over_island": 0.8117,
+    "new_red_over_island": 0.1882,
+    "old_both_pass": false,
+    "new_both_pass": false,
+    "new_red_pass": true,
+    "new_gy_pass": false
+  }
+}

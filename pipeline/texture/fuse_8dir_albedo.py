@@ -49,6 +49,12 @@ PITCH = 35.0
 EDGE_ERODE = 10
 NDOTV_DIRECT = 0.50
 NDOTV_GRAZE = 0.20
+# Island metering for GY/red hard gates:
+#   pil  = OLD: PIL polygon fill (uv_occ) — includes bary_miss fringe as "red"
+#   bary = NEW/honest: barycentric texel-center hit (matches fuse accumulate raster)
+# Default bary. Env M22_ISLAND_MODE / CLI --island-mode. Does NOT fill red / invent fur.
+# Seed band still uses PIL uv_occ (fur hole safety); only gate denom+red paint use mode.
+ISLAND_MODE = "bary"  # bary|pil
 
 # --- CONTRAST EXPERIMENT ONLY (not a freeze path) ---
 # Per-view multipliers on FUSED §4.2 weight max(N·V,0)^2.
@@ -122,7 +128,7 @@ def region_masks_from_manifest() -> dict[str, np.ndarray]:
     man = json.loads((MASTER_DIR / "uv_manifest.json").read_text())
     masks = {}
     for name, info in man["regions"].items():
-        # expect u0,v0,u1,v1 in 0..1 or pixel boxes
+        # expect u0,v0,u1,v1 in 0..1 or pixel boxes; also u_range/v_range (manifest)
         if isinstance(info, dict):
             if "uv_rect" in info:
                 u0, v0, u1, v1 = info["uv_rect"]
@@ -131,6 +137,9 @@ def region_masks_from_manifest() -> dict[str, np.ndarray]:
                 x0, y0, x1, y1 = info["rect"]
                 u0, u1 = x0 / UV_SIZE, x1 / UV_SIZE
                 v0, v1 = 1.0 - y1 / UV_SIZE, 1.0 - y0 / UV_SIZE
+            elif "u_range" in info and "v_range" in info:
+                u0, u1 = info["u_range"]
+                v0, v1 = info["v_range"]
             elif all(k in info for k in ("u0", "v0", "u1", "v1")):
                 u0, v0, u1, v1 = info["u0"], info["v0"], info["u1"], info["v1"]
             else:
@@ -375,6 +384,15 @@ def parse_roi_view_soft(cli_pairs: list[str] | None = None) -> dict[str, float]:
     return soft
 
 
+
+def parse_island_mode(cli_val) -> str:
+    """bary (honest, default) | pil (legacy PIL uv_occ)."""
+    raw = (cli_val or os.environ.get("M22_ISLAND_MODE", "") or ISLAND_MODE).strip().lower()
+    if raw not in ("bary", "pil"):
+        raise ValueError(f"island-mode must be bary|pil, got {raw!r}")
+    return raw
+
+
 def main() -> int:
     # Blender passes script args after "--"
     argv = sys.argv
@@ -423,6 +441,12 @@ def main() -> int:
         default=[],
         help="Contrast: d135=0.35 soft mult inside ROI only (repeatable). Env M22_ROI_VIEW_SOFT_JSON.",
     )
+    ap.add_argument(
+        "--island-mode",
+        choices=["bary", "pil"],
+        default=None,
+        help="Coverage gate island: bary=honest (default) | pil=legacy PIL. Env M22_ISLAND_MODE.",
+    )
     args = ap.parse_args(argv)
 
     VAL_DIR.mkdir(parents=True, exist_ok=True)
@@ -440,6 +464,8 @@ def main() -> int:
     EDGE_ERODE = parse_edge_erode(args.edge_erode)
     roi_mask = parse_roi_mask(args.roi_mask)
     roi_view_soft = parse_roi_view_soft(args.roi_view_soft)
+    global ISLAND_MODE
+    ISLAND_MODE = parse_island_mode(args.island_mode)
 
     views_to_use = []
     skip = {}
@@ -627,7 +653,7 @@ def main() -> int:
     rgba[has, :3] = np.clip(accum_rgb[has] / accum_w[has][:, None], 0, 255).astype(np.uint8)
     rgba[has, 3] = 255
 
-    # UV occupancy
+    # UV occupancy (PIL) — always built; used for seed band (fur hole safety)
     uv_occ = np.zeros((UV_SIZE, UV_SIZE), dtype=bool)
     im_occ = Image.new("L", (UV_SIZE, UV_SIZE), 0)
     d_occ = ImageDraw.Draw(im_occ)
@@ -639,7 +665,41 @@ def main() -> int:
         d_occ.polygon(pts, fill=255)
     uv_occ = np.array(im_occ) > 0
 
+    # Honest island = barycentric texel-center hit (same raster as accumulate)
+    uv_hit = np.zeros((UV_SIZE, UV_SIZE), dtype=bool)
+    for uvs in tris_uv:
+        u_px = uvs[:, 0] * (UV_SIZE - 1)
+        v_px = (1.0 - uvs[:, 1]) * (UV_SIZE - 1)
+        xmin = max(0, int(math.floor(u_px.min())))
+        xmax = min(UV_SIZE - 1, int(math.ceil(u_px.max())))
+        ymin = max(0, int(math.floor(v_px.min())))
+        ymax = min(UV_SIZE - 1, int(math.ceil(v_px.max())))
+        if xmax < xmin or ymax < ymin:
+            continue
+        x0, y0 = float(u_px[0]), float(v_px[0])
+        x1, y1 = float(u_px[1]), float(v_px[1])
+        x2, y2 = float(u_px[2]), float(v_px[2])
+        denom = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2)
+        if abs(denom) < 1e-10:
+            continue
+        yy, xx = np.meshgrid(
+            np.arange(ymin, ymax + 1) + 0.5,
+            np.arange(xmin, xmax + 1) + 0.5,
+            indexing="ij",
+        )
+        w0 = ((y1 - y2) * (xx - x2) + (x2 - x1) * (yy - y2)) / denom
+        w1 = ((y2 - y0) * (xx - x2) + (x0 - x2) * (yy - y2)) / denom
+        w2 = 1.0 - w0 - w1
+        inside = (w0 >= -1e-4) & (w1 >= -1e-4) & (w2 >= -1e-4)
+        if np.any(inside):
+            uv_hit[ymin : ymax + 1, xmin : xmax + 1] |= inside
+
+    island_for_gate = uv_hit if ISLAND_MODE == "bary" else uv_occ
+    # Red paint: honest mode excludes PIL-only fringe from "unseen red"
+    red_mask = (coverage == 0) & island_for_gate
+
     # Seed unseen with genome base (not procedural fur grain)
+    # Always seed on PIL uv_occ so fringe still gets base coat (no fur holes).
     genome = json.loads((ID_DIR / "genome.json").read_text())
     base_hex = genome["coat"]["colors"]["base"].lstrip("#")
     base_rgb = np.array([int(base_hex[i : i + 2], 16) for i in (0, 2, 4)], dtype=np.uint8)
@@ -656,7 +716,11 @@ def main() -> int:
     cov_img = np.zeros((UV_SIZE, UV_SIZE, 3), dtype=np.uint8)
     cov_img[coverage == 2] = [40, 200, 70]
     cov_img[coverage == 1] = [230, 200, 40]
-    cov_img[(coverage == 0) & uv_occ] = [200, 50, 50]
+    cov_img[red_mask] = [200, 50, 50]
+    # Optional: dim-mark PIL fringe excluded under bary mode (not counted as red)
+    if ISLAND_MODE == "bary":
+        fringe = (coverage == 0) & uv_occ & ~uv_hit
+        cov_img[fringe] = [70, 70, 78]
 
     Image.fromarray(rgba).save(ID_DIR / "fur_albedo.png")
     Image.fromarray(cov_img).save(ID_DIR / "coverage.png")
@@ -680,12 +744,16 @@ def main() -> int:
     # Coverage gates
     # False-hollow / near-black annotation metric (Option A) lives in
     # pipeline/texture/metric_reframe_abs_dark.py — abs lum<40 + CC min_area.
-    # It does NOT change these GY/red coverage hard gates or default fuse writes.
-    island_n = int(uv_occ.sum())
+    # It does NOT change these GY/red coverage hard gate THRESHOLDS.
+    # Island metering: ISLAND_MODE bary (default) excludes PIL bary_miss fringe.
+    island_n = int(island_for_gate.sum())
+    island_pil_n = int(uv_occ.sum())
+    island_bary_n = int(uv_hit.sum())
     direct_n = int((coverage == 2).sum())
     graze_n = int((coverage == 1).sum())
-    unseen_n = int(((coverage == 0) & uv_occ).sum())
-    # High-freq mask
+    unseen_n = int(red_mask.sum())
+    fringe_n = int(((coverage == 0) & uv_occ & ~uv_hit).sum())
+    # High-freq mask (intersect with gate island)
     try:
         rmasks = region_masks_from_manifest()
         hf = np.zeros((UV_SIZE, UV_SIZE), dtype=bool)
@@ -693,9 +761,11 @@ def main() -> int:
             if name in rmasks:
                 hf |= rmasks[name]
         if not np.any(hf):
-            hf = uv_occ
+            hf = island_for_gate
+        else:
+            hf = hf & island_for_gate
     except Exception:
-        hf = uv_occ
+        hf = island_for_gate
     hf_n = int(hf.sum())
     hf_gy = int(((coverage >= 1) & hf).sum())
     gy_ratio = hf_gy / max(1, hf_n)
@@ -706,7 +776,11 @@ def main() -> int:
             "ok": True,
             "view_stats": view_stats,
             "coverage": {
+                "island_mode": ISLAND_MODE,
                 "uv_island_texels": island_n,
+                "uv_island_pil_texels": island_pil_n,
+                "uv_island_bary_texels": island_bary_n,
+                "bary_miss_fringe_excluded": fringe_n if ISLAND_MODE == "bary" else 0,
                 "direct_controlled": direct_n,
                 "grazing_interpolated": graze_n,
                 "unseen_inpainted_or_seed": unseen_n,
@@ -716,6 +790,11 @@ def main() -> int:
                 "unseen_over_island": round(red_ratio, 4),
                 "gate_high_freq_green_yellow_ge_0_92": gy_ratio >= 0.92,
                 "gate_red_blind_le_0_20": red_ratio <= 0.20,
+                "gate_thresholds_unchanged": {"GY_ge": 0.92, "red_le": 0.20},
+                "note_island": (
+                    "bary=honest island (default); pil=legacy. "
+                    "Seed still PIL uv_occ; red paint+gates follow island_mode."
+                ),
             },
         }
     )

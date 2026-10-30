@@ -34,3 +34,13 @@ UV 旧相对暗 ROI 上 abs+CC=0 → 合拢贴图岛内无大块真近黑假洞�
 ## 红盲归因（2026-10-30 13:40）
 
 假透空口径已解；整体 HOLD=红盲。详见 `coverage_red_attrib/COVERAGE_RED_ATTRIB.md`。
+
+## 4) coverage 岛诚实（2026-10-30 13:44）
+
+| 模式 | GY/岛 | 红/岛 | 红门 | GY门 | 双过 |
+|---|---:|---:|:---:|:---:|:---:|
+| OLD pil | 0.7032 | 0.2968 | FAIL | FAIL | NO |
+| NEW bary（剔除 fringe 134281） | 0.8117 | **0.1882** | **PASS** | FAIL | NO |
+
+硬门阈值未降。权威：`coverage_island_honest/COVERAGE_ISLAND_HONEST.md`。加视角计划（未执行）：`ADD_VIEW_MIN_PLAN.md`。
+
