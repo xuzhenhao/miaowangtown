@@ -78,6 +78,52 @@ ANCHOR = (
 SEED = 20261029
 COMPLEMENTARY = ["d000", "d090", "d180", "d270", "d135", "d225", "d315"]
 
+# Canonical local snapshot root (curl download_m22.sh). HF_HOME is incidental only.
+DEFAULT_M22_MODELS = Path("/Users/cloud/dev/models/m22")
+
+
+def models_root() -> Path:
+    raw = os.environ.get("M22_MODELS_ROOT", "").strip()
+    return Path(raw).expanduser().resolve() if raw else DEFAULT_M22_MODELS
+
+
+def local_model(name: str) -> Path:
+    return models_root() / name
+
+
+REQUIRED_LOCAL_WEIGHTS = [
+    "controlnet-depth-sdxl-1.0/diffusion_pytorch_model.fp16.safetensors",
+    "controlnet-depth-sdxl-1.0/config.json",
+    "stable-diffusion-xl-base-1.0/model_index.json",
+    "stable-diffusion-xl-base-1.0/unet/diffusion_pytorch_model.fp16.safetensors",
+    "stable-diffusion-xl-base-1.0/unet/config.json",
+    "stable-diffusion-xl-base-1.0/text_encoder/model.fp16.safetensors",
+    "stable-diffusion-xl-base-1.0/text_encoder/config.json",
+    "stable-diffusion-xl-base-1.0/text_encoder_2/model.fp16.safetensors",
+    "stable-diffusion-xl-base-1.0/text_encoder_2/config.json",
+    "stable-diffusion-xl-base-1.0/vae/diffusion_pytorch_model.fp16.safetensors",
+    "stable-diffusion-xl-base-1.0/vae/config.json",
+    "stable-diffusion-xl-base-1.0/scheduler/scheduler_config.json",
+]
+
+# text_encoder_2 fp16 expected size (bytes); incomplete downloads must not pass.
+TE2_FP16_MIN_BYTES = 1_300_000_000
+IP_ADAPTER_REL = "IP-Adapter/sdxl_models/ip-adapter-plus_sdxl_vit-h.bin"
+
+
+def missing_local_weights() -> list[str]:
+    root = models_root()
+    missing: list[str] = []
+    for rel in REQUIRED_LOCAL_WEIGHTS:
+        p = root / rel
+        if not p.is_file():
+            missing.append(rel)
+            continue
+        if rel.endswith("text_encoder_2/model.fp16.safetensors") and p.stat().st_size < TE2_FP16_MIN_BYTES:
+            missing.append(f"{rel} (incomplete size={p.stat().st_size})")
+    return missing
+
+
 LICENSED_STACK = [
     {
         "repo": "stabilityai/stable-diffusion-xl-base-1.0",
@@ -161,6 +207,9 @@ def detect_environment() -> dict:
         info["nvidia_smi"] = None
 
     info["mps_available"] = False
+    info["m22_models_root"] = str(models_root())
+    info["m22_missing_weights"] = missing_local_weights()
+    info["m22_ip_adapter_present"] = (models_root() / IP_ADAPTER_REL).is_file()
     info["compute_device"] = None
     try:
         import torch
@@ -225,9 +274,9 @@ def write_blocker(reason: str, env: dict) -> Path:
         "negative_prompt": NEGATIVE,
         "how_to_unblock": [
             "Provision a CUDA GPU (>=12GB VRAM) or Apple Silicon Mac with MPS (16GB+ unified memory preferred).",
-            "Copy .env.m22.example to .env.m22; set HF_HOME (Mac: /Users/cloud/dev/models/huggingface) and MIAOWANGTOWN_ROOT.",
+            "Copy .env.m22.example to .env.m22; set M22_MODELS_ROOT=/Users/cloud/dev/models/m22, HF_HOME=$M22_MODELS_ROOT/hf_home, MIAOWANGTOWN_ROOT.",
             "pip install torch (CUDA or Mac MPS), diffusers, transformers, accelerate, safetensors, opencv-python, Pillow.",
-            "huggingface-cli login if gated; weights land under HF_HOME (not ~/.cache/huggingface).",
+            "Finish download_m22.sh under M22_MODELS_ROOT (not ~/.cache/huggingface; obsolete /Users/cloud/dev/models/huggingface).",
             "Re-run: python3 pipeline/texture/generate_complementary_sdxl.py --run",
             "Each view must pass 4x fur-flow + five-marking gate BEFORE UV projection.",
         ],
@@ -290,27 +339,39 @@ def try_generate(env: dict) -> int:
     # MPS float16 is supported on modern Apple Silicon; fall back to float32 if needed.
     dtype = torch.float16 if device in ("cuda", "mps") else torch.float32
     # Prefer Union ControlNet for depth+normal; fall back to depth-only if union fails.
+    miss = missing_local_weights()
+    if miss:
+        raise FileNotFoundError(
+            "M22 local weights incomplete under "
+            + str(models_root())
+            + ": "
+            + ", ".join(miss)
+        )
+
+    depth_local = local_model("controlnet-depth-sdxl-1.0")
+    sdxl_local = local_model("stable-diffusion-xl-base-1.0")
+    ip_local = local_model("IP-Adapter")
+    union_local = local_model("controlnet-union-sdxl-1.0")
+
     controlnets = []
     try:
-        union = ControlNetModel.from_pretrained(
-            "xinsir/controlnet-union-sdxl-1.0", torch_dtype=dtype
-        )
+        union_src = str(union_local) if (union_local / "config.json").is_file() else "xinsir/controlnet-union-sdxl-1.0"
+        union = ControlNetModel.from_pretrained(union_src, torch_dtype=dtype)
         controlnets.append(union)
         use_union = True
     except Exception as exc:  # noqa: BLE001
         print("Union ControlNet load failed, falling back to depth-only:", exc)
-        depth_cn = ControlNetModel.from_pretrained(
-            "diffusers/controlnet-depth-sdxl-1.0", torch_dtype=dtype
-        )
+        depth_cn = ControlNetModel.from_pretrained(str(depth_local), torch_dtype=dtype)
         controlnets.append(depth_cn)
         use_union = False
 
     pipe = StableDiffusionXLControlNetPipeline.from_pretrained(
-        "stabilityai/stable-diffusion-xl-base-1.0",
+        str(sdxl_local),
         controlnet=controlnets[0] if len(controlnets) == 1 else controlnets,
         torch_dtype=dtype,
         variant="fp16",
         use_safetensors=True,
+        local_files_only=True,
     ).to(device)
     if device == "mps":
         try:
@@ -325,11 +386,19 @@ def try_generate(env: dict) -> int:
 
     # IP-Adapter
     try:
-        pipe.load_ip_adapter(
-            "h94/IP-Adapter",
-            subfolder="sdxl_models",
-            weight_name="ip-adapter-plus_sdxl_vit-h.bin",
-        )
+        ip_weight = ip_local / "sdxl_models" / "ip-adapter-plus_sdxl_vit-h.bin"
+        if ip_weight.is_file():
+            pipe.load_ip_adapter(
+                str(ip_local),
+                subfolder="sdxl_models",
+                weight_name="ip-adapter-plus_sdxl_vit-h.bin",
+            )
+        else:
+            pipe.load_ip_adapter(
+                "h94/IP-Adapter",
+                subfolder="sdxl_models",
+                weight_name="ip-adapter-plus_sdxl_vit-h.bin",
+            )
         pipe.set_ip_adapter_scale(0.65)
         ip_ok = True
     except Exception as exc:  # noqa: BLE001

@@ -23,17 +23,27 @@
 | `xinsir/controlnet-union-sdxl-1.0` | Apache-2.0 |
 | `h94/IP-Adapter`（`ip-adapter-plus_sdxl_vit-h.bin`） | Apache-2.0 |
 
+### 权重路径约定（2026-10-30 统一）
+
+| 变量 | 权威路径 | 用途 |
+|---|---|---|
+| `M22_MODELS_ROOT` | `/Users/cloud/dev/models/m22` | **权威**：curl `download_m22.sh` 本地快照；`--run` 优先 `from_pretrained(本地目录)` |
+| `HF_HOME` | `/Users/cloud/dev/models/m22/hf_home` | 仅残余按 repo-id 拉取的 hub 缓存 |
+| （废弃） | `/Users/cloud/dev/models/huggingface` | 旧 hub orphan blobs；齐套后删除 |
+| 禁止 | `~/.cache/huggingface` | 用户硬要求 |
+
+**可 `--run` 缺件门槛**（缺任一则拒绝生成）：Depth ControlNet fp16 + config；SDXL `model_index` / unet / text_encoder / text_encoder_2（完整 ≥1.3GB）/ vae / scheduler；tokenizer 小文件建议齐。IP-Adapter `ip-adapter-plus_sdxl_vit-h.bin` 强烈建议（无则弱身份锁定仍可试跑但需在报告标明）。
+
 解阻（二选一）：
-1. **Apple Silicon Mac（MPS）**：同步本仓库 → 复制 `.env.m22.example` 为 `.env.m22`（`HF_HOME=/Users/cloud/dev/models/huggingface`，`MIAOWANGTOWN_ROOT` 指向本机仓库）→  
-   `pip install torch diffusers transformers accelerate safetensors opencv-python Pillow` →  
-   `python3 pipeline/texture/generate_complementary_sdxl.py --run`（脚本会自动读 `.env.m22`，权重进 `HF_HOME`，不要用 `~/.cache/huggingface`）
-2. **CUDA ≥12GB VRAM**：同上装 CUDA 版 torch 后 `--run`  
+1. **Apple Silicon Mac（MPS）**：仓库拉到含本约定的 commit → 复制 `.env.m22.example` 为 `.env.m22` → 跑完 `download_m22.sh` →  
+   `source .env.m22 && .venv-m22/bin/python pipeline/texture/generate_complementary_sdxl.py --run`
+2. **CUDA ≥12GB VRAM**：同上装 CUDA 版 torch 后 `--run`
 
 之后每视角 `gate_complementary_view.py --human-pass` →  
 `blender -b --python pipeline/texture/fuse_8dir_albedo.py` →  
 `blender -b --python pipeline/bake/run_m2_2_review.py`。
 
-脚本已支持 CUDA 与 Apple MPS，并支持 `.env.m22` / `HF_HOME`；本 bot 电脑仍无 GPU，生成须在授权机上跑。
+脚本已支持 CUDA / Apple MPS、`.env.m22`、`M22_MODELS_ROOT` 本地优先；本 bot 电脑仍无 GPU，生成须在授权机上跑。
 
 ## 已交付（本机可复跑）
 
