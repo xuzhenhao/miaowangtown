@@ -326,8 +326,9 @@ def try_generate(env: dict) -> int:
     import torch
     from diffusers import (
         ControlNetModel,
+        ControlNetUnionModel,
         StableDiffusionXLControlNetPipeline,
-        AutoencoderKL,
+        StableDiffusionXLControlNetUnionPipeline,
     )
     from PIL import Image
     import numpy as np
@@ -338,7 +339,6 @@ def try_generate(env: dict) -> int:
     device = env.get("compute_device") or ("cuda" if env.get("cuda_available") else "mps")
     # MPS float16 is supported on modern Apple Silicon; fall back to float32 if needed.
     dtype = torch.float16 if device in ("cuda", "mps") else torch.float32
-    # Prefer Union ControlNet for depth+normal; fall back to depth-only if union fails.
     miss = missing_local_weights()
     if miss:
         raise FileNotFoundError(
@@ -352,27 +352,42 @@ def try_generate(env: dict) -> int:
     sdxl_local = local_model("stable-diffusion-xl-base-1.0")
     ip_local = local_model("IP-Adapter")
     union_local = local_model("controlnet-union-sdxl-1.0")
+    # xinsir ControlNetPlus modes: 0 openpose, 1 depth, 4 normal
+    UNION_MODE_DEPTH = 1
+    UNION_MODE_NORMAL = 4
 
-    controlnets = []
-    try:
-        union_src = str(union_local) if (union_local / "config.json").is_file() else "xinsir/controlnet-union-sdxl-1.0"
-        union = ControlNetModel.from_pretrained(union_src, torch_dtype=dtype)
-        controlnets.append(union)
-        use_union = True
-    except Exception as exc:  # noqa: BLE001
-        print("Union ControlNet load failed, falling back to depth-only:", exc)
-        depth_cn = ControlNetModel.from_pretrained(str(depth_local), torch_dtype=dtype)
-        controlnets.append(depth_cn)
-        use_union = False
+    use_union = False
+    union_error = None
+    if (union_local / "config.json").is_file() and (
+        union_local / "diffusion_pytorch_model.safetensors"
+    ).is_file():
+        try:
+            union = ControlNetUnionModel.from_pretrained(
+                str(union_local), torch_dtype=dtype, local_files_only=True
+            )
+            pipe = StableDiffusionXLControlNetUnionPipeline.from_pretrained(
+                str(sdxl_local),
+                controlnet=union,
+                torch_dtype=dtype,
+                variant="fp16",
+                use_safetensors=True,
+                local_files_only=True,
+            ).to(device)
+            use_union = True
+        except Exception as exc:  # noqa: BLE001
+            union_error = f"{type(exc).__name__}: {exc}"
+            print("ERROR: ControlNetUnion load/pipeline failed:", union_error)
+            raise RuntimeError(
+                "Locked stack requires xinsir ControlNetUnion; refusing silent depth-only degrade. "
+                + union_error
+            ) from exc
+    else:
+        raise FileNotFoundError(
+            "Locked ControlNetUnion missing under "
+            + str(union_local)
+            + " (need config.json + diffusion_pytorch_model.safetensors)"
+        )
 
-    pipe = StableDiffusionXLControlNetPipeline.from_pretrained(
-        str(sdxl_local),
-        controlnet=controlnets[0] if len(controlnets) == 1 else controlnets,
-        torch_dtype=dtype,
-        variant="fp16",
-        use_safetensors=True,
-        local_files_only=True,
-    ).to(device)
     if device == "mps":
         try:
             pipe.enable_attention_slicing()
@@ -384,21 +399,21 @@ def try_generate(env: dict) -> int:
         except Exception:
             pass
 
-    # IP-Adapter
+    # IP-Adapter (image encoder lives under models/image_encoder)
     try:
         ip_weight = ip_local / "sdxl_models" / "ip-adapter-plus_sdxl_vit-h.bin"
-        if ip_weight.is_file():
-            pipe.load_ip_adapter(
-                str(ip_local),
-                subfolder="sdxl_models",
-                weight_name="ip-adapter-plus_sdxl_vit-h.bin",
-            )
-        else:
-            pipe.load_ip_adapter(
-                "h94/IP-Adapter",
-                subfolder="sdxl_models",
-                weight_name="ip-adapter-plus_sdxl_vit-h.bin",
-            )
+        ip_enc = ip_local / "models" / "image_encoder"
+        if not ip_weight.is_file():
+            raise FileNotFoundError(str(ip_weight))
+        if not (ip_enc / "config.json").is_file():
+            raise FileNotFoundError(str(ip_enc))
+        pipe.load_ip_adapter(
+            str(ip_local),
+            subfolder="sdxl_models",
+            weight_name="ip-adapter-plus_sdxl_vit-h.bin",
+            image_encoder_folder="models/image_encoder",
+            local_files_only=True,
+        )
         pipe.set_ip_adapter_scale(0.65)
         ip_ok = True
     except Exception as exc:  # noqa: BLE001
@@ -411,7 +426,10 @@ def try_generate(env: dict) -> int:
         "device": device,
         "dtype": str(dtype),
         "use_union": use_union,
+        "union_modes": {"depth": UNION_MODE_DEPTH, "normal": UNION_MODE_NORMAL},
+        "union_error": union_error,
         "ip_adapter": ip_ok,
+        "m22_models_root": str(models_root()),
         "views": {},
         "root": str(ROOT),
     }
@@ -436,13 +454,10 @@ def try_generate(env: dict) -> int:
         )
         if ip_ok:
             kwargs["ip_adapter_image"] = anchor
-        if use_union:
-            # Union expects multi-control image list depending on version; pass depth as primary
-            kwargs["image"] = depth
-            kwargs["controlnet_conditioning_scale"] = 0.85
-        else:
-            kwargs["image"] = depth
-            kwargs["controlnet_conditioning_scale"] = 0.9
+        # Locked stack: ControlNetUnion depth(1)+normal(4); no silent depth-only path.
+        kwargs["control_image"] = [depth, normal]
+        kwargs["control_mode"] = [UNION_MODE_DEPTH, UNION_MODE_NORMAL]
+        kwargs["controlnet_conditioning_scale"] = [0.85, 0.65]
 
         out = pipe(**kwargs).images[0]
         # Unlit post: mild shadow flatten — keep as albedo candidate; gate later.
