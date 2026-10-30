@@ -8,7 +8,7 @@
     "no_plastic_ellipse_blobs": false,
     "five_markings_side_correct": false,
     "white_socks_no_gray_fringe_soft": null,
-    "producer_notes": "preview_only_awaiting_producer_4x"
+    "producer_notes": "4x:绿眼可读、白爪无明显灰边、非塑料椭圆；但五印记FAIL：阴阳花生嘴套未守恒（下半脸被整片白罩盖住，未见解剖右焦糖斑 mark_01）；毛流偏碎块尚可但不及v4.1锚点。authority=4x"
   },
   "honesty": "Auto heuristics intentionally soft; 4x human eyeball is authority.",
   "blocked_reason_if_not_passed": "Awaiting producer --human-pass after 4x review"
