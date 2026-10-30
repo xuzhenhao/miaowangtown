@@ -34,6 +34,8 @@
 
 **可 `--run` 缺件门槛**（缺任一则拒绝生成）：Depth ControlNet fp16 + config；SDXL `model_index` / unet / text_encoder / text_encoder_2（完整 ≥1.3GB）/ vae / scheduler；tokenizer 小文件建议齐。IP-Adapter `ip-adapter-plus_sdxl_vit-h.bin` 强烈建议（无则弱身份锁定仍可试跑但需在报告标明）。
 
+**补缺（2026-10-30）**：仓库此前引用但不存在的 `download_m22.sh` 已补到仓库根目录；权重权威根仍为 `M22_MODELS_ROOT=/Users/cloud/dev/models/m22`（含 union + IP image_encoder 续传目标）。
+
 解阻（二选一）：
 1. **Apple Silicon Mac（MPS）**：仓库拉到含本约定的 commit → 复制 `.env.m22.example` 为 `.env.m22` → 跑完 `download_m22.sh` →  
    `source .env.m22 && .venv-m22/bin/python pipeline/texture/generate_complementary_sdxl.py --run`
