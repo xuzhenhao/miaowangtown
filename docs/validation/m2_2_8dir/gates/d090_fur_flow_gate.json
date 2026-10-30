@@ -8,7 +8,7 @@
     "no_plastic_ellipse_blobs": false,
     "five_markings_side_correct": false,
     "white_socks_no_gray_fringe_soft": null,
-    "producer_notes": "rerun 后仍 FAIL：头颈拉长切片、头胸腿旁漂浮碎片/鬼影，非单一干净相机视图。authority=4x"
+    "producer_notes": "ctrl_refit+重跑后仍 FAIL：顶裁/翼刺已消，但四肢/尾仍呈断开碎面、非单一干净相机猫形；albedo外溢depth（a_only≈27k，高于PASS/d225/d315）；相对PASS侧向条（d270）像度不够。authority=4x FAIL"
   },
   "honesty": "Auto heuristics intentionally soft; 4x human eyeball is authority.",
   "blocked_reason_if_not_passed": "Awaiting producer --human-pass after 4x review"

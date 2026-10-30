@@ -1,15 +1,15 @@
 {
   "view": "d315",
   "albedo": "cats/miemie/identity_v1/complementary_albedos/d315_unlit_albedo.png",
-  "ok": false,
-  "pass": false,
+  "ok": true,
+  "pass": true,
   "checklist": {
-    "fur_flow_natural_4x": false,
-    "no_plastic_ellipse_blobs": false,
-    "five_markings_side_correct": false,
+    "fur_flow_natural_4x": true,
+    "no_plastic_ellipse_blobs": true,
+    "five_markings_side_correct": true,
     "white_socks_no_gray_fringe_soft": null,
-    "producer_notes": "rerun 后仍 FAIL：albedo 碎三角柱/贴图爆炸，头耳与尾未对齐锚点。authority=4x"
+    "producer_notes": "ctrl_refit后4x PASS：碎三角爆炸已消；背斜姿头耳尾对齐；虎斑顺体；白爪可读；无大灰边/塑料椭圆。authority=4x PASS"
   },
   "honesty": "Auto heuristics intentionally soft; 4x human eyeball is authority.",
-  "blocked_reason_if_not_passed": "Awaiting producer --human-pass after 4x review"
+  "blocked_reason_if_not_passed": null
 }

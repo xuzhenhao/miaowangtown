@@ -1,25 +1,32 @@
 # M2.2 制作人自审摘要（诚实版）
 
-**时间**：2026-10-30（Asia/Shanghai）  
-**结论**：**未完成合拢**。Mac MPS（Union ControlNet + IP-Adapter）已生成互补 7 向 unlit albedo；失败四向已按脚本 `b097819`（`--seed-offset 10007` + 分向 VIEW_TUNING + depth 灰底掩膜）重跑。制作人复审门禁现为 **4 PASS / 3 FAIL**（d000 本轮转 PASS；d090/d225/d315 仍 FAIL；既有 d135/d180/d270 PASS **未动**）。**因仍有 3/7 FAIL 继续停合拢**。`fur_albedo.png` 仍为 **M2.1 d045 单向**，整张 UV **不冻**；**未进 M3**。
+**时间**：2026-10-30（Asia/Shanghai）· ctrl_refit `33ed84f` 后三向重生复审  
+**结论**：**仍未完成合拢**。控制图 refit 后仅重生 d090/d225/d315（`--seed-offset 20011`）；制作人 4x 现为 **6 PASS / 1 FAIL**（d225、d315 本轮转 PASS；**d090 仍 FAIL**；既有 d000/d135/d180/d270 PASS **未动**）。**因仍有 1/7 FAIL 继续停合拢**。`fur_albedo.png` 仍为 **M2.1 d045 单向**，整张 UV **不冻**；**未进 M3**。
 
-**控制图（本轮）**：已对 FAIL 三向 `d090/d225/d315` 用 `export_control_views.py --fit-margin 0.08` 重导出（拉远+居中+退化三角剔除）；PASS 向控制图 sha 未动。对照板见 `docs/validation/m2_2_8dir/control_maps/refit_{depth,clay}_sheet.png`。**SDXL 待制作人过目控制图后再开跑**；当前仍停合拢、不冻 fur_albedo、不开 M3。
+**本轮参数**：`generate_complementary_sdxl.py --run --views d090,d225,d315 --seed-offset 20011 --merge-report`；log `logs/m22/rerun_ctrlrefit_20261030_120716.log`；旧 FAIL 归档 `complementary_albedos/archive/pre_ctrl_refit_33ed84f/`。CLIP77 截断仍在（印记/向别约束被挤）。
 
-## 现状（2026-10-30 · rerun 后）
+## 4x 互补视角门禁（制作人权威 · 2026-10-30 ctrl_refit 复审）
 
-| 项 | 状态 |
-|---|---|
-| 生成设备 | **Mac Apple Silicon MPS**（非 CUDA 租机） |
-| SDXL + Union ControlNet + IP-Adapter | **已跑完** 首轮 7 向；失败四向重跑 tip/脚本 **`b097819`** |
-| 重跑参数 | `--views d000,d090,d225,d315 --seed-offset 10007 --merge-report`；log `logs/m22/rerun_fails_20261030_114820.log` |
-| 互补 albedo | `cats/miemie/identity_v1/complementary_albedos/{d000..d315}_unlit_albedo.png`（本地未 commit 原图；旧 FAIL 归档 `archive/pre_rerun_228f7d7/`） |
-| 4x 门禁 | 已写 `gates/{view}_fur_flow_gate.json` + `gates_preview_{view}_4x.png`；权威=4x 肉眼 |
-| 合拢 `fuse_8dir_albedo.py` | **未跑**（硬停：d090/d225/d315 仍 FAIL） |
-| `fur_albedo` 冻结 | **未冻** |
-| M3 | **未开** |
-| CLIP77 截断风险 | **仍在**：重跑时 d000/d090/d225 的 `prompt_extra` 后半被 CLIP 77 token 截断；后续重跑需缩短 base prompt 或把关键约束提前 |
-| 旧阻塞文件 | `generation_BLOCKED.json` 已迁至 `complementary_albedos/archive/`（避免与现报告打架） |
+| view | 结果 | notes（原样） |
+|---|---|---|
+| d000 | **PASS**（锁） | rerun+seed_offset10007 后 4x：绿眼可读；白爪无大灰边；解剖右焦糖斑/花生嘴套可见（相对首轮白罩改善）；剪影外鬼影已清。CLIP77 截断仍在，风格偏碎面。authority=4x PASS |
+| d090 | **FAIL**（ctrl_refit 后仍败） | ctrl_refit+重跑后仍 FAIL：顶裁/翼刺已消，但四肢/尾仍呈断开碎面、非单一干净相机猫形；albedo外溢depth（a_only≈27k，高于PASS/d225/d315）；相对PASS侧向条（d270）像度不够。authority=4x FAIL |
+| d135 | **PASS**（锁） | 4x PASS：与 depth 同向动态姿；毛流沿体、白袜清晰、绿眼可读、未见塑料椭圆与明显灰边；侧别印记在可见面守恒。authority=4x |
+| d180 | **PASS**（锁） | 4x PASS：背向视图；背纹毛流顺 depth；未见塑料椭圆；背向不要求正脸绿眼全貌。authority=4x |
+| d225 | **PASS**（本轮） | ctrl_refit后4x PASS：相对旧版熔融裁切已消；三四分背侧姿完整入画；绿眼可读；白爪/白围脖清晰；未见塑料椭圆与大块灰边；侧别焦糖/虎斑在可见面守恒。authority=4x PASS |
+| d270 | **PASS**（锁） | 4x PASS：侧向绿眼/白围脖白爪可读，虎斑顺体；颈后有轻微碎边记入notes但不否决。authority=4x |
+| d315 | **PASS**（本轮） | ctrl_refit后4x PASS：碎三角爆炸已消；背斜姿头耳尾对齐；虎斑顺体；白爪可读；无大灰边/塑料椭圆。authority=4x PASS |
 
+**汇总**：6 PASS · 1 FAIL（仅 d090）→ **仍停合拢**。禁止程序化退回充数；可只重跑 d090，勿动已 PASS 六向；**全 PASS 前禁止 fuse / 不冻 fur_albedo / 不开 M3**。
+
+### 制作人下一步建议
+- 只针对 **d090**：先查 ControlNet 强度/种子/CLIP77（把五印记+「single clean side profile cat, intact four legs, no floating shards」提到 prompt 头并缩短 base），必要时再看侧向 clay 是否仍有退化折面。
+- 通过后再 fuse → coverage → 双层审核板 → 用户肉眼拍板冻结。
+
+---
+
+
+## 沿用（权重 / 路径 / 诚实原则）
 ### 已锁定可商用权重（模型卡许可证）
 
 见 `generated/LICENSED_STACK.md`：
