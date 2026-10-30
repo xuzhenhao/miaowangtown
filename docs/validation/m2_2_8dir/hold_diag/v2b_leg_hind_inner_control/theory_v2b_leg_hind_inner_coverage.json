@@ -1,0 +1,282 @@
+{
+  "stage": "v2b_leg_hind_inner_control_theory",
+  "time_asia_shanghai": "2026-10-30 17:48",
+  "fur_file_sha256": "3be77787ab0f3407786c0f6fe343482708ad549630522beac71d3332f10bb57c",
+  "coverage_sha256": "1a8dbaf08c933ac24cff44343b2437c6048ffe68e66a30cc47cece3d1e0316e1",
+  "fur_status": "CANDIDATE_UNFROZEN",
+  "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
+  "mutated_fur": false,
+  "ran_sdxl": false,
+  "ran_fuse": false,
+  "fill_red": false,
+  "frozen": false,
+  "opened_m3": false,
+  "cameras": {
+    "v2b_leg_hind_inner_L": {
+      "yaw_deg": -115.0,
+      "pitch_deg": -10.0,
+      "fit_margin": 0.08,
+      "scale_m_per_logical_px": 0.005883268751610954,
+      "origin_logical_px": [
+        51.25200008537796,
+        92.48910808790907
+      ],
+      "visible_px": 27937
+    },
+    "v2b_leg_hind_inner_R": {
+      "yaw_deg": 115.0,
+      "pitch_deg": -10.0,
+      "fit_margin": 0.08,
+      "scale_m_per_logical_px": 0.005577942102411377,
+      "origin_logical_px": [
+        64.47527244713713,
+        93.91175185290146
+      ],
+      "visible_px": 40829
+    }
+  },
+  "margins": {
+    "v2b_leg_hind_inner_L": {
+      "depth": {
+        "size": [
+          456,
+          416
+        ],
+        "visible_px": 27932,
+        "margin_top": 33,
+        "margin_bottom": 33,
+        "margin_left": 74,
+        "margin_right": 86,
+        "margin_ge_16": true
+      },
+      "clay": {
+        "size": [
+          456,
+          416
+        ],
+        "visible_px": 27937,
+        "margin_top": 33,
+        "margin_bottom": 33,
+        "margin_left": 74,
+        "margin_right": 86,
+        "margin_ge_16": true
+      },
+      "normal": {
+        "size": [
+          456,
+          416
+        ],
+        "visible_px": 27937,
+        "margin_top": 33,
+        "margin_bottom": 33,
+        "margin_left": 74,
+        "margin_right": 86,
+        "margin_ge_16": true
+      }
+    },
+    "v2b_leg_hind_inner_R": {
+      "depth": {
+        "size": [
+          456,
+          416
+        ],
+        "visible_px": 40828,
+        "margin_top": 33,
+        "margin_bottom": 33,
+        "margin_left": 61,
+        "margin_right": 57,
+        "margin_ge_16": true
+      },
+      "clay": {
+        "size": [
+          456,
+          416
+        ],
+        "visible_px": 40829,
+        "margin_top": 33,
+        "margin_bottom": 33,
+        "margin_left": 61,
+        "margin_right": 57,
+        "margin_ge_16": true
+      },
+      "normal": {
+        "size": [
+          456,
+          416
+        ],
+        "visible_px": 40829,
+        "margin_top": 33,
+        "margin_bottom": 33,
+        "margin_left": 61,
+        "margin_right": 57,
+        "margin_ge_16": true
+      }
+    }
+  },
+  "constants": {
+    "NDOTV_GRAZE": 0.2,
+    "prev_views": "8-dir pitch=35 + v1_belly yaw0 pitch-30",
+    "theory_note": "Occlusion-free face N·V. Baseline = current working coverage (8+V1 fused, CANDIDATE_UNFROZEN). Optimistic upper bound."
+  },
+  "baseline_honest_8plus_v1": {
+    "island": 869905,
+    "n_gy": 825805,
+    "n_red": 44100,
+    "GY_over_island": 0.9493,
+    "red_over_island": 0.0507
+  },
+  "per_view_theory": {
+    "v2b_leg_hind_inner_L": {
+      "label": "v2b_leg_hind_inner_L",
+      "n_honest_red_ge_graze": 26932,
+      "pct_honest_red_ge_graze": 61.07,
+      "n_newly_coverable_prev_lt_graze": 23749,
+      "pct_honest_red_newly": 53.85,
+      "backface_red_n": 3591,
+      "backface_red_eaten": 3237,
+      "pct_backface_red_eaten": 90.14,
+      "legs_red_n": 12205,
+      "legs_red_eaten": 7563,
+      "pct_legs_red_eaten": 61.97,
+      "rear_legs_C3C4_red_n": 11350,
+      "rear_legs_C3C4_red_eaten": 7376,
+      "pct_rear_legs_red_eaten": 64.99,
+      "C3_leg_BL_red_n": 5599,
+      "C3_leg_BL_red_eaten": 4934,
+      "pct_C3_red_eaten": 88.12,
+      "C4_leg_BR_red_n": 5751,
+      "C4_leg_BR_red_eaten": 2442,
+      "pct_C4_red_eaten": 42.46,
+      "front_legs_red_n": 855,
+      "front_legs_red_eaten": 187,
+      "pct_front_legs_red_eaten": 21.87,
+      "belly_red_n": 6541,
+      "belly_red_eaten": 5409,
+      "pct_belly_red_eaten": 82.69,
+      "thresh_red_n": 30169,
+      "thresh_red_eaten": 20512,
+      "pct_thresh_red_eaten": 67.99,
+      "face_detail_red_n": 13388,
+      "face_detail_red_eaten": 8191,
+      "pct_face_detail_red_eaten": 61.18,
+      "estimated_after": {
+        "n_gy": 849554,
+        "n_red": 20351,
+        "GY_over_island": 0.9766,
+        "red_over_island": 0.0234,
+        "delta_GY_pp": 2.73,
+        "delta_red_pp": -2.73,
+        "still_short_of_0_92_by": 0.0,
+        "red_gate_still_pass_le_0_20": true
+      }
+    },
+    "v2b_leg_hind_inner_R": {
+      "label": "v2b_leg_hind_inner_R",
+      "n_honest_red_ge_graze": 32184,
+      "pct_honest_red_ge_graze": 72.98,
+      "n_newly_coverable_prev_lt_graze": 25660,
+      "pct_honest_red_newly": 58.19,
+      "backface_red_n": 3591,
+      "backface_red_eaten": 3285,
+      "pct_backface_red_eaten": 91.48,
+      "legs_red_n": 12205,
+      "legs_red_eaten": 7888,
+      "pct_legs_red_eaten": 64.63,
+      "rear_legs_C3C4_red_n": 11350,
+      "rear_legs_C3C4_red_eaten": 7110,
+      "pct_rear_legs_red_eaten": 62.64,
+      "C3_leg_BL_red_n": 5599,
+      "C3_leg_BL_red_eaten": 2208,
+      "pct_C3_red_eaten": 39.44,
+      "C4_leg_BR_red_n": 5751,
+      "C4_leg_BR_red_eaten": 4902,
+      "pct_C4_red_eaten": 85.24,
+      "front_legs_red_n": 855,
+      "front_legs_red_eaten": 778,
+      "pct_front_legs_red_eaten": 90.99,
+      "belly_red_n": 6541,
+      "belly_red_eaten": 4589,
+      "pct_belly_red_eaten": 70.16,
+      "thresh_red_n": 30169,
+      "thresh_red_eaten": 22375,
+      "pct_thresh_red_eaten": 74.17,
+      "face_detail_red_n": 13388,
+      "face_detail_red_eaten": 11416,
+      "pct_face_detail_red_eaten": 85.27,
+      "estimated_after": {
+        "n_gy": 851465,
+        "n_red": 18440,
+        "GY_over_island": 0.9788,
+        "red_over_island": 0.0212,
+        "delta_GY_pp": 2.95,
+        "delta_red_pp": -2.95,
+        "still_short_of_0_92_by": 0.0,
+        "red_gate_still_pass_le_0_20": true
+      }
+    }
+  },
+  "combined_L_R_theory": {
+    "label": "v2b_leg_hind_inner_L+R",
+    "n_honest_red_ge_graze": 43125,
+    "pct_honest_red_ge_graze": 97.79,
+    "n_newly_coverable_prev_lt_graze": 33760,
+    "pct_honest_red_newly": 76.55,
+    "backface_red_n": 3591,
+    "backface_red_eaten": 3591,
+    "pct_backface_red_eaten": 100.0,
+    "legs_red_n": 12205,
+    "legs_red_eaten": 12046,
+    "pct_legs_red_eaten": 98.7,
+    "rear_legs_C3C4_red_n": 11350,
+    "rear_legs_C3C4_red_eaten": 11240,
+    "pct_rear_legs_red_eaten": 99.03,
+    "C3_leg_BL_red_n": 5599,
+    "C3_leg_BL_red_eaten": 5525,
+    "pct_C3_red_eaten": 98.68,
+    "C4_leg_BR_red_n": 5751,
+    "C4_leg_BR_red_eaten": 5715,
+    "pct_C4_red_eaten": 99.37,
+    "front_legs_red_n": 855,
+    "front_legs_red_eaten": 806,
+    "pct_front_legs_red_eaten": 94.27,
+    "belly_red_n": 6541,
+    "belly_red_eaten": 6541,
+    "pct_belly_red_eaten": 100.0,
+    "thresh_red_n": 30169,
+    "thresh_red_eaten": 30169,
+    "pct_thresh_red_eaten": 100.0,
+    "face_detail_red_n": 13388,
+    "face_detail_red_eaten": 13370,
+    "pct_face_detail_red_eaten": 99.87,
+    "estimated_after": {
+      "n_gy": 859565,
+      "n_red": 10340,
+      "GY_over_island": 0.9881,
+      "red_over_island": 0.0119,
+      "delta_GY_pp": 3.88,
+      "delta_red_pp": -3.88,
+      "still_short_of_0_92_by": 0.0,
+      "red_gate_still_pass_le_0_20": true
+    }
+  },
+  "verdict": {
+    "control_exported": true,
+    "margin_ge_16": true,
+    "sdxl_status": "控图已出·本轮不开 SDXL（仅控图+理论）",
+    "recommend_open_sdxl": true,
+    "stop_entire_v2": false,
+    "stop_rule": "新吃红%<5 OR 背向红可吃==0 → 整条V2停",
+    "relation_to_old_v2": "旧 v2_leg_inner_L/R (±75/+15) 理论过薄已标 deprecated/不开战；本 v2b 为相机重设计一版；旧控图文件保留未删。",
+    "probe_note": "Probe A(±115/−10) vs B(±120/−15) tied on newly/backface; picked A mid-band. See logs/m22/theory_v2b_cam_probe.json",
+    "one_liner": "V2b L/R yaw=±115 pitch=-10 边距≥16=YES；相对 8+V1 基线 GY=0.9493/红=0.0507；L+R 理论新吃红 33760 (76.55%) → GY 0.9493→0.9881(+3.88pp)；背向红可吃 3591/3591 (100.0%)；C3/C4 红可吃 98.68%/99.37%；建议开SDXL=YES；整条V2停=NO；未开 SDXL/fuse。"
+  },
+  "outputs": [
+    "v2b_leg_hind_inner_control_sheet.png",
+    "control_preview/v2b_leg_hind_inner_L/",
+    "control_preview/v2b_leg_hind_inner_R/",
+    "theory_v2b_eat_red_512.png",
+    "theory_v2b_ndotv_on_red_512.png",
+    "theory_v2b_leg_hind_inner_coverage.json",
+    "V2B_LEG_HIND_INNER_CONTROL.md"
+  ]
+}

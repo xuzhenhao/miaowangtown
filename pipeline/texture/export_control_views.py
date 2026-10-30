@@ -10,7 +10,8 @@ blend on disk. Fixed seed metadata written for downstream SDXL generation.
 CLI (after blender `--`):
   --views d090,d225,d315   only export these dirs (default: all DIRECTIONS)
   --views v1_belly         belly underside (yaw=0, pitch=-30); not in 8-dir set
-  --views v2_leg_inner_L,v2_leg_inner_R  leg-inner (±90°偏内15°, pitch=15)
+  --views v2_leg_inner_L,v2_leg_inner_R  legacy V2 cam1 (±75/15); deprecated-no-SDXL
+  --views v2b_leg_hind_inner_L,v2b_leg_hind_inner_R  V2b cam2 (±115/−10) hind-inner
   --fit-margin 0.08        auto zoom-out + recenter so hi canvas keeps margin
   --pitch -30              optional global pitch override for listed views
 """
@@ -53,10 +54,14 @@ DIRECTIONS = {
 # Extra named views (yaw + pitch). Not part of the locked 8-dir set.
 EXTRA_VIEWS = {
     "v1_belly": {"yaw_deg": 0.0, "pitch_deg": -30.0, "alias": ["pitch_m30"]},
-    # V2 leg-inner: from ±90° bias inward 15° toward yaw=0; pitch +15° slight top-down.
-    # Target: C3/C4 rear-leg medial + some front armpit. Not in locked 8-dir set.
+    # V2 leg-inner (cam1 / DEPRECATED for SDXL): ±90°偏内15°, pitch+15.
+    # Theory thin vs 8+V1 (+0.52pp, backface eat 0%) → 不开战. Files kept.
     "v2_leg_inner_L": {"yaw_deg": -75.0, "pitch_deg": 15.0, "alias": ["v2_L"]},
     "v2_leg_inner_R": {"yaw_deg": 75.0, "pitch_deg": 15.0, "alias": ["v2_R"]},
+    # V2b hind-inner (cam2 redesign): more rearward yaw ±115°, pitch −10°.
+    # Replaces V2 cam1 for any future SDXL decision; does NOT delete old v2_* files.
+    "v2b_leg_hind_inner_L": {"yaw_deg": -115.0, "pitch_deg": -10.0, "alias": ["v2b_L", "v2_cam2_L"]},
+    "v2b_leg_hind_inner_R": {"yaw_deg": 115.0, "pitch_deg": -10.0, "alias": ["v2b_R", "v2_cam2_R"]},
 }
 # Complementary = all except the already-projected d045 anchor view.
 COMPLEMENTARY = ["d000", "d090", "d180", "d270", "d135", "d225", "d315"]

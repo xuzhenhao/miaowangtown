@@ -1,0 +1,69 @@
+{
+  "baseline": {
+    "GY": 0.9493,
+    "red": 0.0507,
+    "n_red": 44100,
+    "n_island": 869905
+  },
+  "candidates": {
+    "A_yaw115_pitch_m10": {
+      "cameras": {
+        "L": {
+          "yaw_deg": -115.0,
+          "pitch_deg": -10.0
+        },
+        "R": {
+          "yaw_deg": 115.0,
+          "pitch_deg": -10.0
+        }
+      },
+      "n_newly": 33760,
+      "pct_honest_red_newly": 76.55,
+      "backface_red_n": 3591,
+      "backface_red_eaten": 3591,
+      "pct_backface_red_eaten": 100.0,
+      "GY_est": 0.9881,
+      "delta_GY_pp": 3.88
+    },
+    "B_yaw120_pitch_m15": {
+      "cameras": {
+        "L": {
+          "yaw_deg": -120.0,
+          "pitch_deg": -15.0
+        },
+        "R": {
+          "yaw_deg": 120.0,
+          "pitch_deg": -15.0
+        }
+      },
+      "n_newly": 33760,
+      "pct_honest_red_newly": 76.55,
+      "backface_red_n": 3591,
+      "backface_red_eaten": 3591,
+      "pct_backface_red_eaten": 100.0,
+      "GY_est": 0.9881,
+      "delta_GY_pp": 3.88
+    },
+    "OLD_v2_yaw75_pitch15": {
+      "cameras": {
+        "L": {
+          "yaw_deg": -75.0,
+          "pitch_deg": 15.0
+        },
+        "R": {
+          "yaw_deg": 75.0,
+          "pitch_deg": 15.0
+        }
+      },
+      "n_newly": 4512,
+      "pct_honest_red_newly": 10.23,
+      "backface_red_n": 3591,
+      "backface_red_eaten": 0,
+      "pct_backface_red_eaten": 0.0,
+      "GY_est": 0.9545,
+      "delta_GY_pp": 0.52
+    }
+  },
+  "winner": "A_yaw115_pitch_m10",
+  "winner_reason": "max (backface_red_eaten, n_newly) among A/B"
+}
