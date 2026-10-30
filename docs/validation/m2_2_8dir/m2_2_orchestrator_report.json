@@ -1,28 +1,18 @@
 {
   "stage": "M2.2",
-  "ok": false,
-  "incomplete": true,
-  "blocker": "no_cuda_gpu",
   "steps": {
-    "export_control_views": {
-      "rc": 0,
-      "ok": true
-    },
-    "generate_complementary_sdxl": {
-      "rc": 2,
-      "blocked": true
-    },
     "fuse_8dir_albedo": {
-      "rc": 2,
-      "blocked": true,
-      "fur_albedo_unchanged": true
+      "rc": 0,
+      "command": "blender -b --python pipeline/texture/fuse_8dir_albedo.py"
     },
     "run_m2_2_review": {
       "rc": 0,
-      "incomplete_boards": true
+      "command": "blender -b --python pipeline/bake/run_m2_2_review.py"
     }
   },
-  "uv_hash_unchanged": true,
-  "git_push": false,
-  "note": "Pipeline reproducible; licenses declared; no procedural default; coverage gates FAIL pending GPU."
+  "ok": true,
+  "fur_albedo_frozen": false,
+  "m3_started": false,
+  "note": "8-dir fuse candidate written; coverage gates FAIL (honest). Awaiting producer 4x fused-board review + user freeze. Not frozen; M3 not started.",
+  "at": "2026-10-30 12:23 Asia/Shanghai"
 }

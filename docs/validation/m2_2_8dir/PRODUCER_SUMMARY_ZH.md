@@ -1,23 +1,67 @@
 # M2.2 制作人自审摘要（诚实版）
 
-**时间**：2026-10-30（Asia/Shanghai）· d090 定稿复审  
-**结论**：**互补 7 向 4x 全 PASS**（脚本 tip `33b0c33`）。d090 在 CLIP 头约束 + depth scale 1.25 后过关。**现可合拢**；`fur_albedo` **尚未冻结**（合拢+coverage+双层板后交用户肉眼）；**未开 M3**。
+**时间**：2026-10-30（Asia/Shanghai）· **8 向合拢候选已写出**  
+**结论**：互补 7/7 4x PASS（tip `13189b4`）后 **已跑 fuse + coverage + 双层审核板**。  
+**`fur_albedo` = 合拢候选，尚未冻结**（供制作人 4x 合拢板自审 + 用户拍板）。**未开 M3**。禁止把本候选说成已冻结。
 
-**d090 定稿**：seed `20291241`（offset 30011）；log `logs/m22/rerun_d090_20261030_121920.log`；旧图归档 `archive/pre_d090_fix_0a33402/`。CLIP 仍截断（93→77）但硬完整约束+肢体重约束+mark1–5 主体已保住。
+## 本轮合拢（fuse）
 
-## 4x 互补视角门禁（制作人权威 · 全 PASS）
+| 项 | 值 |
+|---|---|
+| 命令 | `blender -b --python pipeline/texture/fuse_8dir_albedo.py` |
+| exit | **0**（`m2_2_fuse_report.json` → `"ok": true`） |
+| views_used | d000 / d045 / d090 / d135 / d180 / d225 / d270 / d315（8/8；skipped 空） |
+| 旧 M2.1 fur_albedo sha256 | `f9294ff916e586f09b39f0581ba65e88d74e298741001b21377ae23aa0ca76e4` |
+| **新候选** fur_albedo sha256 | `4cfd06637c9e3ccdc237ba685f5baf61e18755c189719a0251f177eba15a962e` |
+| 新 coverage sha256 | `6059749eaccadac0070fff0ed0e21549d2af56eda9a59eb53cc44a1cef3ec858` |
+| 产出路径 | `cats/miemie/identity_v1/fur_albedo.png` · `coverage.png` · `fuse_8dir_report.json` |
+| 旧版备份 | `cats/miemie/identity_v1/archive/pre_fuse_m21_d045_20261030_122319/` |
+| 互补原图 | **未改**（fuse 前/后 sha 一致；只读投影） |
+| uv_hash | `sha256:bbbc4394…ef15c27f` **未变** |
+| 状态标注 | `fur_albedo_status=CANDIDATE_UNFROZEN` · `frozen=false` · `m3_started=false` |
 
-| view | 结果 | notes（摘要） |
+ROOT 修复：`fuse_8dir_albedo.py` / `run_m2_2_review.py` / `run_m2_2.py` 改为 `Path(__file__).resolve().parents[2]`（与 gate 一致；原 `/workspace/miaowangtown` 在 Mac 不存在）。
+
+## coverage 门禁（诚实 · 合拢后实测）
+
+对照 DEVELOPMENT_PLAN：高频身份区绿+黄 ≥92%；红盲区 ≤20%。
+
+| 指标 | 实测 | 门禁 |
 |---|---|---|
-| d000 | **PASS** | 绿眼/白爪/右焦糖；鬼影清。authority=4x |
-| d090 | **PASS**（本轮定稿） | 鬼肢/断腿消；四腿连体；绿眼白胸白爪；authority=4x PASS |
-| d135 | **PASS** | 动态姿毛流/白袜/绿眼。authority=4x |
-| d180 | **PASS** | 背向背纹顺 depth。authority=4x |
-| d225 | **PASS** | ctrl_refit 后熔融消；绿眼白爪。authority=4x |
-| d270 | **PASS** | 侧向绿眼白围脖；颈后轻碎边不否决。authority=4x |
-| d315 | **PASS** | 碎三角消；头耳尾齐。authority=4x |
+| 高频区绿+黄比例 | **70.35%**（706107 / 1003672） | ≥92% → **FAIL** |
+| 红盲区 / 岛 | **29.65%**（297565 / 1003672） | ≤20% → **FAIL** |
+| 直视(绿) texel | 612562 | — |
+| 擦边(黄) texel | 93944 | — |
+| 未见→genome 底色 seed（非程序化毛流） | 297565 | — |
+| 岛内绿+黄合计 | ≈70.39% | （参考；硬门禁用高频区口径） |
 
-**汇总**：7/7 PASS → **允许 fuse**；合拢后跑 coverage / Layer A·B 审核板；**用户肉眼前不冻 fur_albedo、不开 M3**。
+**诚实**：合拢后覆盖相对 M2.1 单视角（≈30.6% / 红≈67.4%）已大幅改善，**仍未过硬门禁**。未见区仅 genome 底色 seed，**未**用程序化毛流充数。制作人过目合拢板时请盯盲区与缝合。
+
+## 双层审核板 / 4x 联络（已重出）
+
+命令：`blender -b --python pipeline/bake/run_m2_2_review.py` · exit **0** · `incomplete=false`（AI complementary fused）。
+
+| 文件 | 绝对路径 |
+|---|---|
+| 组合板 | `/Users/cloud/dev/game/喵汪小镇/miaowangtown/docs/validation/m2_2_8dir/identity_review.png` |
+| Layer A（纯 albedo） | `/Users/cloud/dev/game/喵汪小镇/miaowangtown/docs/validation/m2_2_8dir/identity_review_layer_a.png` |
+| Layer B（lantern+AO） | `/Users/cloud/dev/game/喵汪小镇/miaowangtown/docs/validation/m2_2_8dir/identity_review_layer_b.png` |
+| 调制前后 4x | `/Users/cloud/dev/game/喵汪小镇/miaowangtown/docs/validation/m2_2_8dir/m2_2_modulation_4x_compare.png` |
+| 分向 Layer A/B + 4x crop | `/Users/cloud/dev/game/喵汪小镇/miaowangtown/docs/validation/m2_2_8dir/m2_2_d{000,045,090,135,180,225,270,315}_layer_{a,b}.png` 及 `*_layer_a_4x_crop.png`（脚本覆盖 d045/d090/d135/d180/d225/d270） |
+| 报告 JSON | `…/m2_2_fuse_report.json` · `…/m2_2_review_report.json` · `…/m2_2_orchestrator_report.json` |
+
+## 4x 互补视角门禁（制作人权威 · 合拢前已全 PASS · 未改原图）
+
+| view | 结果 |
+|---|---|
+| d000 / d090 / d135 / d180 / d225 / d270 / d315 | **PASS**（7/7） |
+| d045 | M2.1 锚点（用户已批） |
+
+## 制作人拍板建议
+
+1. **打开合拢板**（上表 Layer A/B + 4x crop + modulation）做 4x 肉眼自审。  
+2. coverage 硬门禁仍 FAIL → 即使视觉可接受，冻结前须显式接受盲区或另轮补洞。  
+3. **在用户拍板前：不冻结 `fur_albedo`；不开 M3。**
 
 ---
 
@@ -37,53 +81,9 @@
 
 | 变量 | 权威路径 | 用途 |
 |---|---|---|
-| `M22_MODELS_ROOT` | `/Users/cloud/dev/models/m22` | **权威**：curl `download_m22.sh` 本地快照；`--run` 优先 `from_pretrained(本地目录)` |
-| `HF_HOME` | `/Users/cloud/dev/models/m22/hf_home` | 仅残余按 repo-id 拉取的 hub 缓存 |
-| （废弃） | `/Users/cloud/dev/models/huggingface` | 旧 hub orphan blobs；齐套后删除 |
+| `M22_MODELS_ROOT` | `/Users/cloud/dev/models/m22` | **权威**：curl `download_m22.sh` 本地快照 |
+| `HF_HOME` | `/Users/cloud/dev/models/m22/hf_home` | 残余 hub 缓存 |
 | 禁止 | `~/.cache/huggingface` | 用户硬要求 |
-
-**补缺**：仓库根 `download_m22.sh` 已入库；权重权威根仍为 `M22_MODELS_ROOT=/Users/cloud/dev/models/m22`。生成脚本分向重跑 knobs 见 tip **`b097819`**。
-
-## 4x 互补视角门禁（制作人权威 · 2026-10-30 rerun 复审）
-
-| view | 结果 | notes（原样） |
-|---|---|---|
-| d000 | **PASS**（rerun） | rerun+seed_offset10007 后 4x：绿眼可读；白爪无大灰边；解剖右焦糖斑/花生嘴套可见（相对首轮白罩改善）；剪影外鬼影已清。CLIP77 截断仍在，风格偏碎面。authority=4x PASS |
-| d090 | **FAIL**（rerun 仍败） | rerun 后仍 FAIL：头颈拉长切片、头胸腿旁漂浮碎片/鬼影，非单一干净相机视图。authority=4x |
-| d135 | **PASS**（未动） | 4x PASS：与 depth 同向动态姿；毛流沿体、白袜清晰、绿眼可读、未见塑料椭圆与明显灰边；侧别印记在可见面守恒。authority=4x |
-| d180 | **PASS**（未动） | 4x PASS：背向视图；背纹毛流顺 depth；未见塑料椭圆；背向不要求正脸绿眼全貌。authority=4x |
-| d225 | **FAIL**（rerun 仍败） | rerun 后仍 FAIL：侧腹/爪旁三角幻影外溢、depth leak、顶部裁切。authority=4x |
-| d270 | **PASS**（未动） | 4x PASS：侧向绿眼/白围脖白爪可读，虎斑顺体；颈后有轻微碎边记入notes但不否决。authority=4x |
-| d315 | **FAIL**（rerun 仍败） | rerun 后仍 FAIL：albedo 碎三角柱/贴图爆炸，头耳与尾未对齐锚点。authority=4x |
-
-**汇总**：4 PASS（d000 / d135 / d180 / d270）· 3 FAIL（d090 / d225 / d315）→ **仍停合拢**。禁止程序化退回充数；可只重跑仍失败的三向，勿整批假绿；**禁止改动已 PASS 的 d135/d180/d270**。
-
-检查项口径（DEVELOPMENT_PLAN）：毛流自然 / 无塑料椭圆色块 / 五印记侧别守恒 / 白爪零灰边 / 绿眼可读（背面向看得到的印记）。剪影锁不算新轮廓证据；软启发式不得当硬证据。
-
-## 已交付（可复跑）
-
-1. **8 向控制图**（pitch=35°，固定种子 `20261029`）  
-   `cats/miemie/identity_v1/control_views/{d000..d315}/{depth,normal,part_mask,clay}*.png`  
-   联络板：`control_maps/m2_2_control_depth_normal_sheet.png`
-2. **可复现脚本**  
-   - `pipeline/texture/export_control_views.py`  
-   - `pipeline/texture/generate_complementary_sdxl.py`（tip `b097819`：`--views` / `--seed-offset` / `--merge-report` / VIEW_TUNING / depth bg mask）  
-   - `pipeline/texture/gate_complementary_view.py`（ROOT 相对仓库根；Mac PIL 默认字体用 ASCII 标题）  
-   - `pipeline/texture/fuse_8dir_albedo.py`（**尚未调用**）  
-   - `pipeline/bake/run_m2_2_review.py` / `run_m2_2.py`（合拢后才重出 Layer A/B）
-3. **4x 门禁预览板**  
-   `docs/validation/m2_2_8dir/gates_preview_{view}_4x.png`
-4. **调制前后 4x / 双层审核板合拢态**  
-   仍为合拢前占位；**不得**把 N/A 或 genome 中灰格冒充 AI 毛流过门。
-
-## coverage 门禁（诚实 · 合拢前）
-
-沿用 M2.1 d045 单视角（合拢未发生，指标未更新）：
-
-| 指标 | 实测 | 门禁 |
-|---|---|---|
-| 岛内绿+黄 | **≈30.6%** | 高频身份区 ≥92% → **FAIL** |
-| 红盲区 / 岛 | **≈67.4%** | ≤20% → **FAIL** |
 
 ## 诚实原则（继承 M2.1）
 
@@ -91,8 +91,4 @@
 - 眼 4 要素主计 **Layer A**。  
 - 分区启发式偏软，权威 = **4x 肉眼**。  
 - M1 `uv_hash` = `sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f` **未变**。  
-
-## 制作人拍板建议
-
-- **不通过冻结 `fur_albedo`**；**不开 M3**。  
-- 下一步：仅重跑 FAIL 向（d000 / d090 / d225 / d315），过 4x 后再考虑合拢；全 PASS 前禁止 fuse。  
+- 未见 UV：**仅 genome 底色 seed**，禁止程序化毛流充数。  

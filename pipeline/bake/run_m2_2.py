@@ -15,7 +15,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path("/workspace/miaowangtown")
+ROOT = Path(__file__).resolve().parents[2]
 VAL = ROOT / "docs" / "validation" / "m2_2_8dir"
 
 

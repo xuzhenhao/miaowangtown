@@ -1,0 +1,2 @@
+f9294ff916e586f09b39f0581ba65e88d74e298741001b21377ae23aa0ca76e4  cats/miemie/identity_v1/fur_albedo.png
+3f019ee8a90e79cd902a167542182806af401e0b236ea75f757adb31f44661b9  cats/miemie/identity_v1/coverage.png

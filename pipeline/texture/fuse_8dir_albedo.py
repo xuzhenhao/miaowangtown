@@ -25,7 +25,7 @@ import bpy
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
-ROOT = Path("/workspace/miaowangtown")
+ROOT = Path(__file__).resolve().parents[2]
 MASTER_DIR = ROOT / "art" / "master_cat"
 ID_DIR = ROOT / "cats" / "miemie" / "identity_v1"
 ALB_DIR = ID_DIR / "complementary_albedos"

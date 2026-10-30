@@ -1,0 +1,111 @@
+{
+  "ok": true,
+  "device": "mps",
+  "dtype": "torch.float16",
+  "use_union": true,
+  "union_modes": {
+    "depth": 1,
+    "normal": 4
+  },
+  "union_error": null,
+  "ip_adapter": true,
+  "m22_models_root": "/Users/cloud/dev/models/m22",
+  "views": {
+    "d000": {
+      "path": "cats/miemie/identity_v1/complementary_albedos/d000_unlit_albedo.png",
+      "seed": 20271603,
+      "seed_offset": 10007,
+      "gate_status": "pending_4x_fur_flow_and_markings",
+      "control_scale": [
+        1.05,
+        0.8
+      ],
+      "ip_scale": 0.78,
+      "guidance": 5.5,
+      "bg_masked_by_depth": true,
+      "rerun": true
+    },
+    "d090": {
+      "path": "cats/miemie/identity_v1/complementary_albedos/d090_unlit_albedo.png",
+      "seed": 20291241,
+      "seed_offset": 30011,
+      "gate_status": "pending_4x_fur_flow_and_markings",
+      "control_scale": [
+        1.25,
+        0.95
+      ],
+      "ip_scale": 0.6,
+      "guidance": 5.0,
+      "bg_masked_by_depth": true,
+      "rerun": true,
+      "prompt_token_info": {
+        "tokens": 93,
+        "truncated_at_77": true,
+        "method": "CLIPTokenizer"
+      },
+      "prompt_len_chars": 386
+    },
+    "d180": {
+      "path": "cats/miemie/identity_v1/complementary_albedos/d180_unlit_albedo.png",
+      "seed": 20261033,
+      "gate_status": "pending_4x_fur_flow_and_markings"
+    },
+    "d270": {
+      "path": "cats/miemie/identity_v1/complementary_albedos/d270_unlit_albedo.png",
+      "seed": 20261754,
+      "gate_status": "pending_4x_fur_flow_and_markings"
+    },
+    "d135": {
+      "path": "cats/miemie/identity_v1/complementary_albedos/d135_unlit_albedo.png",
+      "seed": 20261052,
+      "gate_status": "pending_4x_fur_flow_and_markings"
+    },
+    "d225": {
+      "path": "cats/miemie/identity_v1/complementary_albedos/d225_unlit_albedo.png",
+      "seed": 20281677,
+      "seed_offset": 20011,
+      "gate_status": "pending_4x_fur_flow_and_markings",
+      "control_scale": [
+        1.2,
+        1.0
+      ],
+      "ip_scale": 0.58,
+      "guidance": 5.0,
+      "bg_masked_by_depth": true,
+      "rerun": true
+    },
+    "d315": {
+      "path": "cats/miemie/identity_v1/complementary_albedos/d315_unlit_albedo.png",
+      "seed": 20281185,
+      "seed_offset": 20011,
+      "gate_status": "pending_4x_fur_flow_and_markings",
+      "control_scale": [
+        1.1,
+        0.9
+      ],
+      "ip_scale": 0.62,
+      "guidance": 5.2,
+      "bg_masked_by_depth": true,
+      "rerun": true
+    }
+  },
+  "root": "/Users/cloud/dev/game/喵汪小镇/miaowangtown",
+  "seed_offset": 30011,
+  "selected_views": [
+    "d090"
+  ],
+  "rerun_of_fails": true,
+  "view_tuning_applied": {
+    "d090": {
+      "prompt_extra": ", right-side profile, complete silhouette, intact legs planted, no broken limbs",
+      "negative_extra": ", texture atlas, UV unwrap, duplicated body parts, floating fur patches, smeared edges outside silhouette, glitch fragments, broken limbs, severed legs",
+      "control_scale": [
+        1.25,
+        0.95
+      ],
+      "ip_scale": 0.6,
+      "guidance": 5.0
+    }
+  },
+  "merge_report": true
+}

@@ -19,7 +19,7 @@ import bpy
 import numpy as np
 from PIL import Image, ImageDraw
 
-ROOT = Path("/workspace/miaowangtown")
+ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from pipeline.bake.post_v4_1_pixel import (  # noqa: E402
     ALPHA_THR,
