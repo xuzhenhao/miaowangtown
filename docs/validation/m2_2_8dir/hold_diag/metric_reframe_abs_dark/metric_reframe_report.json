@@ -1,0 +1,310 @@
+{
+  "stage": "METRIC_REFRAME_ABS_DARK",
+  "option": "A",
+  "time_asia_shanghai": "2026-10-30 13:34",
+  "git_tip": "c6d5d63",
+  "fur_sha": "46e56675a577390d70724e803a37c39b8cc79e070a5434c336a042da502a08dd",
+  "fur_baseline_ok": true,
+  "constants": {
+    "ABS_LUM": 40.0,
+    "REL_FLOOR": 85.0,
+    "MIN_AREA_PX2": 12,
+    "MIN_AREA_DOC_BAND": [
+      8,
+      16
+    ],
+    "ERODE_UV": 2
+  },
+  "coverage": {
+    "uv_island_texels": 1004071,
+    "green": 612337,
+    "yellow": 93767,
+    "red": 297967,
+    "high_freq_green_yellow_ratio": 0.7032,
+    "unseen_over_island": 0.2968,
+    "gate_high_freq_green_yellow_ge_0_92": false,
+    "gate_red_blind_le_0_20": false,
+    "note": "coverage GY/red unchanged by metric reframe (no re-fuse)"
+  },
+  "screen": {
+    "d090": {
+      "view": "d090",
+      "body_px": 4112,
+      "body_mask_source": "clay_noeye_4x_box",
+      "p10": 17.67,
+      "old": {
+        "definition": "body ∩ lum<=max(p10,85)  [=rel_thr]",
+        "rel_thr": 85.0,
+        "n_dark_rel": 895,
+        "cc": {
+          "n_pix_raw": 895,
+          "n_cc_raw": 239,
+          "n_cc_ge_min_area": 15,
+          "n_pix_ge_min_area": 300,
+          "n_pix_speckle_lt_min": 595,
+          "max_cc_area": 35,
+          "areas_top10": [
+            35,
+            34,
+            27,
+            24,
+            23,
+            21,
+            19,
+            18,
+            16,
+            16
+          ],
+          "min_area_px2": 12
+        }
+      },
+      "new": {
+        "definition": "body ∩ lum<40 4-connected CC, keep area>=12px²",
+        "abs_lum": 40.0,
+        "n_abs_dark_raw": 455,
+        "n_abs_dark": 67,
+        "max_cc_area": 15,
+        "cc": {
+          "n_pix_raw": 455,
+          "n_cc_raw": 172,
+          "n_cc_ge_min_area": 5,
+          "n_pix_ge_min_area": 67,
+          "n_pix_speckle_lt_min": 388,
+          "max_cc_area": 15,
+          "areas_top10": [
+            15,
+            15,
+            13,
+            12,
+            12,
+            11,
+            10,
+            8,
+            8,
+            7
+          ],
+          "min_area_px2": 12
+        }
+      }
+    },
+    "d045": {
+      "view": "d045",
+      "body_px": 5280,
+      "body_mask_source": "clay_noeye_4x_box",
+      "p10": 51.27,
+      "old": {
+        "definition": "body ∩ lum<=max(p10,85)  [=rel_thr]",
+        "rel_thr": 85.0,
+        "n_dark_rel": 1005,
+        "cc": {
+          "n_pix_raw": 1005,
+          "n_cc_raw": 221,
+          "n_cc_ge_min_area": 23,
+          "n_pix_ge_min_area": 465,
+          "n_pix_speckle_lt_min": 540,
+          "max_cc_area": 61,
+          "areas_top10": [
+            61,
+            29,
+            29,
+            27,
+            27,
+            27,
+            25,
+            21,
+            20,
+            19
+          ],
+          "min_area_px2": 12
+        }
+      },
+      "new": {
+        "definition": "body ∩ lum<40 4-connected CC, keep area>=12px²",
+        "abs_lum": 40.0,
+        "n_abs_dark_raw": 510,
+        "n_abs_dark": 67,
+        "max_cc_area": 15,
+        "cc": {
+          "n_pix_raw": 510,
+          "n_cc_raw": 158,
+          "n_cc_ge_min_area": 5,
+          "n_pix_ge_min_area": 67,
+          "n_pix_speckle_lt_min": 443,
+          "max_cc_area": 15,
+          "areas_top10": [
+            15,
+            15,
+            13,
+            12,
+            12,
+            11,
+            11,
+            10,
+            10,
+            10
+          ],
+          "min_area_px2": 12
+        }
+      }
+    },
+    "d270": {
+      "view": "d270",
+      "body_px": 3988,
+      "body_mask_source": "clay_noeye_4x_box",
+      "p10": 17.67,
+      "old": {
+        "definition": "body ∩ lum<=max(p10,85)  [=rel_thr]",
+        "rel_thr": 85.0,
+        "n_dark_rel": 577,
+        "cc": {
+          "n_pix_raw": 577,
+          "n_cc_raw": 186,
+          "n_cc_ge_min_area": 8,
+          "n_pix_ge_min_area": 111,
+          "n_pix_speckle_lt_min": 466,
+          "max_cc_area": 17,
+          "areas_top10": [
+            17,
+            16,
+            15,
+            14,
+            13,
+            12,
+            12,
+            12,
+            11,
+            10
+          ],
+          "min_area_px2": 12
+        }
+      },
+      "new": {
+        "definition": "body ∩ lum<40 4-connected CC, keep area>=12px²",
+        "abs_lum": 40.0,
+        "n_abs_dark_raw": 454,
+        "n_abs_dark": 81,
+        "max_cc_area": 17,
+        "cc": {
+          "n_pix_raw": 454,
+          "n_cc_raw": 149,
+          "n_cc_ge_min_area": 6,
+          "n_pix_ge_min_area": 81,
+          "n_pix_speckle_lt_min": 373,
+          "max_cc_area": 17,
+          "areas_top10": [
+            17,
+            15,
+            13,
+            12,
+            12,
+            12,
+            11,
+            8,
+            8,
+            8
+          ],
+          "min_area_px2": 12
+        }
+      }
+    }
+  },
+  "uv_torso": {
+    "scope": "fur alpha ∩ torso(B1-B4) ∩ alpha-erode2  (no d090-weight filter in this recompute)",
+    "n_island": 129805,
+    "p10": 91.0,
+    "old": {
+      "definition": "island ∩ lum<=max(p10,85)",
+      "rel_thr": 91.0,
+      "n_dark_rel": 12989,
+      "n_dark_inner_published_12a1945_with_d090_weight": 6283,
+      "cc": {
+        "n_pix_raw": 12989,
+        "n_cc_raw": 571,
+        "n_cc_ge_min_area": 186,
+        "n_pix_ge_min_area": 12052,
+        "n_pix_speckle_lt_min": 937,
+        "max_cc_area": 1009,
+        "areas_top10": [
+          1009,
+          664,
+          604,
+          602,
+          425,
+          367,
+          250,
+          223,
+          192,
+          164
+        ],
+        "min_area_px2": 12
+      }
+    },
+    "new": {
+      "definition": "island ∩ lum<40 CC area>=12",
+      "n_abs_dark_raw": 15,
+      "n_abs_dark": 0,
+      "max_cc_area": 7,
+      "cc": {
+        "n_pix_raw": 15,
+        "n_cc_raw": 8,
+        "n_cc_ge_min_area": 0,
+        "n_pix_ge_min_area": 0,
+        "n_pix_speckle_lt_min": 15,
+        "max_cc_area": 7,
+        "areas_top10": [
+          7,
+          2,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "min_area_px2": 12
+      }
+    },
+    "abs_on_published_rel_dark_roi": {
+      "n_abs_dark_raw": 0,
+      "cc": {
+        "n_pix_raw": 0,
+        "n_cc_raw": 0,
+        "n_cc_ge_min_area": 0,
+        "n_pix_ge_min_area": 0,
+        "n_pix_speckle_lt_min": 0,
+        "max_cc_area": 0,
+        "areas_top10": [],
+        "min_area_px2": 12
+      }
+    }
+  },
+  "conclusion_bullets": [
+    "旧口径（相对暗）在 Layer A 上 d090/d045 仍报大片暗带（895 / 1005），其中大量是虎斑/中灰相对暗，在黑底上被读成「假透空」。",
+    "新口径（abs&lt;40+CC≥12）把保留近黑连通块压到 d090 **67** / d045 **67** （max_cc 15 / 15）；两侧接近，说明「假透空」主差不是大块真近黑洞。",
+    "UV 躯干：旧发布相对暗 ROI（n=6283）上 abs+CC≈**0**；本轮 torso 新口径 n_abs_dark=**0** → 合拢贴图岛内几乎无真近黑连通假洞。",
+    "coverage GY/红仍 **70.32% / 29.68%** （硬门 FAIL）——口径重框**不**等于 coverage 过门。"
+  ],
+  "still_overall_hold": true,
+  "can_request_lift_falsehollow_hold_clause": true,
+  "producer_recommendation": "可申请将「侧向假透空」从主否决降为**口径说明（CONDITIONAL→申请解该条 HOLD）**：真近黑连通假洞在新口径下很少；旧相对暗把虎斑算进去了。但 **coverage 红盲区仍 FAIL** → **整体仍 HOLD**，不冻、不交用户点2；解的是假透空判定口径，不是冻结放行。",
+  "outputs": {
+    "sheet_d090_d045": "docs/validation/m2_2_8dir/hold_diag/metric_reframe_abs_dark/layer_a_d090_d045_old_vs_new_4x.png",
+    "board_d090": "docs/validation/m2_2_8dir/hold_diag/metric_reframe_abs_dark/layer_a_d090_old_vs_new_4x.png",
+    "board_d045": "docs/validation/m2_2_8dir/hold_diag/metric_reframe_abs_dark/layer_a_d045_old_vs_new_4x.png",
+    "board_d270": "docs/validation/m2_2_8dir/hold_diag/metric_reframe_abs_dark/layer_a_d270_old_vs_new_4x.png",
+    "uv_preview": "docs/validation/m2_2_8dir/hold_diag/metric_reframe_abs_dark/uv_torso_old_cyan_new_magenta_512.png",
+    "json": "docs/validation/m2_2_8dir/hold_diag/metric_reframe_abs_dark/metric_reframe_report.json",
+    "md": "docs/validation/m2_2_8dir/hold_diag/METRIC_REFRAME_ABS_DARK.md"
+  },
+  "locks": {
+    "fur_untouched": true,
+    "sources_untouched": true,
+    "edge_graze_untouched": true,
+    "soft_untouched": true,
+    "no_fake_green": true,
+    "no_fill_red": true,
+    "no_regen": true,
+    "no_freeze": true,
+    "no_m3": true
+  }
+}

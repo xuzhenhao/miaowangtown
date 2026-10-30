@@ -1,5 +1,26 @@
 # M2.2 制作人自审摘要（诚实版）
 
+**时间**：2026-10-30 13:35（Asia/Shanghai）· 用户拍板 **A** · 假透空口径重框  
+**结论**：仍 **CONDITIONAL HOLD**（整体）。口径重框完成：**可申请**将「侧向假透空」从主否决降为口径说明（CONDITIONAL→解该条）；但 coverage 红 **29.68%** 仍 FAIL → **不冻、不交用户点2**。fur 未动 baseline `46e56675…`；无 fuse/软降/regen/假绿/填红。
+
+## 2026-10-30 选项 A · abs 近黑 + 连通域
+
+| 项 | 旧（相对暗/p10） | 新（abs&lt;40 + CC≥12px²） |
+|---|---|---|
+| Layer A d090 | n_dark_rel **895** | n_abs_dark **67**（max_cc 15） |
+| Layer A d045 | n_dark_rel **1005** | n_abs_dark **67**（max_cc 15） |
+| UV 旧 ROI abs+CC | — | **0**（发布 n_dark_inner=6283 上无真近黑块） |
+| coverage GY / 红 | 70.32% / 29.68% | **同左（未重 fuse）** |
+
+- body 掩膜：`clay_noeye`（剔眼珠近黑）
+- 标注板：`hold_diag/metric_reframe_abs_dark/layer_a_d090_d045_old_vs_new_4x.png`
+- 文档：`hold_diag/METRIC_REFRAME_ABS_DARK.md` · `hold_diag/COVERAGE_AND_FALSEHOLLOW_METRICS.md`
+- **制作人建议**：申请解假透空口径 HOLD；整体 HOLD 保留至 coverage 过门。不擅自解冻。
+
+## 此前摘要（保留）
+
+# M2.2 制作人自审摘要（诚实版）
+
 **时间**：2026-10-30 13:30（Asia/Shanghai）· HOLD 等用户 A/B/C  
 **结论**：仍 **CONDITIONAL HOLD**。**HOLD 等用户 A/B/C**（见 `hold_diag/HOLD_OPTIONS_M22_FUSE.md`）。制作人待命，除用户/opus 新指令外不开新实验。fur 锁 baseline `46e56675…`；整条源重生停；不 fuse / 不软降 / 不二次 seed / 不冻 / 不开 M3。
 

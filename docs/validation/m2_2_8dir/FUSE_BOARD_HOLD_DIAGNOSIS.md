@@ -128,3 +128,18 @@
 
 见 `hold_diag/low_d090_weight/`：d090/d270 权重 0.4 + dark_reject=40。body-only dark_opaque(114×104) 几乎持平 → **仍 HOLD**；不冻、不开 M3。d090 源图碎斑轻；d270 源图更脏需重生。归档 `archive/pre_low_d090_weight_20261030_123200/` 保留。
 
+## 附录 · 假透空口径重框（选项 A · 2026-10-30）
+
+> 用户拍板 **A**：以 **abs 近黑 + 连通域** 为主，把虎斑相对暗与真假洞拆开。  
+> 详情：`hold_diag/METRIC_REFRAME_ABS_DARK.md` · 脚本 `pipeline/texture/metric_reframe_abs_dark.py`（**未**改默认 fuse）。
+
+| 口径 | 定义 | Layer A d090 / d045（body=clay_noeye） |
+|---|---|---|
+| **旧** | `lum ≤ max(p10, 85)` 相对暗 | n_dark_rel **895** / **1005** |
+| **新** | `lum < 40` + 4-连通域 `area ≥ 12 px²`（固定；文档带 8–16） | n_abs_dark **67** / **67**（max_cc 15 / 15） |
+
+- UV 旧发布相对暗 ROI（n=6283）上 abs+CC = **0**；torso 新口径 n_abs_dark = **0**。
+- coverage GY/红仍 **70.32% / 29.68%**（未重 fuse）。
+- **整体仍 HOLD**（coverage 硬门）；假透空条可申请口径解 HOLD，**不**等于冻结放行。
+
+

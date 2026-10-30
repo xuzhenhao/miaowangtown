@@ -2,7 +2,7 @@
 
 **时间**：2026-10-30 13:30（Asia/Shanghai）  
 **tip 起点**：`27b50aa`  
-**状态**：仍 **CONDITIONAL HOLD**。制作人**待命**——除用户 / opus 新指令外**不开新实验**。不冻、不开 M3、不交用户点2。
+**状态**：仍 **CONDITIONAL HOLD**（整体）。用户已拍板 **A** 并已执行口径重框（见 `METRIC_REFRAME_ABS_DARK.md`）。不冻、不开 M3、不交用户点2；未再开 fuse/软降/regen。
 
 ---
 
@@ -52,3 +52,13 @@ d225 **单向**实读边距已 ≥16（`bf13e9a`）。若选 **B**，指的是**
 - d225 FAIL：`hold_diag/D225_REGEN_STATUS.md`
 - 边距：`hold_diag/CONTROL_FRAME_MARGIN_NOTE.md` · `hold_diag/D225_CONTROL_PATH_MARGIN.md`
 - 制作人摘要：`docs/validation/m2_2_8dir/PRODUCER_SUMMARY_ZH.md`
+
+---
+
+## 选项 A 执行记录（2026-10-30 13:35）
+
+- 脚本：`pipeline/texture/metric_reframe_abs_dark.py`
+- 报告：`METRIC_REFRAME_ABS_DARK.md` + `metric_reframe_abs_dark/`
+- 结论摘要：新口径下真近黑连通假洞很少（d090/d045 n_abs_dark=67/67）；
+  旧相对暗把虎斑算进假透空。**可申请解「假透空」该条 HOLD 口径**；coverage 红仍 FAIL → **整体仍 HOLD**，不冻。
+

@@ -678,6 +678,9 @@ def main() -> int:
     cmp.save(VAL_DIR / "m2_2_modulation_4x_compare.png")
 
     # Coverage gates
+    # False-hollow / near-black annotation metric (Option A) lives in
+    # pipeline/texture/metric_reframe_abs_dark.py — abs lum<40 + CC min_area.
+    # It does NOT change these GY/red coverage hard gates or default fuse writes.
     island_n = int(uv_occ.sum())
     direct_n = int((coverage == 2).sum())
     graze_n = int((coverage == 1).sum())
