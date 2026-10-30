@@ -153,27 +153,28 @@ LICENSED_STACK = [
     },
 ]
 
-PROMPT = (
-    # Identity + five markings FIRST (CLIP ~77 token budget; keep head dense).
-    "single intact calico tabby cat, asymmetric yin-yang muzzle mark_01 "
-    "(anatomical RIGHT warm caramel peanut patch, LEFT cream cheek), "
-    "mark_02 white chest bib into left-rib cloud, mark_03 warm apricot belly edge, "
-    "mark_04 asymmetric white socks (front high / rear ankle) with rear tabby pants, "
-    "mark_05 forehead M + mackerel back stripes + ringed tabby tail black tip, "
-    "emerald almond eyes, brick-pink nose, white paws zero grey fringe, "
-    # Style / lighting AFTER identity (may truncate).
-    "orthographic unlit fur albedo, soft fur clumps, flat ambient, no cast shadows, "
-    "high-frequency fur grain matching reference"
+PROMPT_HARD = (
+    # Fixed integrity head for ALL views (CLIP ~77; must survive truncation).
+    "single intact cat, one clean camera view, four connected legs, "
+    "continuous body and tail, no floating shards, no ghost limbs, no duplicate heads"
 )
+PROMPT_MARKS = (
+    # Five identity marks — keep immediately after HARD (+ per-view extra).
+    "calico mark1 RIGHT caramel LEFT cream, mark2 white bib, mark3 apricot belly, "
+    "mark4 white socks, mark5 forehead M mackerel ringed tail"
+)
+PROMPT_STYLE = "unlit fur albedo"
+# Backward-compatible combined base (HARD + MARKS + STYLE); assembly prefers split order.
+PROMPT = PROMPT_HARD + ", " + PROMPT_MARKS + ", " + PROMPT_STYLE
 NEGATIVE = (
     "harsh sunlight, rim light, studio lighting, glossy specular, "
     "plastic skin, ellipse blobs, flat vector shapes, text, watermark, "
-    "deformed anatomy, extra legs, mirrored markings"
+    "deformed anatomy, extra legs, mirrored markings, floating shards, ghost limbs"
 )
 
 # Per-view knobs for targeted FAIL reruns. Views absent keep defaults.
 VIEW_TUNING = {
-    # prompt_extra = view-only deltas; identity/five-marks live in base PROMPT head.
+    # prompt_extra inserted AFTER HARD and BEFORE MARKS so CLIP-77 keeps view constraints.
     "d000": {
         "prompt_extra": (
             ", front three-quarter face readable, do NOT flatten muzzle into blank white mask"
@@ -188,13 +189,14 @@ VIEW_TUNING = {
     },
     "d090": {
         "prompt_extra": (
-            ", silhouette strictly matches depth map, no floating shards or ghost limbs"
+            ", right-side profile, complete silhouette, intact legs planted, no broken limbs"
         ),
         "negative_extra": (
             ", texture atlas, UV unwrap, duplicated body parts, floating fur patches, "
-            "smeared edges outside silhouette, glitch fragments"
+            "smeared edges outside silhouette, glitch fragments, broken limbs, severed legs"
         ),
-        "control_scale": [1.15, 0.95],
+        # depth scale bumped only for d090; normal left at prior value.
+        "control_scale": [1.25, 0.95],
         "ip_scale": 0.6,
         "guidance": 5.0,
     },
@@ -223,6 +225,34 @@ VIEW_TUNING = {
         "guidance": 5.2,
     },
 }
+
+
+def estimate_clip_tokens(text: str) -> dict:
+    """Estimate CLIP tokenizer length; warn when >77 (SDXL text encoder truncate)."""
+    try:
+        from transformers import CLIPTokenizer
+
+        tok_dir = local_model("stable-diffusion-xl-base-1.0") / "tokenizer"
+        if (tok_dir / "vocab.json").is_file():
+            tok = CLIPTokenizer.from_pretrained(str(tok_dir), local_files_only=True)
+        else:
+            tok = CLIPTokenizer.from_pretrained(
+                "openai/clip-vit-large-patch14", local_files_only=False
+            )
+        ids = tok(text, truncation=False, add_special_tokens=True)["input_ids"]
+        n = len(ids)
+        return {
+            "tokens": n,
+            "truncated_at_77": n > 77,
+            "method": "CLIPTokenizer",
+        }
+    except Exception as exc:  # noqa: BLE001
+        approx = len(text.replace(",", " ").replace("(", " ").replace(")", " ").split())
+        return {
+            "tokens_approx_words": approx,
+            "truncated_warn_guess": approx > 60,
+            "method": f"fallback:{type(exc).__name__}:{exc}",
+        }
 
 DEFAULT_CONTROL_SCALE = [0.85, 0.65]
 DEFAULT_IP_SCALE = 0.65
@@ -568,9 +598,26 @@ def try_generate(env: dict, selected_views: list[str], seed_offset: int = 0, mer
         gen_device = "cpu" if device == "mps" else device
         view_seed = SEED + seed_offset + (hash(dname) % 1000)
         generator = torch.Generator(device=gen_device).manual_seed(view_seed)
+        # Order: HARD → prompt_extra → MARKS → view → STYLE (CLIP-77 keeps head).
+        final_prompt = (
+            PROMPT_HARD
+            + prompt_extra
+            + ", "
+            + PROMPT_MARKS
+            + f", view {dname}, "
+            + PROMPT_STYLE
+        )
+        final_negative = NEGATIVE + negative_extra
+        tok_info = estimate_clip_tokens(final_prompt)
+        print(f"CLIP prompt debug [{dname}]:", tok_info)
+        if tok_info.get("truncated_at_77") or tok_info.get("truncated_warn_guess"):
+            print(
+                f"WARNING: CLIP truncation likely for {dname}; "
+                "tail style tokens may drop (head constraints preserved first)"
+            )
         kwargs = dict(
-            prompt=PROMPT + f", view {dname}" + prompt_extra,
-            negative_prompt=NEGATIVE + negative_extra,
+            prompt=final_prompt,
+            negative_prompt=final_negative,
             num_inference_steps=30,
             guidance_scale=guidance,
             generator=generator,
@@ -604,6 +651,8 @@ def try_generate(env: dict, selected_views: list[str], seed_offset: int = 0, mer
             "guidance": guidance,
             "bg_masked_by_depth": bool(bg_masked),
             "rerun": True,
+            "prompt_token_info": tok_info,
+            "prompt_len_chars": len(final_prompt),
         }
         print("generated", dname, out_path, "seed=", view_seed)
 
