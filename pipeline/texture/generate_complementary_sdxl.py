@@ -388,12 +388,8 @@ def try_generate(env: dict) -> int:
             + " (need config.json + diffusion_pytorch_model.safetensors)"
         )
 
+    # Keep VAE in float32 on MPS to avoid NaNs in some builds (before IP-Adapter).
     if device == "mps":
-        try:
-            pipe.enable_attention_slicing()
-        except Exception:
-            pass
-        # Keep VAE in float32 on MPS to avoid NaNs in some builds.
         try:
             pipe.vae.to(dtype=torch.float32)
         except Exception:
@@ -419,6 +415,13 @@ def try_generate(env: dict) -> int:
     except Exception as exc:  # noqa: BLE001
         print("IP-Adapter load failed:", exc)
         ip_ok = False
+
+    # Attention slicing AFTER IP-Adapter; enabling it first breaks IP attn processors on MPS.
+    if device == "mps":
+        try:
+            pipe.enable_attention_slicing()
+        except Exception as exc:
+            print("enable_attention_slicing skipped:", exc)
 
     anchor = Image.open(ANCHOR).convert("RGB").resize((1024, 1024), Image.Resampling.LANCZOS)
     results = {
