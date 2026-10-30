@@ -1,0 +1,15 @@
+{
+  "view": "d180",
+  "albedo": "cats/miemie/identity_v1/complementary_albedos/d180_unlit_albedo.png",
+  "ok": false,
+  "pass": false,
+  "checklist": {
+    "fur_flow_natural_4x": false,
+    "no_plastic_ellipse_blobs": false,
+    "five_markings_side_correct": false,
+    "white_socks_no_gray_fringe_soft": null,
+    "producer_notes": "preview_only_awaiting_producer_4x"
+  },
+  "honesty": "Auto heuristics intentionally soft; 4x human eyeball is authority.",
+  "blocked_reason_if_not_passed": "Awaiting producer --human-pass after 4x review"
+}
