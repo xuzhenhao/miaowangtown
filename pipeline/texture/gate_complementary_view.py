@@ -17,7 +17,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-ROOT = Path("/workspace/miaowangtown")
+ROOT = Path(__file__).resolve().parents[2]
 GATE_DIR = ROOT / "docs" / "validation" / "m2_2_8dir" / "gates"
 VAL = ROOT / "docs" / "validation" / "m2_2_8dir"
 
