@@ -1,0 +1,177 @@
+{
+  "stage": "fuse_soft_d135_d180_roi",
+  "ts_asia_shanghai": "2026-10-30 13:14:30 CST",
+  "params": {
+    "roi": "d090_torso_dark_uv_inner_mask.png (n=6283, match 12a1945)",
+    "matrix": {
+      "A_d180x035": {
+        "d135": 1.0,
+        "d180": 0.35
+      },
+      "B_d180x015": {
+        "d135": 1.0,
+        "d180": 0.15
+      },
+      "C_bothx015": {
+        "d135": 0.15,
+        "d180": 0.15
+      }
+    },
+    "EDGE_ERODE": 10,
+    "NDOTV_GRAZE": 0.2,
+    "global_view_weight": "all 1.0 (unchanged)",
+    "forbidden": "no regen / no LUT / no fill-red / no EDGE·graze / no source edit / no d225 soft this round"
+  },
+  "fur_sha": {
+    "baseline": "46e56675a577390d70724e803a37c39b8cc79e070a5434c336a042da502a08dd",
+    "A_d180x035": "4bff2093c2da96aa8f3a828c774ed1a1815c6a805d8863b0c7e7f20ffaa1e62a",
+    "B_d180x015": "437dedde6df63fc24ea9d5ee0a89e0a7a59acc9aefcacdb4d43a5193b478b853",
+    "C_bothx015": "7aa8d978f04089adc535f13db165ba24a2e6682e202670f110b6670aa651b38f",
+    "working_tree_after_decision": "46e56675a577390d70724e803a37c39b8cc79e070a5434c336a042da502a08dd",
+    "label": "CANDIDATE_UNFROZEN baseline restored — ROI soft path STOPPED"
+  },
+  "metrics": {
+    "baseline": {
+      "n_dark_inner_d090": 6283,
+      "n_dark_inner_d045": 2738,
+      "coverage_gy": 0.7031,
+      "coverage_red": 0.2969,
+      "pull_down": {
+        "d135": 30.05,
+        "d180": 30.79,
+        "d225": 15.72
+      },
+      "screen_4x_d090_dark40": 3888
+    },
+    "A_d180x035": {
+      "n_dark_inner_d090": 6110,
+      "n_dark_inner_d045": 3158,
+      "coverage_gy": 0.7035,
+      "coverage_red": 0.2965,
+      "pull_down": {
+        "d135": 29.55,
+        "d180": 21.77,
+        "d225": 15.84,
+        "full": {
+          "d000": 7.85,
+          "d045": 12.37,
+          "d090": 4.38,
+          "d135": 29.55,
+          "d180": 21.77,
+          "d225": 15.84,
+          "d270": 7.63,
+          "d315": 0.61
+        }
+      },
+      "delta_n_dark_d090": -173,
+      "rel_improve_dark": -0.0275,
+      "delta_red_pp": -0.04,
+      "screen_4x_d090_dark40": 3824,
+      "gate_dark_le_m15pct": false,
+      "gate_red_le_m5pp": false,
+      "visual_4x_readable_improve": false
+    },
+    "B_d180x015": {
+      "n_dark_inner_d090": 6022,
+      "n_dark_inner_d045": 3101,
+      "coverage_gy": 0.7035,
+      "coverage_red": 0.2965,
+      "pull_down": {
+        "d135": 29.02,
+        "d180": 21.66,
+        "d225": 16.2,
+        "full": {
+          "d000": 7.91,
+          "d045": 12.52,
+          "d090": 4.49,
+          "d135": 29.02,
+          "d180": 21.66,
+          "d225": 16.2,
+          "d270": 7.57,
+          "d315": 0.62
+        }
+      },
+      "delta_n_dark_d090": -261,
+      "rel_improve_dark": -0.0415,
+      "delta_red_pp": -0.04,
+      "screen_4x_d090_dark40": 3824,
+      "gate_dark_le_m15pct": false,
+      "gate_red_le_m5pp": false,
+      "visual_4x_readable_improve": false
+    },
+    "C_bothx015": {
+      "n_dark_inner_d090": 5180,
+      "n_dark_inner_d045": 2946,
+      "coverage_gy": 0.7035,
+      "coverage_red": 0.2965,
+      "pull_down": {
+        "d135": 15.88,
+        "d180": 14.47,
+        "d225": 22.27,
+        "full": {
+          "d000": 12.35,
+          "d045": 16.84,
+          "d090": 5.8,
+          "d135": 15.88,
+          "d180": 14.47,
+          "d225": 22.27,
+          "d270": 11.47,
+          "d315": 0.92
+        }
+      },
+      "delta_n_dark_d090": -1103,
+      "rel_improve_dark": -0.1756,
+      "delta_red_pp": -0.04,
+      "screen_4x_d090_dark40": 3824,
+      "screen_4x_note": "UV n_dark −17.6% but LayerA 4x screen dark40 3888→3824 (−1.6%); 98.8% of baseline dark40 still dark40; mean lift on those px +0.21",
+      "gate_dark_le_m15pct": true,
+      "gate_red_le_m5pp": false,
+      "visual_4x_readable_improve": false
+    }
+  },
+  "threshold": {
+    "definition": "明显 = (n_dark_inner ≤ −15% vs 6283 OR 红 ≤ −5pp) AND 4x 假透空肉眼可读改善",
+    "YES": false,
+    "NO": true,
+    "per_tier": {
+      "A_d180x035": {
+        "metric_pass": false,
+        "rel_dark": -0.0275,
+        "delta_red_pp": -0.04,
+        "visual_readable_improve": false
+      },
+      "B_d180x015": {
+        "metric_pass": false,
+        "rel_dark": -0.0415,
+        "delta_red_pp": -0.04,
+        "visual_readable_improve": false
+      },
+      "C_bothx015": {
+        "metric_pass": true,
+        "rel_dark": -0.1756,
+        "delta_red_pp": -0.04,
+        "visual_readable_improve": false,
+        "metric_note": "UV n_dark 过 −15%，但 4x 屏上假透空未可读改善 → AND 失败"
+      }
+    }
+  },
+  "verdict": {
+    "threshold_YES": false,
+    "threshold_NO": true,
+    "keep": "baseline",
+    "rollback_to_baseline": true,
+    "stop_roi_soft_path": true,
+    "reason": "A/B 未达 UV 门槛（−2.8%/−4.2%）；C 虽 UV n_dark −17.6% 过数门槛，但 Layer A 4x 屏上 dark40 仅 3888→3824（−1.6%），基线近黑点 98.8% 仍近黑，假透空肉眼不可读改善；红仍 ~29.65%（Δ−0.04pp）。按「且」条款判 NO → 整条 ROI 软降权停，工作 fur 回 baseline 46e56675…。C 上 d225 pull-down 升至 22.27%（基线 15.72）→ 下一结构只读查 d225 源；本轮不软降 d225。",
+    "next_structure": "只读查 d225 源（C 上已成 pull-down 榜首；先前 x015 abs<40≈60% 备注仍有效）",
+    "CANDIDATE_UNFROZEN": true,
+    "no_freeze_no_M3_no_user_point2": true
+  },
+  "paths": {
+    "experiment": "docs/validation/m2_2_8dir/hold_diag/fuse_soft_d135_d180_roi",
+    "mask": "docs/validation/m2_2_8dir/hold_diag/d090_torso_dark_uv_inner_mask.png",
+    "archive_pre": "cats/miemie/identity_v1/archive/pre_fuse_soft_d135_d180_20261030_131208",
+    "compare_A": "docs/validation/m2_2_8dir/hold_diag/fuse_soft_d135_d180_roi/A_d180x035/compare_layer_a_d090_d045_4x_black.png",
+    "compare_B": "docs/validation/m2_2_8dir/hold_diag/fuse_soft_d135_d180_roi/B_d180x015/compare_layer_a_d090_d045_4x_black.png",
+    "compare_C": "docs/validation/m2_2_8dir/hold_diag/fuse_soft_d135_d180_roi/C_bothx015/compare_layer_a_d090_d045_4x_black.png"
+  }
+}

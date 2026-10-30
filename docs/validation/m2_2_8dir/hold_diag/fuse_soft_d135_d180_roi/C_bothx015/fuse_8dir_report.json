@@ -1,0 +1,120 @@
+{
+  "ok": true,
+  "stage": "M2.2_fuse_8dir",
+  "views_used": [
+    "d000",
+    "d045",
+    "d090",
+    "d135",
+    "d180",
+    "d225",
+    "d270",
+    "d315"
+  ],
+  "views_skipped": {},
+  "uv_hash_expected": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
+  "contrast_experiment": {
+    "tag": "fuse_soft_d135_d180_roi_C_bothx015",
+    "view_weight_mult": {
+      "d000": 1.0,
+      "d045": 1.0,
+      "d090": 1.0,
+      "d135": 1.0,
+      "d180": 1.0,
+      "d225": 1.0,
+      "d270": 1.0,
+      "d315": 1.0
+    },
+    "dark_reject_lum": 0.0,
+    "ndotv_graze": 0.2,
+    "edge_erode": 10,
+    "ndotv_direct": 0.5,
+    "roi_mask_enabled": true,
+    "roi_mask_texels": 6283,
+    "roi_view_soft": {
+      "d135": 0.15,
+      "d180": 0.15
+    },
+    "note": "CONTRAST ONLY — view-weight / dark-reject / ndotv-graze / edge-erode / ROI soft-down knobs. Not a freeze; does not procedural-fill red coverage. ROI soft does not change the default global view-weight table."
+  },
+  "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
+  "uv_hash_unchanged": true,
+  "view_stats": {
+    "d000": {
+      "texels_weighted": 275010,
+      "yaw_deg": 0.0,
+      "view_weight_mult": 1.0,
+      "dark_reject_lum_applied": 0.0,
+      "roi_soft_mult": 1.0,
+      "roi_soft_active": false
+    },
+    "d045": {
+      "texels_weighted": 283994,
+      "yaw_deg": -45.0,
+      "view_weight_mult": 1.0,
+      "dark_reject_lum_applied": 0.0,
+      "roi_soft_mult": 1.0,
+      "roi_soft_active": false
+    },
+    "d090": {
+      "texels_weighted": 296876,
+      "yaw_deg": -90.0,
+      "view_weight_mult": 1.0,
+      "dark_reject_lum_applied": 0.0,
+      "roi_soft_mult": 1.0,
+      "roi_soft_active": false
+    },
+    "d135": {
+      "texels_weighted": 286013,
+      "yaw_deg": -135.0,
+      "view_weight_mult": 1.0,
+      "dark_reject_lum_applied": 0.0,
+      "roi_soft_mult": 0.15,
+      "roi_soft_active": true
+    },
+    "d180": {
+      "texels_weighted": 330820,
+      "yaw_deg": 180.0,
+      "view_weight_mult": 1.0,
+      "dark_reject_lum_applied": 0.0,
+      "roi_soft_mult": 0.15,
+      "roi_soft_active": true
+    },
+    "d225": {
+      "texels_weighted": 314203,
+      "yaw_deg": 135.0,
+      "view_weight_mult": 1.0,
+      "dark_reject_lum_applied": 0.0,
+      "roi_soft_mult": 1.0,
+      "roi_soft_active": false
+    },
+    "d270": {
+      "texels_weighted": 298636,
+      "yaw_deg": 90.0,
+      "view_weight_mult": 1.0,
+      "dark_reject_lum_applied": 0.0,
+      "roi_soft_mult": 1.0,
+      "roi_soft_active": false
+    },
+    "d315": {
+      "texels_weighted": 283221,
+      "yaw_deg": 45.0,
+      "view_weight_mult": 1.0,
+      "dark_reject_lum_applied": 0.0,
+      "roi_soft_mult": 1.0,
+      "roi_soft_active": false
+    }
+  },
+  "coverage": {
+    "uv_island_texels": 1003672,
+    "direct_controlled": 612562,
+    "grazing_interpolated": 93944,
+    "unseen_inpainted_or_seed": 297565,
+    "high_freq_texels": 1003672,
+    "high_freq_green_yellow": 706107,
+    "high_freq_green_yellow_ratio": 0.7035,
+    "unseen_over_island": 0.2965,
+    "gate_high_freq_green_yellow_ge_0_92": false,
+    "gate_red_blind_le_0_20": false
+  }
+}

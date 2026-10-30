@@ -1,0 +1,107 @@
+{
+  "stage": "d090_torso_dark_uv_attribution",
+  "fur_sha256_pixels": "91c6fb98cc73c617a1af7c3f327dae63466cc3e5a950b56abafde4774ffb60aa",
+  "fur_file_sha256": "4bff2093c2da96aa8f3a828c774ed1a1815c6a805d8863b0c7e7f20ffaa1e62a",
+  "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
+  "constants": {
+    "EDGE_ERODE": 10,
+    "NDOTV_GRAZE": 0.2,
+    "DARK_LUM_abs": 40.0,
+    "rel_thr": 91.0,
+    "p10_d090_torso": 91.0,
+    "ERODE_ROI_alpha": 2,
+    "view_weight": "all 1.0 (no contrast knobs)"
+  },
+  "set_definition": "fur alpha ∩ torso UV(B1-B4) ∩ d090 weight>0 ∩ fused_lum<=max(p10,85) ∩ alpha-erode2. Absolute lum<40 nearly empty — false-hollow is relative on black bg. Authority=4x.",
+  "n_d090_torso": 99511,
+  "n_dark_uv_raw": 10338,
+  "n_dark_uv_inner": 6110,
+  "n_dark_uv_abs40": 0,
+  "n_dark_d045_inner_control": 3158,
+  "n_dark_d045_abs40_control": 0,
+  "weight_share_pct_on_dark_set": {
+    "d000": 6.38,
+    "d045": 9.17,
+    "d090": 15.54,
+    "d135": 23.1,
+    "d180": 22.76,
+    "d225": 14.01,
+    "d270": 6.03,
+    "d315": 3.0
+  },
+  "dark_sample_weight_share_pct": {
+    "d000": 4.23,
+    "d045": 4.04,
+    "d090": 11.27,
+    "d135": 27.86,
+    "d180": 0.25,
+    "d225": 50.14,
+    "d270": 1.29,
+    "d315": 0.92
+  },
+  "pull_down_weight_share_pct": {
+    "d000": 7.85,
+    "d045": 12.37,
+    "d090": 4.38,
+    "d135": 29.55,
+    "d180": 21.77,
+    "d225": 15.84,
+    "d270": 7.63,
+    "d315": 0.61
+  },
+  "mean_source_sample_lum_on_dark_set": {
+    "d000": 77.36,
+    "d045": 67.03,
+    "d090": 116.61,
+    "d135": 67.12,
+    "d180": 80.16,
+    "d225": 71.9,
+    "d270": 66.47,
+    "d315": 125.41
+  },
+  "ranked_by_dark_sample_weight": [
+    "d225",
+    "d135",
+    "d090",
+    "d000",
+    "d045",
+    "d270",
+    "d315",
+    "d180"
+  ],
+  "ranked_by_total_weight_on_dark": [
+    "d135",
+    "d180",
+    "d090",
+    "d225",
+    "d045",
+    "d000",
+    "d270",
+    "d315"
+  ],
+  "ranked_by_pull_down": [
+    "d135",
+    "d180",
+    "d225",
+    "d045",
+    "d000",
+    "d270",
+    "d090",
+    "d315"
+  ],
+  "pollution_call": "d135 邻向 pull-down 29.55% → 查 EDGE/graze；d090 源均亮 116.6 > rel_thr → 更像邻向拉低/加权平均",
+  "top_dark_sample_views": [
+    "d225",
+    "d135",
+    "d090",
+    "d000"
+  ],
+  "top_pull_down_views": [
+    "d135",
+    "d180",
+    "d225",
+    "d045"
+  ],
+  "overlay": "docs/validation/m2_2_8dir/hold_diag/fuse_soft_d135_d180_roi/A_d180x035/d090_torso_dark_uv_attrib_overlay.png",
+  "note_opus_align": "Do NOT blind-lower d090 / no view-weight. Screen body-only dark_opaque@40 is edge-polluted; use UV relative-dark ranking + 4x. d270 stays rolled-back PASS. This round: NDOTV_GRAZE contrast only (EDGE_ERODE unchanged)."
+}

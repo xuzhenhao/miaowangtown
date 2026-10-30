@@ -1,0 +1,8 @@
+{
+  "keep": "baseline",
+  "threshold_YES": false,
+  "threshold_NO": true,
+  "stop_roi_soft_path": true,
+  "reason": "A/B 未达 UV 门槛（−2.8%/−4.2%）；C 虽 UV n_dark −17.6% 过数门槛，但 Layer A 4x 屏上 dark40 仅 3888→3824（−1.6%），基线近黑点 98.8% 仍近黑，假透空肉眼不可读改善；红仍 ~29.65%（Δ−0.04pp）。按「且」条款判 NO → 整条 ROI 软降权停，工作 fur 回 baseline 46e56675…。C 上 d225 pull-down 升至 22.27%（基线 15.72）→ 下一结构只读查 d225 源；本轮不软降 d225。",
+  "next": "只读查 d225 源（C 上已成 pull-down 榜首；先前 x015 abs<40≈60% 备注仍有效）"
+}
