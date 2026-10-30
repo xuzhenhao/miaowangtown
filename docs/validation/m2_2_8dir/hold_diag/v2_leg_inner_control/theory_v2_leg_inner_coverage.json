@@ -1,0 +1,277 @@
+{
+  "stage": "v2_leg_inner_control_theory",
+  "time_asia_shanghai": "2026-10-30 17:42",
+  "fur_file_sha256": "3be77787ab0f3407786c0f6fe343482708ad549630522beac71d3332f10bb57c",
+  "coverage_sha256": "1a8dbaf08c933ac24cff44343b2437c6048ffe68e66a30cc47cece3d1e0316e1",
+  "fur_status": "CANDIDATE_UNFROZEN",
+  "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
+  "mutated_fur": false,
+  "ran_sdxl": false,
+  "ran_fuse": false,
+  "fill_red": false,
+  "frozen": false,
+  "opened_m3": false,
+  "cameras": {
+    "v2_leg_inner_L": {
+      "yaw_deg": -75.0,
+      "pitch_deg": 15.0,
+      "fit_margin": 0.08,
+      "scale_m_per_logical_px": 0.005522641351622875,
+      "origin_logical_px": [
+        47.41587342533679,
+        92.20878526413907
+      ],
+      "visible_px": 38610
+    },
+    "v2_leg_inner_R": {
+      "yaw_deg": 75.0,
+      "pitch_deg": 15.0,
+      "fit_margin": 0.08,
+      "scale_m_per_logical_px": 0.005916720540854494,
+      "origin_logical_px": [
+        63.73208314932011,
+        91.61128792083908
+      ],
+      "visible_px": 27169
+    }
+  },
+  "margins": {
+    "v2_leg_inner_L": {
+      "depth": {
+        "size": [
+          456,
+          416
+        ],
+        "visible_px": 38604,
+        "margin_top": 34,
+        "margin_bottom": 33,
+        "margin_left": 47,
+        "margin_right": 57,
+        "margin_ge_16": true
+      },
+      "clay": {
+        "size": [
+          456,
+          416
+        ],
+        "visible_px": 38610,
+        "margin_top": 34,
+        "margin_bottom": 33,
+        "margin_left": 47,
+        "margin_right": 57,
+        "margin_ge_16": true
+      },
+      "normal": {
+        "size": [
+          456,
+          416
+        ],
+        "visible_px": 38610,
+        "margin_top": 34,
+        "margin_bottom": 33,
+        "margin_left": 47,
+        "margin_right": 57,
+        "margin_ge_16": true
+      }
+    },
+    "v2_leg_inner_R": {
+      "depth": {
+        "size": [
+          456,
+          416
+        ],
+        "visible_px": 27157,
+        "margin_top": 33,
+        "margin_bottom": 33,
+        "margin_left": 78,
+        "margin_right": 65,
+        "margin_ge_16": true
+      },
+      "clay": {
+        "size": [
+          456,
+          416
+        ],
+        "visible_px": 27169,
+        "margin_top": 33,
+        "margin_bottom": 33,
+        "margin_left": 78,
+        "margin_right": 65,
+        "margin_ge_16": true
+      },
+      "normal": {
+        "size": [
+          456,
+          416
+        ],
+        "visible_px": 27169,
+        "margin_top": 33,
+        "margin_bottom": 33,
+        "margin_left": 78,
+        "margin_right": 65,
+        "margin_ge_16": true
+      }
+    }
+  },
+  "constants": {
+    "NDOTV_GRAZE": 0.2,
+    "prev_views": "8-dir pitch=35 + v1_belly yaw0 pitch-30",
+    "theory_note": "Occlusion-free face N·V. Baseline = current working coverage (8+V1 fused, CANDIDATE_UNFROZEN). Optimistic upper bound."
+  },
+  "baseline_honest_8plus_v1": {
+    "island": 869905,
+    "n_gy": 825805,
+    "n_red": 44100,
+    "GY_over_island": 0.9493,
+    "red_over_island": 0.0507
+  },
+  "per_view_theory": {
+    "v2_leg_inner_L": {
+      "label": "v2_leg_inner_L",
+      "n_honest_red_ge_graze": 4054,
+      "pct_honest_red_ge_graze": 9.19,
+      "n_newly_coverable_prev_lt_graze": 1204,
+      "pct_honest_red_newly": 2.73,
+      "backface_red_n": 3591,
+      "backface_red_eaten": 0,
+      "pct_backface_red_eaten": 0.0,
+      "legs_red_n": 12205,
+      "legs_red_eaten": 831,
+      "pct_legs_red_eaten": 6.81,
+      "rear_legs_C3C4_red_n": 11350,
+      "rear_legs_C3C4_red_eaten": 771,
+      "pct_rear_legs_red_eaten": 6.79,
+      "C3_leg_BL_red_n": 5599,
+      "C3_leg_BL_red_eaten": 631,
+      "pct_C3_red_eaten": 11.27,
+      "C4_leg_BR_red_n": 5751,
+      "C4_leg_BR_red_eaten": 140,
+      "pct_C4_red_eaten": 2.43,
+      "front_legs_red_n": 855,
+      "front_legs_red_eaten": 60,
+      "pct_front_legs_red_eaten": 7.02,
+      "belly_red_n": 6541,
+      "belly_red_eaten": 1160,
+      "pct_belly_red_eaten": 17.73,
+      "thresh_red_n": 30169,
+      "thresh_red_eaten": 1204,
+      "pct_thresh_red_eaten": 3.99,
+      "face_detail_red_n": 13388,
+      "face_detail_red_eaten": 469,
+      "pct_face_detail_red_eaten": 3.5,
+      "estimated_after": {
+        "n_gy": 827009,
+        "n_red": 42896,
+        "GY_over_island": 0.9507,
+        "red_over_island": 0.0493,
+        "delta_GY_pp": 0.14,
+        "delta_red_pp": -0.14,
+        "still_short_of_0_92_by": 0.0,
+        "red_gate_still_pass_le_0_20": true
+      }
+    },
+    "v2_leg_inner_R": {
+      "label": "v2_leg_inner_R",
+      "n_honest_red_ge_graze": 6448,
+      "pct_honest_red_ge_graze": 14.62,
+      "n_newly_coverable_prev_lt_graze": 3308,
+      "pct_honest_red_newly": 7.5,
+      "backface_red_n": 3591,
+      "backface_red_eaten": 0,
+      "pct_backface_red_eaten": 0.0,
+      "legs_red_n": 12205,
+      "legs_red_eaten": 1336,
+      "pct_legs_red_eaten": 10.95,
+      "rear_legs_C3C4_red_n": 11350,
+      "rear_legs_C3C4_red_eaten": 1328,
+      "pct_rear_legs_red_eaten": 11.7,
+      "C3_leg_BL_red_n": 5599,
+      "C3_leg_BL_red_eaten": 383,
+      "pct_C3_red_eaten": 6.84,
+      "C4_leg_BR_red_n": 5751,
+      "C4_leg_BR_red_eaten": 945,
+      "pct_C4_red_eaten": 16.43,
+      "front_legs_red_n": 855,
+      "front_legs_red_eaten": 8,
+      "pct_front_legs_red_eaten": 0.94,
+      "belly_red_n": 6541,
+      "belly_red_eaten": 361,
+      "pct_belly_red_eaten": 5.52,
+      "thresh_red_n": 30169,
+      "thresh_red_eaten": 3308,
+      "pct_thresh_red_eaten": 10.96,
+      "face_detail_red_n": 13388,
+      "face_detail_red_eaten": 2426,
+      "pct_face_detail_red_eaten": 18.12,
+      "estimated_after": {
+        "n_gy": 829113,
+        "n_red": 40792,
+        "GY_over_island": 0.9531,
+        "red_over_island": 0.0469,
+        "delta_GY_pp": 0.38,
+        "delta_red_pp": -0.38,
+        "still_short_of_0_92_by": 0.0,
+        "red_gate_still_pass_le_0_20": true
+      }
+    }
+  },
+  "combined_L_R_theory": {
+    "label": "v2_leg_inner_L+R",
+    "n_honest_red_ge_graze": 10502,
+    "pct_honest_red_ge_graze": 23.81,
+    "n_newly_coverable_prev_lt_graze": 4512,
+    "pct_honest_red_newly": 10.23,
+    "backface_red_n": 3591,
+    "backface_red_eaten": 0,
+    "pct_backface_red_eaten": 0.0,
+    "legs_red_n": 12205,
+    "legs_red_eaten": 2167,
+    "pct_legs_red_eaten": 17.76,
+    "rear_legs_C3C4_red_n": 11350,
+    "rear_legs_C3C4_red_eaten": 2099,
+    "pct_rear_legs_red_eaten": 18.49,
+    "C3_leg_BL_red_n": 5599,
+    "C3_leg_BL_red_eaten": 1014,
+    "pct_C3_red_eaten": 18.11,
+    "C4_leg_BR_red_n": 5751,
+    "C4_leg_BR_red_eaten": 1085,
+    "pct_C4_red_eaten": 18.87,
+    "front_legs_red_n": 855,
+    "front_legs_red_eaten": 68,
+    "pct_front_legs_red_eaten": 7.95,
+    "belly_red_n": 6541,
+    "belly_red_eaten": 1521,
+    "pct_belly_red_eaten": 23.25,
+    "thresh_red_n": 30169,
+    "thresh_red_eaten": 4512,
+    "pct_thresh_red_eaten": 14.96,
+    "face_detail_red_n": 13388,
+    "face_detail_red_eaten": 2895,
+    "pct_face_detail_red_eaten": 21.62,
+    "estimated_after": {
+      "n_gy": 830317,
+      "n_red": 39588,
+      "GY_over_island": 0.9545,
+      "red_over_island": 0.0455,
+      "delta_GY_pp": 0.52,
+      "delta_red_pp": -0.52,
+      "still_short_of_0_92_by": 0.0,
+      "red_gate_still_pass_le_0_20": true
+    }
+  },
+  "verdict": {
+    "control_exported": true,
+    "margin_ge_16": true,
+    "sdxl_status": "控图已出·不开 SDXL",
+    "one_liner": "V2 L/R yaw=±75 pitch=15 边距≥16=YES；相对 8+V1 基线 GY=0.9493/红=0.0507；L+R 理论新吃红 4512 (10.23%) → GY 0.9493→0.9545(+0.52pp)；C3/C4 红可吃 18.11%/18.87%；未开 SDXL/fuse。"
+  },
+  "outputs": [
+    "v2_leg_inner_control_sheet.png",
+    "control_preview/v2_leg_inner_L/",
+    "control_preview/v2_leg_inner_R/",
+    "theory_v2_eat_red_512.png",
+    "theory_v2_ndotv_on_red_512.png",
+    "theory_v2_leg_inner_coverage.json",
+    "V2_LEG_INNER_CONTROL.md"
+  ]
+}
