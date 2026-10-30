@@ -1,0 +1,17 @@
+{
+  "try": 2,
+  "seed_offset": 60011,
+  "seed": 20321052,
+  "sha256": "f0830671b4b8ccc14fe24cffb5ca7217a3320b85c12fbc4fa1e3c3884afd3bbf",
+  "clip": {
+    "tokens": 77,
+    "truncated_at_77": false
+  },
+  "verdict": "FAIL",
+  "reasons": [
+    "floating white shard circles near head",
+    "head top squared/clipped",
+    "torso near-black blocks still flat/heavy (lift goal unmet)",
+    "painterly but plastic-smooth midtones; not clearer than PASS"
+  ]
+}

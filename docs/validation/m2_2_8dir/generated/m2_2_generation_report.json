@@ -73,7 +73,29 @@
     "d135": {
       "path": "cats/miemie/identity_v1/complementary_albedos/d135_unlit_albedo.png",
       "seed": 20261052,
-      "gate_status": "pending_4x_fur_flow_and_markings"
+      "gate_status": "PASS_restored_after_two_FAIL_regens",
+      "albedo_sha256": "acabf10cacd784cd992a8e1c15a0c4efb96b2ead48c962b03a248d216999885c",
+      "regen_attempts": [
+        {
+          "try": 1,
+          "seed_offset": 50011,
+          "seed": 20311360,
+          "sha256": "4830e4d7bed4f3b99d0ade6131986a10bae28df82dba43ed91cf97824b9a36d2",
+          "verdict": "FAIL",
+          "clip_tokens": 77,
+          "truncated_at_77": false
+        },
+        {
+          "try": 2,
+          "seed_offset": 60011,
+          "seed": 20321052,
+          "sha256": "f0830671b4b8ccc14fe24cffb5ca7217a3320b85c12fbc4fa1e3c3884afd3bbf",
+          "verdict": "FAIL",
+          "clip_tokens": 77,
+          "truncated_at_77": false
+        }
+      ],
+      "stopped": "two_FAIL_await_opus"
     },
     "d225": {
       "path": "cats/miemie/identity_v1/complementary_albedos/d225_unlit_albedo.png",
@@ -105,22 +127,24 @@
     }
   },
   "root": "/Users/cloud/dev/game/喵汪小镇/miaowangtown",
-  "seed_offset": 40011,
+  "seed_offset": 60011,
   "selected_views": [
-    "d270"
+    "d135"
   ],
   "rerun_of_fails": true,
   "view_tuning_applied": {
-    "d270": {
-      "prompt_extra": "",
-      "negative_extra": "",
+    "d135": {
+      "prompt_extra": ", lift black torso blotches to mid gray-brown fur",
+      "negative_extra": ", crushed black torso patches, opaque near-black mottling blocks, flat bright washed fur, plastic ellipse blobs, silhouette shards outside depth, flat mushy fur, lost tabby contrast",
       "control_scale": [
-        0.85,
-        0.65
+        1.05,
+        0.8
       ],
-      "ip_scale": 0.65,
-      "guidance": 5.0
+      "ip_scale": 0.62,
+      "guidance": 5.2,
+      "omit_view_style_tail": true
     }
   },
-  "merge_report": true
+  "merge_report": true,
+  "d135_regen_status": "TWO_FAIL_ROLLED_BACK_AWAIT_OPUS"
 }

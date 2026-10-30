@@ -200,6 +200,22 @@ VIEW_TUNING = {
         "ip_scale": 0.6,
         "guidance": 5.0,
     },
+    # d135: lift near-black torso mottling (attrib 12a1945).
+    # omit_view_style_tail keeps CLIP positive ≤77 (truncate=False) while HARD+extra+MARKS stay.
+    "d135": {
+        "prompt_extra": (
+            ", lift black torso blotches to mid gray-brown fur"
+        ),
+        "negative_extra": (
+            ", crushed black torso patches, opaque near-black mottling blocks, "
+            "flat bright washed fur, plastic ellipse blobs, silhouette shards outside depth, "
+            "flat mushy fur, lost tabby contrast"
+        ),
+        "omit_view_style_tail": True,
+        "control_scale": [1.05, 0.8],
+        "ip_scale": 0.62,
+        "guidance": 5.2,
+    },
     "d225": {
         "prompt_extra": (
             ", body aligned to depth/part mask, continuous silhouette, no disconnected shards"
@@ -584,6 +600,7 @@ def try_generate(env: dict, selected_views: list[str], seed_offset: int = 0, mer
             "control_scale": control_scale,
             "ip_scale": ip_scale,
             "guidance": guidance,
+            "omit_view_style_tail": bool(tuning.get("omit_view_style_tail")),
         }
 
         depth_path = CTRL / dname / "depth_768.png"
@@ -599,14 +616,18 @@ def try_generate(env: dict, selected_views: list[str], seed_offset: int = 0, mer
         view_seed = SEED + seed_offset + (hash(dname) % 1000)
         generator = torch.Generator(device=gen_device).manual_seed(view_seed)
         # Order: HARD → prompt_extra → MARKS → view → STYLE (CLIP-77 keeps head).
-        final_prompt = (
-            PROMPT_HARD
-            + prompt_extra
-            + ", "
-            + PROMPT_MARKS
-            + f", view {dname}, "
-            + PROMPT_STYLE
-        )
+        # Per-view omit_view_style_tail drops ", view X, STYLE" so extras fit ≤77.
+        if tuning.get("omit_view_style_tail"):
+            final_prompt = PROMPT_HARD + prompt_extra + ", " + PROMPT_MARKS
+        else:
+            final_prompt = (
+                PROMPT_HARD
+                + prompt_extra
+                + ", "
+                + PROMPT_MARKS
+                + f", view {dname}, "
+                + PROMPT_STYLE
+            )
         final_negative = NEGATIVE + negative_extra
         tok_info = estimate_clip_tokens(final_prompt)
         print(f"CLIP prompt debug [{dname}]:", tok_info)

@@ -1,5 +1,24 @@
 # M2.2 制作人自审摘要（诚实版）
 
+**时间**：2026-10-30 13:01（Asia/Shanghai）· d135 受控重生两次 FAIL  
+**结论**：仍 **CONDITIONAL HOLD**。**已停等 opus**（不做第三次）。d135 回滚 PASS `acabf10c…`；d180 未动；fur 保持 `46e56675…`；未 fuse；不冻、不开 M3、不交用户点2。
+
+## d135 重生（本轮）
+
+| try | seed_offset | seed | sha | CLIP77 | 门禁 |
+|---:|---:|---:|---|---|---|
+| 1 | 50011 | 20311360 | `4830e4d7…` | 77 / truncate=False | **FAIL**（浮空碎块/头切/断爪） |
+| 2 | 60011 | 20321052 | `f0830671…` | 77 / truncate=False | **FAIL**（浮空白圆/头切/压黑仍重） |
+
+- VIEW_TUNING 已写入（抬近黑→中灰棕 + omit_view_style_tail 保 CLIP≤77）
+- 归档：`pre_d135_regen_12a1945/` + `failed_d135_regen_try{1,2}_*`
+- 状态文：`hold_diag/D135_REGEN_STATUS.md`
+- **未**宣称可冻；**未**开 d180
+
+## 此前摘要（保留）
+
+# M2.2 制作人自审摘要（诚实版）
+
 **时间**：2026-10-30（Asia/Shanghai）· d135/d180 源图暗采样归因（只读）  
 **结论**：仍 **CONDITIONAL HOLD**。graze0.35 已回退。**主责= d135/d180 源图岛内躯干相对过暗**写入 d090 侧躯干相对暗带；非剪影外背景泄漏、近缘带非主导（与 graze 拧不动一致）。未 fuse / 未重生 / 未冻；fur 保持 `46e56675…`；d270 维持回滚 PASS。
 

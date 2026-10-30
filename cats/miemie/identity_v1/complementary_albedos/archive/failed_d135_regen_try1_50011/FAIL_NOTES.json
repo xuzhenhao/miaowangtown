@@ -1,0 +1,17 @@
+{
+  "try": 1,
+  "seed_offset": 50011,
+  "seed": 20311360,
+  "sha256": "4830e4d7bed4f3b99d0ade6131986a10bae28df82dba43ed91cf97824b9a36d2",
+  "clip": {
+    "tokens": 77,
+    "truncated_at_77": false
+  },
+  "verdict": "FAIL",
+  "reasons": [
+    "floating dark shard left of head (outside silhouette)",
+    "head top clipped by hard horizontal cut",
+    "disconnected front paw fragment",
+    "torso near-black blotches not clearly lifted; plastic-smooth midtones"
+  ]
+}
