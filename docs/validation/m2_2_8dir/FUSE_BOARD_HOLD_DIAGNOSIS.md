@@ -117,4 +117,8 @@
 
 - 未修改 `cats/miemie/identity_v1/fur_albedo.png`  
 - 未完整重跑 fuse  
-- 未冻结、未开 M3  
+- 未冻结、未开 M3
+
+## 诚实注记（opus 纠偏）
+- `hold_diag_report.json` 中若 `silhouette_holes_*=-1`：表示当时环境 **无 scipy**，未跑 scipy 连通域；封闭洞计数改用 **纯 numpy/PIL flood-fill fallback**（或跳过），**不得**解读为 scipy 已验证 holes=0。
+- 主结论「clay 实心 / albedo 假透空」仍以 clay-vs-albedo 目视对照图与 alpha 直方图为准。
