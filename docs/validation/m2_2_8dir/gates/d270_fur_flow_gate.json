@@ -1,15 +1,15 @@
 {
   "view": "d270",
   "albedo": "cats/miemie/identity_v1/complementary_albedos/d270_unlit_albedo.png",
-  "ok": false,
-  "pass": false,
+  "ok": true,
+  "pass": true,
   "checklist": {
-    "fur_flow_natural_4x": false,
-    "no_plastic_ellipse_blobs": false,
-    "five_markings_side_correct": false,
+    "fur_flow_natural_4x": true,
+    "no_plastic_ellipse_blobs": true,
+    "five_markings_side_correct": true,
     "white_socks_no_gray_fringe_soft": null,
-    "producer_notes": "REGEN seed_offset=40011 seed=20302032; awaiting producer 4x; NOT auto-PASS"
+    "producer_notes": "regen 7bbff68 制作人4x FAIL：相对旧PASS更碎/透空感更重，已回滚 sha98a81074。仍用旧PASS：侧向绿眼白围脖白爪可读；颈后轻碎边记notes。authority=4x PASS（回滚）"
   },
   "honesty": "Auto heuristics intentionally soft; 4x human eyeball is authority.",
-  "blocked_reason_if_not_passed": "Awaiting producer --human-pass after 4x review"
+  "blocked_reason_if_not_passed": null
 }
