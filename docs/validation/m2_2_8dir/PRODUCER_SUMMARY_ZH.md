@@ -1,5 +1,25 @@
 # M2.2 制作人自审摘要（诚实版）
 
+**时间**：2026-10-30 13:27（Asia/Shanghai）· d225 受控重生 1 次 FAIL  
+**结论**：仍 **CONDITIONAL HOLD**。**整条源重生停**（禁第二次）。d225 回滚 PASS `f3ec8950…`；fur 保持 baseline `46e56675…`；未 fuse；不冻、不开 M3、不交用户点2。
+
+## 2026-10-30 d225 受控重生（恰好 1 次 · FAIL · 停）
+
+| try | seed_offset | seed | sha | CLIP77 | 门禁 |
+|---:|---:|---:|---|---|---|
+| 1 | 70011 | 20331396 | `1db95dd9…` | 77 / truncate=False | **FAIL**（头切竖条/层状碎块/断爪/塑料椭圆） |
+
+- 控图未重导出（`bf13e9a` 边距≥16）；control/ip/guidance 保持 PASS 档未升 depth
+- 正词禁全局提亮；`omit_view_style_tail` 保 CLIP=77
+- 近黑 frac&lt;40 表面↓（11%→0.3%）但几何门禁权威 FAIL → 不 fuse
+- 归档：`pre_d225_regen_bf13e9a/` + `failed_d225_regen_try1_70011/`
+- 状态文：`hold_diag/D225_REGEN_STATUS.md`
+- **未**宣称可冻；**整条源重生停** 等 opus HOLD 选项
+
+## 此前摘要（保留）
+
+# M2.2 制作人自审摘要（诚实版）
+
 **时间**：2026-10-30 13:19（Asia/Shanghai）· d225 源图暗采样只读归因  
 **结论**：仍 **CONDITIONAL HOLD**。ROI 软降权整条已停；fur 保持 baseline `46e56675…`。**主责= d225 源图岛内碎斑/近黑（贡献 abs&lt;40≈34%）**写入 d090 侧躯干相对暗带；非剪影外背景泄漏。未 soft / 未 fuse / 未重生 / 未冻；不交用户点2。
 

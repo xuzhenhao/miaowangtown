@@ -1,0 +1,15 @@
+{
+  "view": "d225",
+  "albedo": "cats/miemie/identity_v1/complementary_albedos/d225_unlit_albedo.png",
+  "ok": false,
+  "pass": false,
+  "checklist": {
+    "fur_flow_natural_4x": false,
+    "no_plastic_ellipse_blobs": false,
+    "five_markings_side_correct": false,
+    "white_socks_no_gray_fringe_soft": null,
+    "producer_notes": "REGEN seed_offset=70011 seed=20331396; awaiting 4x; NOT auto-PASS"
+  },
+  "honesty": "Auto heuristics intentionally soft; 4x human eyeball is authority.",
+  "blocked_reason_if_not_passed": "Awaiting producer --human-pass after 4x review"
+}

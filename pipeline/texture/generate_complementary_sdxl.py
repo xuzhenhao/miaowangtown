@@ -216,14 +216,19 @@ VIEW_TUNING = {
         "ip_scale": 0.62,
         "guidance": 5.2,
     },
+    # d225: island blotchy near-black on flank (attrib 333f87f). Exactly 1 regen try.
+    # Ban global lift/brighten words (d135 try2 wash). omit_view_style_tail → CLIP=77.
+    # control/ip/guidance kept at prior PASS档; do NOT raise depth.
     "d225": {
         "prompt_extra": (
-            ", body aligned to depth/part mask, continuous silhouette, no disconnected shards"
+            ", flank fur readable mid gray-brown, no crushed ribs"
         ),
         "negative_extra": (
-            ", exploded parts, floating fragments, severed limbs, atlas layout, "
-            "depth leak, duplicated tails"
+            ", floating shards, hard head crop, disconnected paw, plastic ellipse, "
+            "flat bright wash, crushed near-black rib patches, exploded parts, "
+            "floating fragments, severed limbs, atlas layout, depth leak, duplicated tails"
         ),
+        "omit_view_style_tail": True,
         "control_scale": [1.2, 1.0],
         "ip_scale": 0.58,
         "guidance": 5.0,

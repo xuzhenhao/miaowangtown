@@ -1,0 +1,21 @@
+{
+  "view": "d225",
+  "try": 1,
+  "seed_offset": 70011,
+  "seed": 20331396,
+  "albedo_sha256": "1db95dd94225b56c7019a41b4813ce1fe724a017386068837c7f7773ec586782",
+  "clip_tokens": 77,
+  "truncated_at_77": false,
+  "gate": "FAIL",
+  "reasons": [
+    "hard head crop / vertical shard behind head",
+    "layered floating shards on hindquarters and tail",
+    "disconnected paw",
+    "plastic ellipse front limb mass"
+  ],
+  "note": "Near-black frac abs<40 dropped 11%→0.3% but geometry gate authority FAIL. Exactly 1 try per opus; whole source-regen path STOPPED. Rolled back to PASS f3ec8950…",
+  "rolled_back_to": "f3ec8950484f22747efb230d38113aa076343d9988815dac819c4c997e4811df",
+  "fur_unchanged": "46e56675a577390d70724e803a37c39b8cc79e070a5434c336a042da502a08dd",
+  "no_second_try": true,
+  "no_fuse": true
+}

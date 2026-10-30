@@ -99,8 +99,8 @@
     },
     "d225": {
       "path": "cats/miemie/identity_v1/complementary_albedos/d225_unlit_albedo.png",
-      "seed": 20281677,
-      "seed_offset": 20011,
+      "seed": 20331396,
+      "seed_offset": 70011,
       "gate_status": "pending_4x_fur_flow_and_markings",
       "control_scale": [
         1.2,
@@ -109,7 +109,13 @@
       "ip_scale": 0.58,
       "guidance": 5.0,
       "bg_masked_by_depth": true,
-      "rerun": true
+      "rerun": true,
+      "prompt_token_info": {
+        "tokens": 77,
+        "truncated_at_77": false,
+        "method": "CLIPTokenizer"
+      },
+      "prompt_len_chars": 330
     },
     "d315": {
       "path": "cats/miemie/identity_v1/complementary_albedos/d315_unlit_albedo.png",
@@ -127,24 +133,23 @@
     }
   },
   "root": "/Users/cloud/dev/game/喵汪小镇/miaowangtown",
-  "seed_offset": 60011,
+  "seed_offset": 70011,
   "selected_views": [
-    "d135"
+    "d225"
   ],
   "rerun_of_fails": true,
   "view_tuning_applied": {
-    "d135": {
-      "prompt_extra": ", lift black torso blotches to mid gray-brown fur",
-      "negative_extra": ", crushed black torso patches, opaque near-black mottling blocks, flat bright washed fur, plastic ellipse blobs, silhouette shards outside depth, flat mushy fur, lost tabby contrast",
+    "d225": {
+      "prompt_extra": ", flank fur readable mid gray-brown, no crushed ribs",
+      "negative_extra": ", floating shards, hard head crop, disconnected paw, plastic ellipse, flat bright wash, crushed near-black rib patches, exploded parts, floating fragments, severed limbs, atlas layout, depth leak, duplicated tails",
       "control_scale": [
-        1.05,
-        0.8
+        1.2,
+        1.0
       ],
-      "ip_scale": 0.62,
-      "guidance": 5.2,
+      "ip_scale": 0.58,
+      "guidance": 5.0,
       "omit_view_style_tail": true
     }
   },
-  "merge_report": true,
-  "d135_regen_status": "TWO_FAIL_ROLLED_BACK_AWAIT_OPUS"
+  "merge_report": true
 }
