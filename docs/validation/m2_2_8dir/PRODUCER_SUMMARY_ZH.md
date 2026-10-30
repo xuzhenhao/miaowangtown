@@ -1,5 +1,30 @@
 # M2.2 制作人自审摘要（诚实版）
 
+**时间**：2026-10-30 13:51（Asia/Shanghai）· V1 腹底控图  
+**结论**：仍 **CONDITIONAL HOLD**（GY）。假透空口径已解；红门诚实岛 PASS。**V1 控图已出 · 等 SDXL 点头**。未跑 SDXL/fuse；fur 未动 baseline `46e56675…`；不冻、不开 M3、不交用户点2。
+
+## 2026-10-30 V1 腹底控图（不开 SDXL）
+
+| 项 | 值 |
+|---|---|
+| 相机 | yaw=**0°** · pitch=**−30°** · `v1_belly` |
+| 边距 depth | T/B/L/R=**33/37/164/165** ≥16 YES |
+| 理论 GY（无遮挡上限） | 0.8117 → **0.9531**（+14.14pp） |
+| 战役 GY（扣 face_detail） | → **0.9079**（+9.62pp） |
+| belly 红可吃 | **84.35%**（29641/35140） |
+| 背向红可吃 | **83.91%**（73848/88009） |
+| face_detail | 理论可吃 80.47%但 **不进战役标准** |
+| 旧 8 向 | **未**重渲 |
+
+- 控图：`cats/miemie/identity_v1/control_views/v1_belly/`
+- 诊断：`hold_diag/v1_belly_control/`（`V1_BELLY_CONTROL.md` + json + 板）
+- 计划：`hold_diag/ADD_VIEW_MIN_PLAN.md` → 状态「控图已出·等 SDXL 点头」
+- `export_control_views.py` 已支持 `EXTRA_VIEWS` / 负 pitch / `--pitch`
+
+## 此前摘要（保留）
+
+# M2.2 制作人自审摘要（诚实版）
+
 **时间**：2026-10-30 13:35（Asia/Shanghai）· 用户拍板 **A** · 假透空口径重框  
 **结论**：仍 **CONDITIONAL HOLD**（整体）。口径重框完成：**可申请**将「侧向假透空」从主否决降为口径说明（CONDITIONAL→解该条）；但 coverage 红 **29.68%** 仍 FAIL → **不冻、不交用户点2**。fur 未动 baseline `46e56675…`；无 fuse/软降/regen/假绿/填红。
 

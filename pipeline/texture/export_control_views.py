@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """
 M2.2 — Export orthographic Depth / Camera-Normal / part-semantic Mask
-for selected directions (pitch=35°) from frozen master_cat.blend (read-only).
+for selected directions from frozen master_cat.blend (read-only).
 
-Does NOT mutate topology / UV / blend on disk.
-Fixed seed metadata written for downstream SDXL generation.
+Default 8-dir uses pitch=+35°. Extra named views (e.g. v1_belly) may use
+negative / low pitch for underside coverage. Does NOT mutate topology / UV /
+blend on disk. Fixed seed metadata written for downstream SDXL generation.
 
 CLI (after blender `--`):
   --views d090,d225,d315   only export these dirs (default: all DIRECTIONS)
+  --views v1_belly         belly underside (yaw=0, pitch=-30); not in 8-dir set
   --fit-margin 0.08        auto zoom-out + recenter so hi canvas keeps margin
+  --pitch -30              optional global pitch override for listed views
 """
 from __future__ import annotations
 
@@ -46,8 +49,29 @@ DIRECTIONS = {
     "d270": 90.0,
     "d315": 45.0,
 }
+# Extra named views (yaw + pitch). Not part of the locked 8-dir set.
+EXTRA_VIEWS = {
+    "v1_belly": {"yaw_deg": 0.0, "pitch_deg": -30.0, "alias": ["pitch_m30"]},
+}
 # Complementary = all except the already-projected d045 anchor view.
 COMPLEMENTARY = ["d000", "d090", "d180", "d270", "d135", "d225", "d315"]
+
+
+def resolve_view_spec(name: str, pitch_override: float | None = None) -> tuple[str, float, float]:
+    """Return (canonical_dir_name, yaw_deg, pitch_deg)."""
+    key = name.strip()
+    for canon, spec in EXTRA_VIEWS.items():
+        aliases = {canon, *(spec.get("alias") or [])}
+        if key in aliases or key.lower() in {a.lower() for a in aliases}:
+            yaw = float(spec["yaw_deg"])
+            pitch = float(spec["pitch_deg"]) if pitch_override is None else float(pitch_override)
+            return canon, yaw, pitch
+    if key in DIRECTIONS:
+        yaw = float(DIRECTIONS[key])
+        pitch = float(PITCH_DEG) if pitch_override is None else float(pitch_override)
+        return key, yaw, pitch
+    known = list(DIRECTIONS) + list(EXTRA_VIEWS)
+    raise RuntimeError(f"unknown view {name!r}; known={known}")
 
 # Part palette (semantic mask RGB, non-overlapping)
 PART_COLORS = {
@@ -102,9 +126,14 @@ def classify_vertex_part(co: np.ndarray) -> str:
     return "torso"
 
 
-def compute_fit(body_vs: np.ndarray, yaw_deg: float, fit_margin: float):
+def compute_fit(
+    body_vs: np.ndarray,
+    yaw_deg: float,
+    fit_margin: float,
+    pitch_deg: float = PITCH_DEG,
+):
     """Auto amplify S_LOG (zoom out) + translate ORIG_LOG so hi canvas keeps margin."""
-    e_u, e_v, _e_w = get_camera_basis(yaw_deg)
+    e_u, e_v, _e_w = get_camera_basis(yaw_deg, pitch_deg)
     u = body_vs @ e_u
     v = body_vs @ e_v
     umin, umax = float(u.min()), float(u.max())
@@ -151,8 +180,9 @@ def raster_view(
     eye_meshes,
     s_log: float = S_LOG_DEFAULT,
     orig_log: tuple[float, float] = ORIG_LOG_DEFAULT,
+    pitch_deg: float = PITCH_DEG,
 ) -> dict:
-    e_u, e_v, e_w = get_camera_basis(yaw_deg)
+    e_u, e_v, e_w = get_camera_basis(yaw_deg, pitch_deg)
     hi_w, hi_h = GW * SS, GH * SS
     zbuf = np.full((hi_h, hi_w), -1e9, dtype=np.float64)
     depth = np.zeros((hi_h, hi_w), dtype=np.float64)
@@ -321,13 +351,19 @@ def parse_args(argv: list[str] | None = None):
     p.add_argument(
         "--views",
         default="",
-        help="Comma-separated direction ids (default: all). Example: d090,d225,d315",
+        help="Comma-separated ids (default: all 8-dir). Example: d090,d225,d315 or v1_belly",
     )
     p.add_argument(
         "--fit-margin",
         type=float,
         default=0.0,
         help="If >0, auto zoom-out/recenter so hi canvas keeps this fraction blank on each side",
+    )
+    p.add_argument(
+        "--pitch",
+        type=float,
+        default=None,
+        help="Optional pitch override (degrees) for all listed views; default per-view",
     )
     return p.parse_args(argv)
 
@@ -342,13 +378,15 @@ def _strip_blender_argv() -> list[str]:
 
 def main() -> int:
     args = parse_args(_strip_blender_argv())
+    pitch_override = None if args.pitch is None else float(args.pitch)
     if args.views.strip():
-        view_names = [v.strip() for v in args.views.split(",") if v.strip()]
-        for v in view_names:
-            if v not in DIRECTIONS:
-                raise RuntimeError(f"unknown view {v}; known={list(DIRECTIONS)}")
+        raw_names = [v.strip() for v in args.views.split(",") if v.strip()]
+        view_specs = [resolve_view_spec(v, pitch_override) for v in raw_names]
     else:
-        view_names = list(DIRECTIONS.keys())
+        view_specs = [
+            resolve_view_spec(v, pitch_override) for v in DIRECTIONS.keys()
+        ]
+    view_names = [canon for canon, _yaw, _pitch in view_specs]
     fit_margin = float(args.fit_margin)
     if fit_margin < 0 or fit_margin >= 0.49:
         raise RuntimeError(f"fit-margin out of range: {fit_margin}")
@@ -399,7 +437,8 @@ def main() -> int:
         "ok": True,
         "uv_hash": measured,
         "uv_hash_unchanged": True,
-        "pitch_deg": PITCH_DEG,
+        "pitch_deg_default_8dir": PITCH_DEG,
+        "pitch_deg": PITCH_DEG,  # legacy key = 8-dir default; per-view see directions.*.pitch_deg
         "seed": SEED,
         "scale_m_per_logical_px": S_LOG_DEFAULT,
         "origin_logical_px": list(ORIG_LOG_DEFAULT),
@@ -415,17 +454,19 @@ def main() -> int:
         "note": "Control maps only. Complementary albedo must come from locked commercial SDXL stack; never procedural default.",
     }
 
-    for dname in view_names:
-        yaw = DIRECTIONS[dname]
+    for dname, yaw, pitch in view_specs:
         if fit_margin > 0:
-            s_log, orig_log, fit_info = compute_fit(vs, yaw, fit_margin)
+            s_log, orig_log, fit_info = compute_fit(vs, yaw, fit_margin, pitch_deg=pitch)
         else:
             s_log, orig_log, fit_info = S_LOG_DEFAULT, ORIG_LOG_DEFAULT, {}
         print(
-            f"export {dname} yaw={yaw} s_log={s_log:.6f} orig={orig_log} fit_margin={fit_margin}",
+            f"export {dname} yaw={yaw} pitch={pitch} s_log={s_log:.6f} "
+            f"orig={orig_log} fit_margin={fit_margin}",
             flush=True,
         )
-        r = raster_view(yaw, mesh, vs, eye_meshes, s_log=s_log, orig_log=orig_log)
+        r = raster_view(
+            yaw, mesh, vs, eye_meshes, s_log=s_log, orig_log=orig_log, pitch_deg=pitch
+        )
         ddir = OUT_CTRL / dname
         ddir.mkdir(parents=True, exist_ok=True)
         depth_im = Image.fromarray(r["depth_u8"], mode="L")
@@ -457,8 +498,9 @@ def main() -> int:
 
         meta["directions"][dname] = {
             "yaw_deg": yaw,
-            "pitch_deg": PITCH_DEG,
+            "pitch_deg": pitch,
             "is_complementary": dname in COMPLEMENTARY,
+            "is_extra_view": dname in EXTRA_VIEWS,
             "is_m2_1_anchor": dname == "d045",
             "visible_px": int(r["alpha"].sum()),
             "refit_margin": fit_margin if fit_margin > 0 else 0.0,
@@ -491,7 +533,11 @@ def main() -> int:
         cell.paste(normal_im.resize((456, 416)), (4, 28 + 416))
         dr = ImageDraw.Draw(cell)
         tag = "REFIT" if dname in view_names and fit_margin > 0 else ""
-        dr.text((8, 6), f"{dname} yaw={yaw} depth|normal {tag}", fill=(220, 220, 230))
+        dr.text(
+            (8, 6),
+            f"{dname} yaw={yaw} pitch={PITCH_DEG} depth|normal {tag}",
+            fill=(220, 220, 230),
+        )
         sheet_cells.append(cell)
     if sheet_cells:
         cw, ch = sheet_cells[0].size

@@ -2,6 +2,7 @@
   "ok": true,
   "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
   "uv_hash_unchanged": true,
+  "pitch_deg_default_8dir": 35.0,
   "pitch_deg": 35.0,
   "seed": 20261029,
   "scale_m_per_logical_px": 0.004,
@@ -197,6 +198,43 @@
         "depth_768": "cats/miemie/identity_v1/control_views/d315/depth_768.png",
         "normal_768": "cats/miemie/identity_v1/control_views/d315/normal_768.png"
       }
+    },
+    "v1_belly": {
+      "yaw_deg": 0.0,
+      "pitch_deg": -30.0,
+      "is_complementary": false,
+      "is_extra_view": true,
+      "is_m2_1_anchor": false,
+      "visible_px": 27048,
+      "refit_margin": 0.08,
+      "culled_tris": 230,
+      "drawn_tris": 1895,
+      "scale_m_per_logical_px": 0.006882529568254536,
+      "origin_logical_px": [
+        56.30515407846269,
+        77.97945180175125
+      ],
+      "fit_info": {
+        "bbox_u": [
+          -0.10713120549917221,
+          0.11187803000211716
+        ],
+        "bbox_v": [
+          -0.11941566099987252,
+          0.4818421220828437
+        ],
+        "avail_logical": [
+          95.75999999999999,
+          87.36
+        ]
+      },
+      "paths": {
+        "depth": "cats/miemie/identity_v1/control_views/v1_belly/depth.png",
+        "normal": "cats/miemie/identity_v1/control_views/v1_belly/normal.png",
+        "part_mask": "cats/miemie/identity_v1/control_views/v1_belly/part_mask.png",
+        "depth_768": "cats/miemie/identity_v1/control_views/v1_belly/depth_768.png",
+        "normal_768": "cats/miemie/identity_v1/control_views/v1_belly/normal_768.png"
+      }
     }
   },
   "complementary": [
@@ -251,9 +289,7 @@
     ]
   },
   "exported_this_run": [
-    "d090",
-    "d225",
-    "d315"
+    "v1_belly"
   ],
   "fit_margin_cli": 0.08,
   "note": "Control maps only. Complementary albedo must come from locked commercial SDXL stack; never procedural default."

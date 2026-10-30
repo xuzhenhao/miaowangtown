@@ -1,0 +1,131 @@
+{
+  "stage": "v1_belly_control_theory",
+  "time_asia_shanghai": "2026-10-30 13:51",
+  "fur_file_sha256": "46e56675a577390d70724e803a37c39b8cc79e070a5434c336a042da502a08dd",
+  "coverage_sha256": "347ca029da640ce55d8b6c9e937774780cb1fba49e5f9e4a0992a4fc1a28521f",
+  "uv_hash": "sha256:bbbc4394d847af26ea16f9416ed3c23c996a68afcb0fbd7962c20ddcef15c27f",
+  "mutated_fur": false,
+  "ran_sdxl": false,
+  "ran_fuse": false,
+  "fill_red": false,
+  "camera": {
+    "name": "v1_belly",
+    "yaw_deg": 0.0,
+    "pitch_deg": -30.0,
+    "fit_margin": 0.08,
+    "scale_m_per_logical_px": 0.006882529568254536,
+    "origin_logical_px": [
+      56.30515407846269,
+      77.97945180175125
+    ],
+    "visible_px": 27048
+  },
+  "margins": {
+    "depth": {
+      "size": [
+        456,
+        416
+      ],
+      "visible_px": 27042,
+      "margin_top": 33,
+      "margin_bottom": 37,
+      "margin_left": 164,
+      "margin_right": 165,
+      "margin_ge_16": true
+    },
+    "clay": {
+      "size": [
+        456,
+        416
+      ],
+      "visible_px": 27048,
+      "margin_top": 33,
+      "margin_bottom": 36,
+      "margin_left": 164,
+      "margin_right": 165,
+      "margin_ge_16": true
+    },
+    "normal": {
+      "size": [
+        456,
+        416
+      ],
+      "visible_px": 27048,
+      "margin_top": 33,
+      "margin_bottom": 36,
+      "margin_left": 164,
+      "margin_right": 165,
+      "margin_ge_16": true
+    }
+  },
+  "constants": {
+    "NDOTV_GRAZE": 0.2,
+    "baseline_GY_honest_island": 0.8117,
+    "theory_note": "Occlusion-free face N·V (same as coverage_island_honest / attrib). Optimistic upper bound; real fuse may be lower due to occlusion/graze weighting."
+  },
+  "baseline_honest": {
+    "island": 869905,
+    "n_gy": 706104,
+    "n_red": 163686,
+    "GY_over_island": 0.8117,
+    "red_over_island": 0.1882
+  },
+  "v1_theory": {
+    "n_honest_red_v1_ge_graze": 127521,
+    "pct_honest_red_v1_ge_graze": 77.91,
+    "n_newly_coverable_best8_lt_graze": 123007,
+    "pct_honest_red_newly": 75.15,
+    "backface_red_n": 88009,
+    "backface_red_eaten_by_v1": 73848,
+    "pct_backface_red_eaten": 83.91,
+    "belly_red_n": 35140,
+    "belly_red_eaten_by_v1": 29641,
+    "pct_belly_red_eaten": 84.35,
+    "thresh_red_n": 68744,
+    "thresh_red_eaten_by_v1": 49159,
+    "pct_thresh_red_eaten": 71.51,
+    "legs_red_n": 47405,
+    "legs_red_eaten_by_v1": 36457,
+    "pct_legs_red_eaten": 76.91,
+    "face_detail_red_n": 48914,
+    "face_detail_red_eaten_by_v1": 39360,
+    "pct_face_detail_red_eaten": 80.47,
+    "face_detail_note": "V1 不吃鼻垫/face_detail——不进本战役成功标准"
+  },
+  "estimated_after_v1": {
+    "n_gy": 829111,
+    "n_red": 40679,
+    "GY_over_island": 0.9531,
+    "red_over_island": 0.0468,
+    "delta_GY_pp": 14.14,
+    "delta_red_pp": -14.14,
+    "GY_vs_baseline_0_8117": 0.9531,
+    "still_short_of_0_92_by": 0.0,
+    "red_gate_still_pass_le_0_20": true,
+    "note_optimistic": "无遮挡 N·V 上限；含 face_detail/腿侧等可能被下巴·躯干挡住的 texel"
+  },
+  "verdict": {
+    "control_exported": true,
+    "margin_ge_16": true,
+    "sdxl_status": "控图已出·等 SDXL 点头",
+    "one_liner": "V1 yaw=0 pitch=-30 边距 T/B/L/R=33/37/164/165≥16；理论新吃红 123007(75.15%) → GY 0.8117→0.9531(+14.14pp，无遮挡上限)；战役扣 face 后 GY≈0.9079(+9.62pp)；背向红可吃 83.91%、belly 红可吃 84.35%；face_detail 理论可吃 80.47%但**不进本战役标准**（实遮挡恐更低）。未开 SDXL/fuse。"
+  },
+  "outputs": [
+    "v1_belly_control_sheet.png",
+    "control_preview/",
+    "theory_v1_eat_red_512.png",
+    "theory_v1_ndotv_on_red_512.png",
+    "theory_v1_belly_coverage.json",
+    "V1_BELLY_CONTROL.md"
+  ],
+  "estimated_campaign_excl_face": {
+    "note": "战役相关：从 newly 中扣除 face_detail 可吃（鼻垫不进成功标准）；仍无遮挡偏乐观",
+    "n_newly_excl_face": 83647,
+    "GY_over_island": 0.9079,
+    "red_over_island": 0.092,
+    "delta_GY_pp": 9.62,
+    "still_short_of_0_92_by": 0.0121,
+    "belly_only_lower_bound_GY": 0.8458,
+    "belly_only_delta_GY_pp": 3.41
+  }
+}
