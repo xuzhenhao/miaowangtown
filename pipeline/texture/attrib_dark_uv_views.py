@@ -2,7 +2,9 @@
 """Read-only UV attribution for d090-visible fused torso relative-dark texels."""
 from __future__ import annotations
 
+import argparse
 import hashlib
+import os
 import json
 import math
 import sys
@@ -114,7 +116,31 @@ def torso_uv_mask() -> np.ndarray:
 
 
 def main() -> int:
-    OUT.mkdir(parents=True, exist_ok=True)
+    argv = sys.argv
+    if "--" in argv:
+        argv = argv[argv.index("--") + 1 :]
+    else:
+        argv = []
+    ap = argparse.ArgumentParser(description="d090 torso dark UV attribution (read-only)")
+    ap.add_argument("--ndotv-graze", type=float, default=None,
+                    help="Must match fuse graze floor (default module 0.20 / env M22_NDOTV_GRAZE).")
+    ap.add_argument("--edge-erode", type=int, default=None,
+                    help="Must match fuse EDGE_ERODE (default 10 / env M22_EDGE_ERODE).")
+    ap.add_argument("--tag", default="", help="Suffix for output json/md (e.g. graze035).")
+    args = ap.parse_args(argv)
+    global NDOTV_GRAZE, EDGE_ERODE
+    if args.ndotv_graze is not None:
+        NDOTV_GRAZE = float(args.ndotv_graze)
+    elif os.environ.get("M22_NDOTV_GRAZE", "").strip():
+        NDOTV_GRAZE = float(os.environ["M22_NDOTV_GRAZE"])
+    if args.edge_erode is not None:
+        EDGE_ERODE = int(args.edge_erode)
+    elif os.environ.get("M22_EDGE_ERODE", "").strip():
+        EDGE_ERODE = int(os.environ["M22_EDGE_ERODE"])
+    out_tag = (args.tag or os.environ.get("M22_ATTRIB_TAG", "")).strip()
+
+    out_dir = OUT / out_tag if out_tag else OUT
+    out_dir.mkdir(parents=True, exist_ok=True)
     fur_path = ID_DIR / "fur_albedo.png"
     fur = np.array(Image.open(fur_path).convert("RGBA"))
     fur_file_sha = hashlib.sha256(fur_path.read_bytes()).hexdigest()
@@ -314,7 +340,7 @@ def main() -> int:
         f"fur torso UV | magenta=d090-vis relative-dark <=max(p10,85)={rel_thr:.1f}",
         fill=(220, 220, 230),
     )
-    sheet_path = OUT / "d090_torso_dark_uv_attrib_overlay.png"
+    sheet_path = out_dir / "d090_torso_dark_uv_attrib_overlay.png"
     sheet.save(sheet_path)
 
     d045_vis = view_w["d045"] > 0
@@ -385,14 +411,15 @@ def main() -> int:
         "top_pull_down_views": top_pull,
         "overlay": str(sheet_path.relative_to(ROOT)),
         "note_opus_align": (
-            "Do NOT blind-lower d090. Screen body-only dark_opaque@40 is edge-polluted; "
-            "use UV relative-dark ranking + 4x. No weight fuse this round. d270 regen awaiting 4x."
+            "Do NOT blind-lower d090 / no view-weight. Screen body-only dark_opaque@40 is "
+            "edge-polluted; use UV relative-dark ranking + 4x. d270 stays rolled-back PASS. "
+            "This round: NDOTV_GRAZE contrast only (EDGE_ERODE unchanged)."
         ),
     }
 
-    out_json = OUT / "d090_torso_dark_uv_attrib.json"
+    out_json = out_dir / "d090_torso_dark_uv_attrib.json"
     out_json.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
-    md = OUT / "D090_TORSO_DARK_UV_ATTRIB.md"
+    md = out_dir / "D090_TORSO_DARK_UV_ATTRIB.md"
     lines = [
         "# d090 合拢板躯干暗斑 UV 归因（只读）",
         "",
@@ -424,9 +451,9 @@ def main() -> int:
         "",
         "## 下一步（仍 HOLD）",
         "",
-        "- 禁止盲降 d090 权重。",
-        "- 同向主导 → 重生/修该向源；邻向 pull-down → 小对照 EDGE/graze，保留旧候选。",
-        "- d270 已重生，等制作人 4x；**暂不自动 fuse**。",
+        "- 禁止盲降 d090 权重；禁止再拧 view-weight。",
+        "- 同向主导 → 重生/修该向源；邻向 pull-down → graze/EDGE 小对照，保留旧候选。",
+        "- d270 维持回滚 PASS `98a81074…`；本档只动 NDOTV_GRAZE（EDGE 不动）。",
         f"- overlay: `{sheet_path.relative_to(ROOT)}`",
         f"- json: `{out_json.relative_to(ROOT)}`",
         "",

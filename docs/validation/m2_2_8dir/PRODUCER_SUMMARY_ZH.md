@@ -1,5 +1,34 @@
 # M2.2 制作人自审摘要（诚实版）
 
+**时间**：2026-10-30（Asia/Shanghai）· EDGE/graze 小对照（仅 NDOTV_GRAZE）  
+**结论**：仍 **CONDITIONAL HOLD**。对照档 **已回退**。
+
+## graze0.35 对照（本轮）
+
+| 项 | 旧 (工作树已恢复) | 新 (归档对照，已回退) |
+|---|---|---|
+| `NDOTV_GRAZE` | **0.20** | **0.35** |
+| `EDGE_ERODE` | **10**（未动） | **10** |
+| view-weight | 全 1.0 | 全 1.0 |
+| fur sha | `46e56675…` | `1dc3b5b5…`（候选已存 `hold_diag/edge_graze_035/after/`） |
+| coverage 绿+黄 | **70.31%** | **65.47%**（更差） |
+| coverage 红 | **29.69%** | **34.53%**（更差） |
+| d135 pull-down% | 30.05 | 28.45（Δ−1.60） |
+| d180 pull-down% | 30.79 | 30.80（Δ+0.01） |
+| d135+d180 | 60.84 | 59.25 |
+| n_dark_inner d090 | 6283 | 5534 |
+| n_dark_inner d045 | 2738 | 1875 |
+
+**制作人 4x（黑底诚实板）**：d090/d045/d270 假透空**未明显减轻**；颈/躯干近黑碎斑观感仍 HOLD。  
+**判定（按纠偏）**：coverage 崩 + pull-down/假透空无实质改善 → **回退该档**；工作树 fur 恢复 `46e56675…`。不升 0.40、本轮不动 EDGE。  
+**下一步**：查源图暗采样（尤其 d135/d180），**禁止**自动整向假绿重生；不冻、不开 M3、禁程序化填红、不交用户点2。  
+**路径**：`docs/validation/m2_2_8dir/hold_diag/edge_graze_035/`（`contrast_report.json`、`compare_layer_a_d090_d045_d270_4x_black.png`）  
+**归档**：`cats/miemie/identity_v1/archive/pre_edge_graze_20261030_124423/`
+
+## 此前摘要（保留）
+
+# M2.2 制作人自审摘要（诚实版）
+
 **时间**：2026-10-30 · d270 重生回滚 + UV 归因  
 **结论**：仍 **CONDITIONAL HOLD**。d270 重生（seed 20302032）制作人 4x **FAIL**，已回滚旧 PASS `98a81074…`。d090 假透空 UV 归因：**邻向 d135/d180 pull-down 主责**（禁盲降 d090）。下一步改 EDGE/graze 小对照。不冻、不开 M3。
 
@@ -63,3 +92,4 @@
 - 分区启发式偏软，权威 = **4x 肉眼**。
 - M1 `uv_hash` 未变。
 - 未见 UV：**仅 genome 底色 seed**，禁止程序化毛流充数冲 92%。
+

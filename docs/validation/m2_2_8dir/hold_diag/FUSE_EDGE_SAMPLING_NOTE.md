@@ -45,4 +45,21 @@
 - ✅ 只读笔记（本文）  
 - ✅ d270 源归档 + 只重生 d270（seed-offset 40011）  
 - ✅ d090 暗斑 UV 归因脚本/报告写入 `hold_diag/`  
-- ❌ 不降权 fuse；d270 新图 **暂不自动 fuse**，等归因摘要 + 制作人门禁
+- ✅ d270 重生 FAIL 已回滚 PASS；✅ UV 归因点名 d135/d180；✅ graze0.35 对照已跑并**回退**
+- ❌ 本轮不抬 EDGE；不拧 view-weight；不冻 / 不开 M3
+
+## 2026-10-30 graze0.35 对照结果（已回退）
+
+| 参数 | 旧 | 对照 |
+|---|---|---|
+| `NDOTV_GRAZE` | 0.20 | **0.35**（仅此） |
+| `EDGE_ERODE` | 10 | 10（**未动**） |
+| view-weight | 全 1.0 | 全 1.0 |
+
+- fur：`46e56675…` → 候选 `1dc3b5b5…` → **工作树已回退** `46e56675…`
+- coverage 绿+黄 **70.31%→65.47%**；红 **29.69%→34.53%**
+- d135/d180 pull-down **60.84%→59.25%**（几乎无效）
+- CLI：`--ndotv-graze` / `M22_NDOTV_GRAZE`；`--edge-erode` / `M22_EDGE_ERODE`（本轮未抬 EDGE）
+- 详情：`hold_diag/edge_graze_035/contrast_report.json`
+- **结论**：收紧 graze 主要吃掉黄带 → 红盲区变差，未解决邻向暗采样；改查 **源图** d135/d180 暗 texel，禁程序化填红。
+

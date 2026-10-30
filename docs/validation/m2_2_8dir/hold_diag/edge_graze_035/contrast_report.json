@@ -1,0 +1,107 @@
+{
+  "stage": "edge_graze_035_contrast",
+  "ts_asia_shanghai": "2026-10-30 12:46:29 ",
+  "params": {
+    "before": {
+      "NDOTV_GRAZE": 0.2,
+      "EDGE_ERODE": 10,
+      "view_weight": "all 1.0"
+    },
+    "after": {
+      "NDOTV_GRAZE": 0.35,
+      "EDGE_ERODE": 10,
+      "view_weight": "all 1.0"
+    }
+  },
+  "fur_sha": {
+    "before": "46e56675a577390d70724e803a37c39b8cc79e070a5434c336a042da502a08dd",
+    "after_candidate": "1dc3b5b5551a01317ea94f92db3bc421a6ead9028c80235fe989b32a4e59f3d4",
+    "restored_working": "46e56675a577390d70724e803a37c39b8cc79e070a5434c336a042da502a08dd"
+  },
+  "coverage": {
+    "before_green_yellow": {
+      "uv_island_texels": 1003672,
+      "direct_controlled": 612337,
+      "grazing_interpolated": 93767,
+      "unseen_inpainted_or_seed": 297967,
+      "high_freq_texels": 1003672,
+      "high_freq_green_yellow": 705705,
+      "high_freq_green_yellow_ratio": 0.7031,
+      "unseen_over_island": 0.2969,
+      "gate_high_freq_green_yellow_ge_0_92": false,
+      "gate_red_blind_le_0_20": false
+    },
+    "after_green_yellow_ratio": 0.6547,
+    "after_red_ratio": 0.3453,
+    "before_green_yellow_ratio": 0.7031,
+    "before_red_ratio": 0.2969,
+    "before": {
+      "uv_island_texels": 1003672,
+      "direct_controlled": 612337,
+      "grazing_interpolated": 93767,
+      "unseen_inpainted_or_seed": 297967,
+      "high_freq_texels": 1003672,
+      "high_freq_green_yellow": 705705,
+      "high_freq_green_yellow_ratio": 0.7031,
+      "unseen_over_island": 0.2969,
+      "gate_high_freq_green_yellow_ge_0_92": false,
+      "gate_red_blind_le_0_20": false
+    },
+    "after": {
+      "uv_island_texels": 1003672,
+      "direct_controlled": 612562,
+      "grazing_interpolated": 44966,
+      "unseen_inpainted_or_seed": 346520,
+      "high_freq_texels": 1003672,
+      "high_freq_green_yellow": 657152,
+      "high_freq_green_yellow_ratio": 0.6547,
+      "unseen_over_island": 0.3453,
+      "gate_high_freq_green_yellow_ge_0_92": false,
+      "gate_red_blind_le_0_20": false
+    }
+  },
+  "pull_down_pct": {
+    "before": {
+      "d000": 4.76,
+      "d045": 13.12,
+      "d090": 1.93,
+      "d135": 30.05,
+      "d180": 30.79,
+      "d225": 15.72,
+      "d270": 3.23,
+      "d315": 0.39
+    },
+    "after": {
+      "d000": 4.81,
+      "d045": 9.13,
+      "d090": 4.33,
+      "d135": 28.45,
+      "d180": 30.8,
+      "d225": 16.06,
+      "d270": 6.14,
+      "d315": 0.29
+    },
+    "d135_delta_pp": -1.6,
+    "d180_delta_pp": 0.01,
+    "d135_plus_d180_before": 60.84,
+    "d135_plus_d180_after": 59.25
+  },
+  "n_dark_inner": {
+    "d090_before": 6283,
+    "d090_after": 5534,
+    "d045_before": 2738,
+    "d045_after": 1875
+  },
+  "verdict": {
+    "still_HOLD": true,
+    "rollback_graze035": true,
+    "reason": "coverage 绿+黄 70.35%→65.47%、红 29.65%→34.53% 明显变差；d135/d180 pull-down 60.84%→59.25% 仅微降（d180 几乎不动）；4x 假透空未明显减轻。按纠偏规则回退该档，工作树恢复 fur 46e56675…。下一步查源图暗采样（不自动整向假绿重生）；不交用户点2、不冻、不开M3。",
+    "next": "source dark-sample audit (d135/d180), NOT auto regen; optional later EDGE+2 only if graze somehow revisited after source fix"
+  },
+  "paths": {
+    "archive_pre": "cats/miemie/identity_v1/archive/pre_edge_graze_20261030_124423",
+    "experiment": "docs/validation/m2_2_8dir/hold_diag/edge_graze_035",
+    "compare_4x_black": "docs/validation/m2_2_8dir/hold_diag/edge_graze_035/compare_layer_a_d090_d045_d270_4x_black.png",
+    "attrib_after": "docs/validation/m2_2_8dir/hold_diag/edge_graze_035/d090_torso_dark_uv_attrib.json"
+  }
+}

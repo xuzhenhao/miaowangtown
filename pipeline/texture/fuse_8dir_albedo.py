@@ -56,6 +56,10 @@ NDOTV_GRAZE = 0.20
 # Env: M22_VIEW_WEIGHT_JSON='{"d090":0.4,"d270":0.4}' or CLI --view-weight d090=0.4
 # Optional: reject samples darker than DARK_REJECT_LUM from down-weighted views
 # (env M22_DARK_REJECT_LUM, default 0=off). Does NOT invent fur / fill red.
+# Edge/graze knobs (defaults match module constants):
+#   --ndotv-graze / M22_NDOTV_GRAZE  (default 0.20)
+#   --edge-erode  / M22_EDGE_ERODE   (default 10)
+# Raising graze reduces back/oblique writes; does NOT invent fur / fill red.
 DEFAULT_VIEW_WEIGHT = {d: 1.0 for d in (
     "d000", "d045", "d090", "d135", "d180", "d225", "d270", "d315"
 )}
@@ -311,6 +315,24 @@ def parse_dark_reject() -> float:
     return float(DARK_REJECT_LUM)
 
 
+def parse_ndotv_graze(cli: float | None) -> float:
+    if cli is not None:
+        return float(cli)
+    env = os.environ.get("M22_NDOTV_GRAZE", "").strip()
+    if env:
+        return float(env)
+    return float(NDOTV_GRAZE)
+
+
+def parse_edge_erode(cli: int | None) -> int:
+    if cli is not None:
+        return int(cli)
+    env = os.environ.get("M22_EDGE_ERODE", "").strip()
+    if env:
+        return int(env)
+    return int(EDGE_ERODE)
+
+
 def main() -> int:
     # Blender passes script args after "--"
     argv = sys.argv
@@ -336,6 +358,18 @@ def main() -> int:
         default="",
         help="Label written into fuse report (e.g. low_d090_weight).",
     )
+    ap.add_argument(
+        "--ndotv-graze",
+        type=float,
+        default=None,
+        help="Contrast: raise N·V graze floor (default 0.20). Env M22_NDOTV_GRAZE.",
+    )
+    ap.add_argument(
+        "--edge-erode",
+        type=int,
+        default=None,
+        help="Contrast: silhouette erode iters (default 10). Env M22_EDGE_ERODE.",
+    )
     args = ap.parse_args(argv)
 
     VAL_DIR.mkdir(parents=True, exist_ok=True)
@@ -348,6 +382,9 @@ def main() -> int:
         else parse_dark_reject()
     )
     contrast_tag = args.contrast_tag or os.environ.get("M22_CONTRAST_TAG", "")
+    global NDOTV_GRAZE, EDGE_ERODE
+    NDOTV_GRAZE = parse_ndotv_graze(args.ndotv_graze)
+    EDGE_ERODE = parse_edge_erode(args.edge_erode)
 
     views_to_use = []
     skip = {}
@@ -371,9 +408,12 @@ def main() -> int:
             "tag": contrast_tag or None,
             "view_weight_mult": view_weights,
             "dark_reject_lum": dark_reject,
+            "ndotv_graze": NDOTV_GRAZE,
+            "edge_erode": EDGE_ERODE,
+            "ndotv_direct": NDOTV_DIRECT,
             "note": (
-                "CONTRAST ONLY — lowering weak side-view weights / rejecting near-black "
-                "samples. Not a freeze; does not procedural-fill red coverage."
+                "CONTRAST ONLY — view-weight / dark-reject / ndotv-graze / edge-erode knobs. "
+                "Not a freeze; does not procedural-fill red coverage."
             ),
         },
     }

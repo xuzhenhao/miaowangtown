@@ -1,0 +1,17 @@
+{
+  "ts_asia_shanghai": "2026-10-30 12:45:12 ",
+  "experiment": "edge_graze_035",
+  "params_before": {
+    "NDOTV_GRAZE": 0.2,
+    "EDGE_ERODE": 10,
+    "view_weight": "all 1.0"
+  },
+  "params_after": {
+    "NDOTV_GRAZE": 0.35,
+    "EDGE_ERODE": 10,
+    "view_weight": "all 1.0"
+  },
+  "fur_sha_before": "46e56675a577390d70724e803a37c39b8cc79e070a5434c336a042da502a08dd",
+  "archive": "cats/miemie/identity_v1/archive/pre_edge_graze_20261030_124423",
+  "note": "ONLY raise NDOTV_GRAZE 0.20→0.35; EDGE_ERODE stays 10; no view-weight; no regen"
+}
