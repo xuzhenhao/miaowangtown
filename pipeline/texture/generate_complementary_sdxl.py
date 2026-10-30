@@ -388,12 +388,13 @@ def try_generate(env: dict) -> int:
             + " (need config.json + diffusion_pytorch_model.safetensors)"
         )
 
-    # Keep VAE in float32 on MPS to avoid NaNs in some builds (before IP-Adapter).
+    # Do NOT force VAE to float32 on MPS — mixing Half latents with float VAE bias crashes decode.
+    # Prefer enable_vae_slicing for memory instead.
     if device == "mps":
         try:
-            pipe.vae.to(dtype=torch.float32)
-        except Exception:
-            pass
+            pipe.enable_vae_slicing()
+        except Exception as exc:
+            print("enable_vae_slicing skipped:", exc)
 
     # IP-Adapter (image encoder lives under models/image_encoder)
     try:
