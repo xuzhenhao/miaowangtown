@@ -63,3 +63,9 @@
 - 详情：`hold_diag/edge_graze_035/contrast_report.json`
 - **结论**：收紧 graze 主要吃掉黄带 → 红盲区变差，未解决邻向暗采样；改查 **源图** d135/d180 暗 texel，禁程序化填红。
 
+
+## 2026-10-30 源图归因（d135/d180，只读）
+
+- 结论：写入 d090 相对暗带的 d135/d180 采样 **99%+ 在岛内**，源均亮≈69 ≤ rel_thr；近缘/depth 缘权重 <1%。
+- **非**背景近黑泄漏；graze0.35 无效与此一致 → **停拧 graze/EDGE/view-weight**；候选为受控局部重生（制作人拍板）。
+- 报告：`hold_diag/source_dark_d135_d180/`

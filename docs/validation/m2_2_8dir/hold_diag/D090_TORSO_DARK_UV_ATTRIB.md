@@ -44,8 +44,8 @@ d135 邻向 pull-down 30.05% → 查 EDGE/graze；d090 源均亮 124.7 > rel_thr
 
 ## 下一步（仍 HOLD）
 
-- 禁止盲降 d090 权重。
-- 同向主导 → 重生/修该向源；邻向 pull-down → 小对照 EDGE/graze，保留旧候选。
-- d270 维持回滚 PASS `98a81074…`；graze0.35 对照已跑并回退（见 `edge_graze_035/`）。
+- 禁止盲降 d090 权重；禁止再拧 view-weight / graze（0.35 已回退无效）。
+- 源图归因：`source_dark_d135_d180/` → **d135/d180 岛内躯干过暗**主责；候选受控局部重生，等制作人拍板。
+- d270 维持回滚 PASS `98a81074…`；不冻、不开 M3、禁程序化填红。
 - overlay: `docs/validation/m2_2_8dir/hold_diag/d090_torso_dark_uv_attrib_overlay.png`
 - json: `docs/validation/m2_2_8dir/hold_diag/d090_torso_dark_uv_attrib.json`
