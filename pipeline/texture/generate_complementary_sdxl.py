@@ -165,6 +165,92 @@ NEGATIVE = (
     "deformed anatomy, extra legs, mirrored markings"
 )
 
+# Per-view knobs for targeted FAIL reruns. Views absent keep defaults.
+VIEW_TUNING = {
+    "d000": {
+        "prompt_extra": (
+            ", asymmetric yin-yang muzzle: anatomical RIGHT warm caramel peanut patch "
+            "(mark_01), LEFT cream muzzle, do NOT cover whole lower face with flat white "
+            "mask, preserve emerald almond eyes, white chest bib"
+        ),
+        "negative_extra": (
+            ", symmetric white face mask, blank muzzle, missing facial markings, "
+            "overexposed white face"
+        ),
+        "control_scale": [1.05, 0.8],
+        "ip_scale": 0.78,
+        "guidance": 5.5,
+    },
+    "d090": {
+        "prompt_extra": (
+            ", single clean orthographic camera view of one intact cat, silhouette "
+            "strictly matches depth map, no floating texture shards, no UV atlas "
+            "fragments, no ghost limbs outside body"
+        ),
+        "negative_extra": (
+            ", texture atlas, UV unwrap, duplicated body parts, floating fur patches, "
+            "smeared edges outside silhouette, glitch fragments"
+        ),
+        "control_scale": [1.15, 0.95],
+        "ip_scale": 0.6,
+        "guidance": 5.0,
+    },
+    "d225": {
+        "prompt_extra": (
+            ", one coherent cat body aligned to depth and part mask, no disconnected "
+            "floating limbs or tail shards, continuous silhouette"
+        ),
+        "negative_extra": (
+            ", exploded parts, floating fragments, severed limbs, atlas layout, "
+            "depth leak, duplicated tails"
+        ),
+        "control_scale": [1.2, 1.0],
+        "ip_scale": 0.58,
+        "guidance": 5.0,
+    },
+    "d315": {
+        "prompt_extra": (
+            ", intact pointed ears without stretched triangles, medium thick ringed "
+            "tabby tail matching reference length, clean silhouette"
+        ),
+        "negative_extra": (
+            ", stretched ear polygons, elongated spike from head, stubby broken tail, "
+            "mesh artifacts, shearing"
+        ),
+        "control_scale": [1.1, 0.9],
+        "ip_scale": 0.62,
+        "guidance": 5.2,
+    },
+}
+
+DEFAULT_CONTROL_SCALE = [0.85, 0.65]
+DEFAULT_IP_SCALE = 0.65
+DEFAULT_GUIDANCE = 5.0
+
+
+
+def mask_bg_by_depth(rgb_img, depth_img, dilate_px: int = 3):
+    """Clear ghost pixels outside depth silhouette; fill with neutral grey.
+    Does NOT invent fur inside the cat body.
+    """
+    import numpy as np
+    from PIL import Image, ImageFilter
+
+    rgb = np.array(rgb_img.convert("RGB"))
+    depth = depth_img.convert("L").resize(rgb_img.size, Image.Resampling.LANCZOS)
+    darr = np.array(depth)
+    # Near-black = background on our depth maps
+    mask = (darr > 12).astype(np.uint8) * 255
+    mask_img = Image.fromarray(mask, mode="L")
+    if dilate_px > 0:
+        # MaxFilter size must be odd
+        k = dilate_px * 2 + 1
+        mask_img = mask_img.filter(ImageFilter.MaxFilter(size=k))
+    m = np.array(mask_img) > 127
+    out = rgb.copy()
+    out[~m] = (128, 128, 128)
+    return Image.fromarray(out, mode="RGB"), True
+
 
 def shanghai_now() -> str:
     # Asia/Shanghai = UTC+8
@@ -321,7 +407,7 @@ def write_blocker(reason: str, env: dict) -> Path:
     return path
 
 
-def try_generate(env: dict) -> int:
+def try_generate(env: dict, selected_views: list[str], seed_offset: int = 0, merge_report: bool = False) -> int:
     """Real generation path — only when CUDA or MPS + deps present."""
     import torch
     from diffusers import (
@@ -411,7 +497,7 @@ def try_generate(env: dict) -> int:
             image_encoder_folder="models/image_encoder",
             local_files_only=True,
         )
-        pipe.set_ip_adapter_scale(0.65)
+        pipe.set_ip_adapter_scale(DEFAULT_IP_SCALE)
         ip_ok = True
     except Exception as exc:  # noqa: BLE001
         print("IP-Adapter load failed:", exc)
@@ -427,6 +513,15 @@ def try_generate(env: dict) -> int:
         print("MPS: skip attention slicing because IP-Adapter is active")
 
     anchor = Image.open(ANCHOR).convert("RGB").resize((1024, 1024), Image.Resampling.LANCZOS)
+    report_path = VAL / "m2_2_generation_report.json"
+    prior_views = {}
+    if merge_report and report_path.is_file():
+        try:
+            prior = json.loads(report_path.read_text())
+            prior_views = dict(prior.get("views") or {})
+        except Exception as exc:  # noqa: BLE001
+            print("merge-report: could not load prior views:", exc)
+
     results = {
         "ok": True,
         "device": device,
@@ -436,55 +531,82 @@ def try_generate(env: dict) -> int:
         "union_error": union_error,
         "ip_adapter": ip_ok,
         "m22_models_root": str(models_root()),
-        "views": {},
+        "views": dict(prior_views) if merge_report else {},
         "root": str(ROOT),
+        "seed_offset": seed_offset,
+        "selected_views": list(selected_views),
+        "rerun_of_fails": bool(seed_offset or set(selected_views) != set(COMPLEMENTARY)),
+        "view_tuning_applied": {},
+        "merge_report": bool(merge_report),
     }
 
-    for dname in COMPLEMENTARY:
-        depth = Image.open(CTRL / dname / "depth_768.png").convert("RGB").resize(
+    for dname in selected_views:
+        tuning = VIEW_TUNING.get(dname, {})
+        prompt_extra = tuning.get("prompt_extra", "")
+        negative_extra = tuning.get("negative_extra", "")
+        control_scale = list(tuning.get("control_scale", DEFAULT_CONTROL_SCALE))
+        ip_scale = float(tuning.get("ip_scale", DEFAULT_IP_SCALE))
+        guidance = float(tuning.get("guidance", DEFAULT_GUIDANCE))
+        results["view_tuning_applied"][dname] = {
+            "prompt_extra": prompt_extra,
+            "negative_extra": negative_extra,
+            "control_scale": control_scale,
+            "ip_scale": ip_scale,
+            "guidance": guidance,
+        }
+
+        depth_path = CTRL / dname / "depth_768.png"
+        if not depth_path.is_file():
+            depth_path = CTRL / dname / "depth.png"
+        depth = Image.open(depth_path).convert("RGB").resize(
             (1024, 1024), Image.Resampling.LANCZOS
         )
         normal = Image.open(CTRL / dname / "normal_768.png").convert("RGB").resize(
             (1024, 1024), Image.Resampling.LANCZOS
         )
         gen_device = "cpu" if device == "mps" else device
-        generator = torch.Generator(device=gen_device).manual_seed(SEED + hash(dname) % 1000)
+        view_seed = SEED + seed_offset + (hash(dname) % 1000)
+        generator = torch.Generator(device=gen_device).manual_seed(view_seed)
         kwargs = dict(
-            prompt=PROMPT + f", view {dname}",
-            negative_prompt=NEGATIVE,
+            prompt=PROMPT + f", view {dname}" + prompt_extra,
+            negative_prompt=NEGATIVE + negative_extra,
             num_inference_steps=30,
-            guidance_scale=5.0,
+            guidance_scale=guidance,
             generator=generator,
             width=1024,
             height=1024,
         )
         if ip_ok:
+            pipe.set_ip_adapter_scale(ip_scale)
             kwargs["ip_adapter_image"] = anchor
         # Locked stack: ControlNetUnion depth(1)+normal(4); no silent depth-only path.
         kwargs["control_image"] = [depth, normal]
         kwargs["control_mode"] = [UNION_MODE_DEPTH, UNION_MODE_NORMAL]
-        kwargs["controlnet_conditioning_scale"] = [0.85, 0.65]
+        kwargs["controlnet_conditioning_scale"] = control_scale
 
         out = pipe(**kwargs).images[0]
-        # Unlit post: mild shadow flatten — keep as albedo candidate; gate later.
-        arr = np.array(out)
-        # Crop center 768 back toward control framing (pad was centered)
-        # Save full + 768
+        # Optional: clear ghost pixels outside depth silhouette (no fur invent inside).
+        out, bg_masked = mask_bg_by_depth(out, depth, dilate_px=3)
         out_path = OUT_ALB / f"{dname}_unlit_albedo.png"
         out.save(out_path)
         out.resize((768, 768), Image.Resampling.LANCZOS).save(
             VAL / f"{dname}_unlit_albedo_768.png"
         )
-        # Also keep normal used
         normal.save(VAL / f"{dname}_control_normal_used.png")
         results["views"][dname] = {
             "path": str(out_path.relative_to(ROOT)),
-            "seed": SEED + hash(dname) % 1000,
+            "seed": view_seed,
+            "seed_offset": seed_offset,
             "gate_status": "pending_4x_fur_flow_and_markings",
+            "control_scale": control_scale,
+            "ip_scale": ip_scale,
+            "guidance": guidance,
+            "bg_masked_by_depth": bool(bg_masked),
+            "rerun": True,
         }
-        print("generated", dname, out_path)
+        print("generated", dname, out_path, "seed=", view_seed)
 
-    (VAL / "m2_2_generation_report.json").write_text(
+    report_path.write_text(
         json.dumps(results, indent=2, ensure_ascii=False) + "\n"
     )
     return 0
@@ -502,13 +624,43 @@ def main() -> int:
         action="store_true",
         help="Only probe environment and write blocker/status",
     )
+    ap.add_argument(
+        "--views",
+        type=str,
+        default="",
+        help="Comma-separated views to generate (default: all COMPLEMENTARY)",
+    )
+    ap.add_argument(
+        "--seed-offset",
+        type=int,
+        default=0,
+        help="Added to SEED + hash(view) for deterministic reruns (e.g. 10007)",
+    )
+    ap.add_argument(
+        "--merge-report",
+        action="store_true",
+        help="Merge into existing m2_2_generation_report.json; keep non-rerun view entries",
+    )
     args = ap.parse_args()
     env = detect_environment()
 
+    if args.views.strip():
+        selected_views = [v.strip() for v in args.views.split(",") if v.strip()]
+        unknown = [v for v in selected_views if v not in COMPLEMENTARY]
+        if unknown:
+            print("ERROR: unknown views:", unknown, "allowed:", COMPLEMENTARY)
+            return 2
+    else:
+        selected_views = list(COMPLEMENTARY)
+
+    # Only require control maps for selected views
     missing_ctrl = [
         d
-        for d, st in env["control_maps_present"].items()
-        if not (st["depth_768"] and st["normal_768"])
+        for d in selected_views
+        if not (
+            env["control_maps_present"].get(d, {}).get("depth_768")
+            and env["control_maps_present"].get(d, {}).get("normal_768")
+        )
     ]
     if missing_ctrl:
         path = write_blocker(
@@ -537,15 +689,20 @@ def main() -> int:
         return 2
 
     if args.check_only:
-        print(json.dumps({"ready": True, "env": env}, indent=2))
+        print(json.dumps({"ready": True, "env": env, "selected_views": selected_views}, indent=2))
         return 0
 
     if not args.run:
         print("Environment looks GPU-capable. Pass --run to generate.")
-        print(json.dumps(env, indent=2))
+        print(json.dumps({"env": env, "selected_views": selected_views}, indent=2))
         return 0
 
-    return try_generate(env)
+    return try_generate(
+        env,
+        selected_views=selected_views,
+        seed_offset=args.seed_offset,
+        merge_report=args.merge_report,
+    )
 
 
 if __name__ == "__main__":
