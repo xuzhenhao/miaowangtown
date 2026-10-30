@@ -154,10 +154,16 @@ LICENSED_STACK = [
 ]
 
 PROMPT = (
-    "orthographic unlit cat fur albedo, soft tabby calico fur clumps, "
-    "no directional lighting, no cast shadows, flat ambient, "
-    "consistent markings, emerald eyes independent later, high frequency fur grain, "
-    "game albedo texture style matching reference"
+    # Identity + five markings FIRST (CLIP ~77 token budget; keep head dense).
+    "single intact calico tabby cat, asymmetric yin-yang muzzle mark_01 "
+    "(anatomical RIGHT warm caramel peanut patch, LEFT cream cheek), "
+    "mark_02 white chest bib into left-rib cloud, mark_03 warm apricot belly edge, "
+    "mark_04 asymmetric white socks (front high / rear ankle) with rear tabby pants, "
+    "mark_05 forehead M + mackerel back stripes + ringed tabby tail black tip, "
+    "emerald almond eyes, brick-pink nose, white paws zero grey fringe, "
+    # Style / lighting AFTER identity (may truncate).
+    "orthographic unlit fur albedo, soft fur clumps, flat ambient, no cast shadows, "
+    "high-frequency fur grain matching reference"
 )
 NEGATIVE = (
     "harsh sunlight, rim light, studio lighting, glossy specular, "
@@ -167,11 +173,10 @@ NEGATIVE = (
 
 # Per-view knobs for targeted FAIL reruns. Views absent keep defaults.
 VIEW_TUNING = {
+    # prompt_extra = view-only deltas; identity/five-marks live in base PROMPT head.
     "d000": {
         "prompt_extra": (
-            ", asymmetric yin-yang muzzle: anatomical RIGHT warm caramel peanut patch "
-            "(mark_01), LEFT cream muzzle, do NOT cover whole lower face with flat white "
-            "mask, preserve emerald almond eyes, white chest bib"
+            ", front three-quarter face readable, do NOT flatten muzzle into blank white mask"
         ),
         "negative_extra": (
             ", symmetric white face mask, blank muzzle, missing facial markings, "
@@ -183,9 +188,7 @@ VIEW_TUNING = {
     },
     "d090": {
         "prompt_extra": (
-            ", single clean orthographic camera view of one intact cat, silhouette "
-            "strictly matches depth map, no floating texture shards, no UV atlas "
-            "fragments, no ghost limbs outside body"
+            ", silhouette strictly matches depth map, no floating shards or ghost limbs"
         ),
         "negative_extra": (
             ", texture atlas, UV unwrap, duplicated body parts, floating fur patches, "
@@ -197,8 +200,7 @@ VIEW_TUNING = {
     },
     "d225": {
         "prompt_extra": (
-            ", one coherent cat body aligned to depth and part mask, no disconnected "
-            "floating limbs or tail shards, continuous silhouette"
+            ", body aligned to depth/part mask, continuous silhouette, no disconnected shards"
         ),
         "negative_extra": (
             ", exploded parts, floating fragments, severed limbs, atlas layout, "
@@ -210,8 +212,7 @@ VIEW_TUNING = {
     },
     "d315": {
         "prompt_extra": (
-            ", intact pointed ears without stretched triangles, medium thick ringed "
-            "tabby tail matching reference length, clean silhouette"
+            ", intact pointed ears, ringed tabby tail length matches reference, clean silhouette"
         ),
         "negative_extra": (
             ", stretched ear polygons, elongated spike from head, stubby broken tail, "

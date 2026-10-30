@@ -1,0 +1,4 @@
+7b66840d32f5261981925ab991e5d50d5f5a8f78fbbd531710c523f65f6fad80  cats/miemie/identity_v1/control_views/d000/depth.png
+89418745f1d4726bac0fd1c338bcf3fc146b394e975f204585c4340f92c07166  cats/miemie/identity_v1/control_views/d135/depth.png
+96f50d026db194f90c580ec5ab505d3ac461c09e9e2ca51f9619fca0c8c6eef3  cats/miemie/identity_v1/control_views/d180/depth.png
+ad47b6006d299d8862b79e53bc6b5e313f330e2bcd4a4c04c60588a2f46f5210  cats/miemie/identity_v1/control_views/d270/depth.png

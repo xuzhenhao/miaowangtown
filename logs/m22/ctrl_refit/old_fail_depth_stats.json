@@ -1,0 +1,44 @@
+{
+  "d090": {
+    "fg_pct": 32.19,
+    "margin_px": {
+      "top": 0,
+      "bottom": 0,
+      "left": 18,
+      "right": 0
+    },
+    "edge_touch": 1,
+    "size": [
+      456,
+      416
+    ]
+  },
+  "d225": {
+    "fg_pct": 36.74,
+    "margin_px": {
+      "top": 0,
+      "bottom": 0,
+      "left": 2,
+      "right": 61
+    },
+    "edge_touch": 1,
+    "size": [
+      456,
+      416
+    ]
+  },
+  "d315": {
+    "fg_pct": 31.89,
+    "margin_px": {
+      "top": 0,
+      "bottom": 0,
+      "left": 46,
+      "right": 71
+    },
+    "edge_touch": 1,
+    "size": [
+      456,
+      416
+    ]
+  }
+}

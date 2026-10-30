@@ -3,6 +3,8 @@
 **时间**：2026-10-30（Asia/Shanghai）  
 **结论**：**未完成合拢**。Mac MPS（Union ControlNet + IP-Adapter）已生成互补 7 向 unlit albedo；失败四向已按脚本 `b097819`（`--seed-offset 10007` + 分向 VIEW_TUNING + depth 灰底掩膜）重跑。制作人复审门禁现为 **4 PASS / 3 FAIL**（d000 本轮转 PASS；d090/d225/d315 仍 FAIL；既有 d135/d180/d270 PASS **未动**）。**因仍有 3/7 FAIL 继续停合拢**。`fur_albedo.png` 仍为 **M2.1 d045 单向**，整张 UV **不冻**；**未进 M3**。
 
+**控制图（本轮）**：已对 FAIL 三向 `d090/d225/d315` 用 `export_control_views.py --fit-margin 0.08` 重导出（拉远+居中+退化三角剔除）；PASS 向控制图 sha 未动。对照板见 `docs/validation/m2_2_8dir/control_maps/refit_{depth,clay}_sheet.png`。**SDXL 待制作人过目控制图后再开跑**；当前仍停合拢、不冻 fur_albedo、不开 M3。
+
 ## 现状（2026-10-30 · rerun 后）
 
 | 项 | 状态 |

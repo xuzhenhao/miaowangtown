@@ -1,0 +1,104 @@
+{
+  "d090": {
+    "old": {
+      "fg_pct": 32.19,
+      "margin_px": {
+        "top": 0,
+        "bottom": 0,
+        "left": 18,
+        "right": 0
+      },
+      "min_margin": 0,
+      "edge_touch": 1,
+      "size": [
+        456,
+        416
+      ]
+    },
+    "new": {
+      "fg_pct": 17.26,
+      "margin_px": {
+        "top": 34,
+        "bottom": 33,
+        "left": 50,
+        "right": 63
+      },
+      "min_margin": 33,
+      "edge_touch": 0,
+      "size": [
+        456,
+        416
+      ]
+    },
+    "old_sha": "f5ee969e55fcd0c1ffd7402a2cbcaa267210b468f245ca164bd28bc6dcb2b4c3",
+    "new_sha": "844effde8830f79652fdb41d2701b27f1be82c1673998665561f3fbc7abd6d86"
+  },
+  "d225": {
+    "old": {
+      "fg_pct": 36.74,
+      "margin_px": {
+        "top": 0,
+        "bottom": 0,
+        "left": 2,
+        "right": 61
+      },
+      "min_margin": 0,
+      "edge_touch": 1,
+      "size": [
+        456,
+        416
+      ]
+    },
+    "new": {
+      "fg_pct": 16.03,
+      "margin_px": {
+        "top": 34,
+        "bottom": 37,
+        "left": 96,
+        "right": 96
+      },
+      "min_margin": 34,
+      "edge_touch": 0,
+      "size": [
+        456,
+        416
+      ]
+    },
+    "old_sha": "d17fada4863a5523dc01498a44a6c02e39dc7b04ee8acfa602a8617abc768b96",
+    "new_sha": "0525b625846d9b00fb0b90024b0f6a42549f54932735300acdbecf5a4de76cdd"
+  },
+  "d315": {
+    "old": {
+      "fg_pct": 31.89,
+      "margin_px": {
+        "top": 0,
+        "bottom": 0,
+        "left": 46,
+        "right": 71
+      },
+      "min_margin": 0,
+      "edge_touch": 1,
+      "size": [
+        456,
+        416
+      ]
+    },
+    "new": {
+      "fg_pct": 17.7,
+      "margin_px": {
+        "top": 33,
+        "bottom": 33,
+        "left": 122,
+        "right": 95
+      },
+      "min_margin": 33,
+      "edge_touch": 0,
+      "size": [
+        456,
+        416
+      ]
+    },
+    "old_sha": "fe75401ccb31ac2d43693d430e8eb91c254e9bba04e100bf965ff1b54f04ec07",
+    "new_sha": "860a3dc6a6f90b464c90966d3dbb2bd600a4e6edddd66d20504bd4553d89887f"
+  }
+}

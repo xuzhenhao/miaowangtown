@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 """
 M2.2 — Export orthographic Depth / Camera-Normal / part-semantic Mask
-for all 8 directions (pitch=35°) from frozen master_cat.blend (read-only).
+for selected directions (pitch=35°) from frozen master_cat.blend (read-only).
 
 Does NOT mutate topology / UV / blend on disk.
 Fixed seed metadata written for downstream SDXL generation.
+
+CLI (after blender `--`):
+  --views d090,d225,d315   only export these dirs (default: all DIRECTIONS)
+  --fit-margin 0.08        auto zoom-out + recenter so hi canvas keeps margin
 """
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import math
@@ -16,9 +21,9 @@ from pathlib import Path
 
 import bpy
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
-ROOT = Path("/workspace/miaowangtown")
+ROOT = Path(__file__).resolve().parents[2]
 MASTER_DIR = ROOT / "art" / "master_cat"
 OUT_CTRL = ROOT / "cats" / "miemie" / "identity_v1" / "control_views"
 VAL_DIR = ROOT / "docs" / "validation" / "m2_2_8dir" / "control_maps"
@@ -27,8 +32,8 @@ PITCH_DEG = 35.0
 # Match M2.1 / validate_master logical projection for d045; reuse for all yaws.
 GW, GH = 114, 104
 SS = 4  # hi = 456 x 416; pad later to 768 square contact if needed
-S_LOG = 0.0040
-ORIG_LOG = (52.7, 94.0)
+S_LOG_DEFAULT = 0.0040
+ORIG_LOG_DEFAULT = (52.7, 94.0)
 SEED = 20261029
 
 DIRECTIONS = {
@@ -56,6 +61,10 @@ PART_COLORS = {
     "eye": (0, 255, 255),
 }
 
+# Degenerate triangle cull (projected hi-pixel space)
+MIN_TRI_AREA_PX2 = 0.5
+MAX_EDGE_RATIO = 40.0
+
 
 def get_camera_basis(yaw_deg: float, pitch_deg: float = PITCH_DEG):
     pitch = math.radians(pitch_deg)
@@ -82,21 +91,67 @@ def compute_uv_hash(mesh) -> str:
 def classify_vertex_part(co: np.ndarray) -> str:
     """Coarse anatomical part from world coords (Basis rest). X>0 = anatomical Right."""
     x, y, z = float(co[0]), float(co[1]), float(co[2])
-    # Tail: behind and lowish
     if y < -0.12 and z < 0.28:
         return "tail"
-    # Legs: low Z
     if z < 0.14:
         if y >= 0.02:
             return "leg_FR" if x >= 0 else "leg_FL"
         return "leg_BR" if x >= 0 else "leg_BL"
-    # Head
     if z > 0.28 and y > 0.05:
         return "head"
     return "torso"
 
 
-def raster_view(yaw_deg: float, body_mesh, body_vs, eye_meshes) -> dict:
+def compute_fit(body_vs: np.ndarray, yaw_deg: float, fit_margin: float):
+    """Auto amplify S_LOG (zoom out) + translate ORIG_LOG so hi canvas keeps margin."""
+    e_u, e_v, _e_w = get_camera_basis(yaw_deg)
+    u = body_vs @ e_u
+    v = body_vs @ e_v
+    umin, umax = float(u.min()), float(u.max())
+    vmin, vmax = float(v.min()), float(v.max())
+    du = max(umax - umin, 1e-9)
+    dv = max(vmax - vmin, 1e-9)
+    avail_w = GW * (1.0 - 2.0 * fit_margin)
+    avail_h = GH * (1.0 - 2.0 * fit_margin)
+    if avail_w <= 1e-6 or avail_h <= 1e-6:
+        raise RuntimeError(f"fit_margin={fit_margin} leaves no content area")
+    s_log = max(du / avail_w, dv / avail_h)
+    # Never zoom IN past the historical default (would crop worse).
+    s_log = max(s_log, S_LOG_DEFAULT)
+    cu = 0.5 * (umin + umax)
+    cv = 0.5 * (vmin + vmax)
+    orig0 = (GW * 0.5) - (cu / s_log) - 0.35
+    orig1 = (GH * 0.5) + (cv / s_log) - 0.35
+    return float(s_log), (float(orig0), float(orig1)), {
+        "bbox_u": [umin, umax],
+        "bbox_v": [vmin, vmax],
+        "avail_logical": [avail_w, avail_h],
+    }
+
+
+def _tri_degenerate(x0, y0, x1, y1, x2, y2) -> bool:
+    area = abs((x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0)) * 0.5
+    if area < MIN_TRI_AREA_PX2:
+        return True
+    e01 = math.hypot(x1 - x0, y1 - y0)
+    e12 = math.hypot(x2 - x1, y2 - y1)
+    e20 = math.hypot(x0 - x2, y0 - y2)
+    edges = sorted([e01, e12, e20])
+    if edges[0] < 1e-9:
+        return True
+    if edges[2] / edges[0] > MAX_EDGE_RATIO:
+        return True
+    return False
+
+
+def raster_view(
+    yaw_deg: float,
+    body_mesh,
+    body_vs,
+    eye_meshes,
+    s_log: float = S_LOG_DEFAULT,
+    orig_log: tuple[float, float] = ORIG_LOG_DEFAULT,
+) -> dict:
     e_u, e_v, e_w = get_camera_basis(yaw_deg)
     hi_w, hi_h = GW * SS, GH * SS
     zbuf = np.full((hi_h, hi_w), -1e9, dtype=np.float64)
@@ -106,13 +161,14 @@ def raster_view(yaw_deg: float, body_mesh, body_vs, eye_meshes) -> dict:
     alpha = np.zeros((hi_h, hi_w), dtype=bool)
     clay = np.zeros((hi_h, hi_w, 3), dtype=np.uint8)
 
-    px = (ORIG_LOG[0] + (body_vs @ e_u) / S_LOG + 0.35) * SS
-    py = (ORIG_LOG[1] - (body_vs @ e_v) / S_LOG + 0.35) * SS
+    px = (orig_log[0] + (body_vs @ e_u) / s_log + 0.35) * SS
+    py = (orig_log[1] - (body_vs @ e_v) / s_log + 0.35) * SS
     pw = body_vs @ e_w
 
-    # Precompute vertex parts
     v_parts = [classify_vertex_part(body_vs[i]) for i in range(len(body_vs))]
 
+    culled_tris = 0
+    drawn_tris = 0
     body_mesh.calc_loop_triangles()
     for lt in body_mesh.loop_triangles:
         i0, i1, i2 = lt.vertices
@@ -120,14 +176,18 @@ def raster_view(yaw_deg: float, body_mesh, body_vs, eye_meshes) -> dict:
         fn = np.cross(v1 - v0, v2 - v0)
         nlen = np.linalg.norm(fn)
         if nlen < 1e-12:
+            culled_tris += 1
             continue
         fn = fn / nlen
         ndotv = float(fn @ e_w)
         if ndotv <= 0.0:
             continue
-        x0, y0, z0 = px[i0], py[i0], pw[i0]
-        x1, y1, z1 = px[i1], py[i1], pw[i1]
-        x2, y2, z2 = px[i2], py[i2], pw[i2]
+        x0, y0, z0 = float(px[i0]), float(py[i0]), float(pw[i0])
+        x1, y1, z1 = float(px[i1]), float(py[i1]), float(pw[i1])
+        x2, y2, z2 = float(px[i2]), float(py[i2]), float(pw[i2])
+        if _tri_degenerate(x0, y0, x1, y1, x2, y2):
+            culled_tris += 1
+            continue
         xmin = max(0, int(math.floor(min(x0, x1, x2))))
         xmax = min(hi_w - 1, int(math.ceil(max(x0, x1, x2))))
         ymin = max(0, int(math.floor(min(y0, y1, y2))))
@@ -136,6 +196,7 @@ def raster_view(yaw_deg: float, body_mesh, body_vs, eye_meshes) -> dict:
             continue
         denom = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2)
         if abs(denom) < 1e-10:
+            culled_tris += 1
             continue
         yy, xx = np.meshgrid(
             np.arange(ymin, ymax + 1) + 0.5,
@@ -150,13 +211,10 @@ def raster_view(yaw_deg: float, body_mesh, body_vs, eye_meshes) -> dict:
         vis = (w0 >= -1e-4) & (w1 >= -1e-4) & (w2 >= -1e-4) & (z_pix >= sub_z)
         if not np.any(vis):
             continue
-        # Camera-space normal (OpenGL: +X right, +Y up, +Z toward camera = e_w)
         n_cam = np.array([float(fn @ e_u), float(fn @ e_v), float(fn @ e_w)], dtype=np.float64)
-        # Majority vote part from vertices
         votes = [v_parts[i0], v_parts[i1], v_parts[i2]]
         part = max(set(votes), key=votes.count)
         col = PART_COLORS[part]
-        # Soft clay shade
         shade = 0.35 + 0.65 * max(0.0, ndotv)
         clay_col = np.array([int(180 * shade), int(170 * shade), int(160 * shade)], dtype=np.uint8)
 
@@ -166,12 +224,12 @@ def raster_view(yaw_deg: float, body_mesh, body_vs, eye_meshes) -> dict:
         part_rgb[ymin : ymax + 1, xmin : xmax + 1][vis] = col
         clay[ymin : ymax + 1, xmin : xmax + 1][vis] = clay_col
         alpha[ymin : ymax + 1, xmin : xmax + 1][vis] = True
+        drawn_tris += 1
 
-    # Eyes overlay as cyan mask (for ControlNet guidance, not albedo)
     for eye_mesh, eye_vs in eye_meshes:
         eye_mesh.calc_loop_triangles()
-        epx = (ORIG_LOG[0] + (eye_vs @ e_u) / S_LOG + 0.35) * SS
-        epy = (ORIG_LOG[1] - (eye_vs @ e_v) / S_LOG + 0.35) * SS
+        epx = (orig_log[0] + (eye_vs @ e_u) / s_log + 0.35) * SS
+        epy = (orig_log[1] - (eye_vs @ e_v) / s_log + 0.35) * SS
         epw = eye_vs @ e_w
         for lt in eye_mesh.loop_triangles:
             i0, i1, i2 = lt.vertices
@@ -179,9 +237,12 @@ def raster_view(yaw_deg: float, body_mesh, body_vs, eye_meshes) -> dict:
             fn = np.cross(v1 - v0, v2 - v0)
             if float(fn @ e_w) <= 0:
                 continue
-            x0, y0, z0 = epx[i0], epy[i0], epw[i0]
-            x1, y1, z1 = epx[i1], epy[i1], epw[i1]
-            x2, y2, z2 = epx[i2], epy[i2], epw[i2]
+            x0, y0, z0 = float(epx[i0]), float(epy[i0]), float(epw[i0])
+            x1, y1, z1 = float(epx[i1]), float(epy[i1]), float(epw[i1])
+            x2, y2, z2 = float(epx[i2]), float(epy[i2]), float(epw[i2])
+            if _tri_degenerate(x0, y0, x1, y1, x2, y2):
+                culled_tris += 1
+                continue
             xmin = max(0, int(math.floor(min(x0, x1, x2))))
             xmax = min(hi_w - 1, int(math.ceil(max(x0, x1, x2))))
             ymin = max(0, int(math.floor(min(y0, y1, y2))))
@@ -205,11 +266,9 @@ def raster_view(yaw_deg: float, body_mesh, body_vs, eye_meshes) -> dict:
             if not np.any(vis):
                 continue
             part_rgb[ymin : ymax + 1, xmin : xmax + 1][vis] = PART_COLORS["eye"]
-            # do not overwrite body depth/normal for eyes much — mark alpha
             alpha[ymin : ymax + 1, xmin : xmax + 1][vis] = True
             sub_z[vis] = np.maximum(sub_z[vis], z_pix[vis])
 
-    # Normalize depth to 0..1 within visible (far=0 near=1 style for ControlNet depth)
     depth_u8 = np.zeros((hi_h, hi_w), dtype=np.uint8)
     if np.any(alpha):
         dvis = depth[alpha]
@@ -219,7 +278,6 @@ def raster_view(yaw_deg: float, body_mesh, body_vs, eye_meshes) -> dict:
         norm[alpha] = (depth[alpha] - dmin) / span
         depth_u8 = np.clip(norm * 255.0, 0, 255).astype(np.uint8)
 
-    # Camera normal → RGB
     nrgb = np.zeros((hi_h, hi_w, 3), dtype=np.uint8)
     if np.any(alpha):
         n = normal_cam.copy()
@@ -229,7 +287,6 @@ def raster_view(yaw_deg: float, body_mesh, body_vs, eye_meshes) -> dict:
         enc = n * 0.5 + 0.5
         nrgb[alpha] = np.clip(enc[alpha] * 255.0, 0, 255).astype(np.uint8)
 
-    # Alpha RGBA clay
     clay_rgba = np.zeros((hi_h, hi_w, 4), dtype=np.uint8)
     clay_rgba[:, :, :3] = clay
     clay_rgba[:, :, 3] = np.where(alpha, 255, 0).astype(np.uint8)
@@ -245,6 +302,10 @@ def raster_view(yaw_deg: float, body_mesh, body_vs, eye_meshes) -> dict:
         "clay_rgba": clay_rgba,
         "alpha": alpha,
         "hi_size": (hi_w, hi_h),
+        "culled_tris": culled_tris,
+        "drawn_tris": drawn_tris,
+        "s_log": s_log,
+        "orig_log": list(orig_log),
     }
 
 
@@ -255,7 +316,43 @@ def pad_to_square(im: Image.Image, size: int = 768, fill=(0, 0, 0, 0)) -> Image.
     return canvas
 
 
+def parse_args(argv: list[str] | None = None):
+    p = argparse.ArgumentParser(description="Export M2.2 control views")
+    p.add_argument(
+        "--views",
+        default="",
+        help="Comma-separated direction ids (default: all). Example: d090,d225,d315",
+    )
+    p.add_argument(
+        "--fit-margin",
+        type=float,
+        default=0.0,
+        help="If >0, auto zoom-out/recenter so hi canvas keeps this fraction blank on each side",
+    )
+    return p.parse_args(argv)
+
+
+def _strip_blender_argv() -> list[str]:
+    """Blender passes script args after `--`; rebuild argv for argparse."""
+    if "--" in sys.argv:
+        return sys.argv[sys.argv.index("--") + 1 :]
+    # When run outside blender, drop the script name.
+    return sys.argv[1:]
+
+
 def main() -> int:
+    args = parse_args(_strip_blender_argv())
+    if args.views.strip():
+        view_names = [v.strip() for v in args.views.split(",") if v.strip()]
+        for v in view_names:
+            if v not in DIRECTIONS:
+                raise RuntimeError(f"unknown view {v}; known={list(DIRECTIONS)}")
+    else:
+        view_names = list(DIRECTIONS.keys())
+    fit_margin = float(args.fit_margin)
+    if fit_margin < 0 or fit_margin >= 0.49:
+        raise RuntimeError(f"fit-margin out of range: {fit_margin}")
+
     OUT_CTRL.mkdir(parents=True, exist_ok=True)
     VAL_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -289,28 +386,46 @@ def main() -> int:
         evs = np.array([list(eev.matrix_world @ v.co) for v in em.vertices], dtype=np.float64)
         eye_meshes.append((em, evs))
 
+    # Merge prior report so partial exports do not wipe other directions.
+    prev_meta: dict = {}
+    report_path = OUT_CTRL / "export_report.json"
+    if report_path.is_file():
+        try:
+            prev_meta = json.loads(report_path.read_text())
+        except Exception:
+            prev_meta = {}
+
     meta = {
         "ok": True,
         "uv_hash": measured,
         "uv_hash_unchanged": True,
         "pitch_deg": PITCH_DEG,
         "seed": SEED,
-        "scale_m_per_logical_px": S_LOG,
-        "origin_logical_px": list(ORIG_LOG),
+        "scale_m_per_logical_px": S_LOG_DEFAULT,
+        "origin_logical_px": list(ORIG_LOG_DEFAULT),
         "logical_grid": [GW, GH],
         "supersample": SS,
         "hi_size": [GW * SS, GH * SS],
         "sdxl_canvas": 768,
-        "directions": {},
+        "directions": dict(prev_meta.get("directions") or {}),
         "complementary": COMPLEMENTARY,
         "part_colors": PART_COLORS,
+        "exported_this_run": view_names,
+        "fit_margin_cli": fit_margin,
         "note": "Control maps only. Complementary albedo must come from locked commercial SDXL stack; never procedural default.",
     }
 
-    sheet_cells = []
-    for dname, yaw in DIRECTIONS.items():
-        print(f"export {dname} yaw={yaw}", flush=True)
-        r = raster_view(yaw, mesh, vs, eye_meshes)
+    for dname in view_names:
+        yaw = DIRECTIONS[dname]
+        if fit_margin > 0:
+            s_log, orig_log, fit_info = compute_fit(vs, yaw, fit_margin)
+        else:
+            s_log, orig_log, fit_info = S_LOG_DEFAULT, ORIG_LOG_DEFAULT, {}
+        print(
+            f"export {dname} yaw={yaw} s_log={s_log:.6f} orig={orig_log} fit_margin={fit_margin}",
+            flush=True,
+        )
+        r = raster_view(yaw, mesh, vs, eye_meshes, s_log=s_log, orig_log=orig_log)
         ddir = OUT_CTRL / dname
         ddir.mkdir(parents=True, exist_ok=True)
         depth_im = Image.fromarray(r["depth_u8"], mode="L")
@@ -321,22 +436,37 @@ def main() -> int:
         normal_im.save(ddir / "normal.png")
         mask_im.save(ddir / "part_mask.png")
         clay_im.save(ddir / "clay.png")
-        # 768 padded for SDXL ControlNet
         pad_to_square(depth_im.convert("RGB"), 768, (0, 0, 0)).save(ddir / "depth_768.png")
         pad_to_square(normal_im, 768, (128, 128, 255)).save(ddir / "normal_768.png")
         pad_to_square(mask_im, 768, (0, 0, 0, 0)).save(ddir / "part_mask_768.png")
         pad_to_square(clay_im, 768, (0, 0, 0, 0)).save(ddir / "clay_768.png")
-        # Also copy to validation
+
         vdir = VAL_DIR / dname
         vdir.mkdir(parents=True, exist_ok=True)
-        for fn in ["depth.png", "normal.png", "part_mask.png", "clay.png"]:
+        for fn in [
+            "depth.png",
+            "normal.png",
+            "part_mask.png",
+            "clay.png",
+            "depth_768.png",
+            "normal_768.png",
+            "part_mask_768.png",
+            "clay_768.png",
+        ]:
             Image.open(ddir / fn).save(vdir / fn)
+
         meta["directions"][dname] = {
             "yaw_deg": yaw,
             "pitch_deg": PITCH_DEG,
             "is_complementary": dname in COMPLEMENTARY,
             "is_m2_1_anchor": dname == "d045",
             "visible_px": int(r["alpha"].sum()),
+            "refit_margin": fit_margin if fit_margin > 0 else 0.0,
+            "culled_tris": int(r["culled_tris"]),
+            "drawn_tris": int(r["drawn_tris"]),
+            "scale_m_per_logical_px": float(r["s_log"]),
+            "origin_logical_px": list(r["orig_log"]),
+            "fit_info": fit_info,
             "paths": {
                 "depth": str((ddir / "depth.png").relative_to(ROOT)),
                 "normal": str((ddir / "normal.png").relative_to(ROOT)),
@@ -345,20 +475,32 @@ def main() -> int:
                 "normal_768": str((ddir / "normal_768.png").relative_to(ROOT)),
             },
         }
-        # contact sheet cell
-        cell = Image.new("RGB", (456 + 8, 416 * 2 + 40), (24, 26, 32))
-        cell.paste(Image.fromarray(r["depth_u8"]).convert("RGB"), (4, 28))
-        cell.paste(normal_im, (4, 28 + 416))
-        dr = ImageDraw.Draw(cell)
-        dr.text((8, 6), f"{dname} yaw={yaw} depth|normal", fill=(220, 220, 230))
-        sheet_cells.append(cell)
 
-    # Contact sheet 4x2
-    cw, ch = sheet_cells[0].size
-    sheet = Image.new("RGB", (cw * 4, ch * 2), (18, 20, 26))
-    for i, cell in enumerate(sheet_cells):
-        sheet.paste(cell, ((i % 4) * cw, (i // 4) * ch))
-    sheet.save(VAL_DIR / "m2_2_control_depth_normal_sheet.png")
+    # Rebuild contact sheet from on-disk files (does not re-rasterize locked PASS views).
+    sheet_cells = []
+    for dname, yaw in DIRECTIONS.items():
+        ddir = OUT_CTRL / dname
+        depth_p = ddir / "depth.png"
+        normal_p = ddir / "normal.png"
+        if not depth_p.is_file() or not normal_p.is_file():
+            continue
+        depth_im = Image.open(depth_p).convert("RGB")
+        normal_im = Image.open(normal_p).convert("RGB")
+        cell = Image.new("RGB", (456 + 8, 416 * 2 + 40), (24, 26, 32))
+        cell.paste(depth_im.resize((456, 416)), (4, 28))
+        cell.paste(normal_im.resize((456, 416)), (4, 28 + 416))
+        dr = ImageDraw.Draw(cell)
+        tag = "REFIT" if dname in view_names and fit_margin > 0 else ""
+        dr.text((8, 6), f"{dname} yaw={yaw} depth|normal {tag}", fill=(220, 220, 230))
+        sheet_cells.append(cell)
+    if sheet_cells:
+        cw, ch = sheet_cells[0].size
+        cols = 4
+        rows = (len(sheet_cells) + cols - 1) // cols
+        sheet = Image.new("RGB", (cw * cols, ch * rows), (18, 20, 26))
+        for i, cell in enumerate(sheet_cells):
+            sheet.paste(cell, ((i % cols) * cw, (i // cols) * ch))
+        sheet.save(VAL_DIR / "m2_2_control_depth_normal_sheet.png")
 
     (OUT_CTRL / "export_report.json").write_text(
         json.dumps(meta, indent=2, ensure_ascii=False) + "\n"
@@ -366,7 +508,17 @@ def main() -> int:
     (VAL_DIR / "export_report.json").write_text(
         json.dumps(meta, indent=2, ensure_ascii=False) + "\n"
     )
-    print(json.dumps({"ok": True, "dirs": list(DIRECTIONS), "uv_hash": measured}, indent=2))
+    print(
+        json.dumps(
+            {
+                "ok": True,
+                "exported": view_names,
+                "fit_margin": fit_margin,
+                "uv_hash": measured,
+            },
+            indent=2,
+        )
+    )
     ev.to_mesh_clear()
     return 0
 
